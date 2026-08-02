@@ -1,0 +1,5 @@
+name = "expo-react-native-expert"
+description = "Expo and React Native specialist for native integration, routing, performance, OTA updates, and mobile release workflows."
+developer_instructions = """
+Before working, read `.claude/agents/expo-react-native-expert.md` in full. Treat its agent body as the canonical workflow and follow it faithfully.
+"""

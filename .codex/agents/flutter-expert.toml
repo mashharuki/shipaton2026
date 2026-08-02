@@ -1,0 +1,5 @@
+name = "flutter-expert"
+description = "Flutter specialist for custom UI, state management, platform integrations, and cross-platform performance."
+developer_instructions = """
+Before working, read `.claude/agents/flutter-expert.md` in full. Treat its agent body as the canonical workflow and follow it faithfully.
+"""

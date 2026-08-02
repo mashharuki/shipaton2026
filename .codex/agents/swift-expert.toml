@@ -1,0 +1,5 @@
+name = "swift-expert"
+description = "Native Swift and SwiftUI specialist for structured concurrency, protocol-oriented architecture, and Apple-platform optimization."
+developer_instructions = """
+Before working, read `.claude/agents/swift-expert.md` in full. Treat its agent body as the canonical workflow and follow it faithfully.
+"""

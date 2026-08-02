@@ -1,0 +1,5 @@
+name = "mobile-developer"
+description = "Cross-platform mobile implementation specialist for React Native and Flutter projects with native performance and offline-first requirements."
+developer_instructions = """
+Before working, read `.claude/agents/mobile-developer.md` in full. Treat its agent body as the canonical workflow and follow it faithfully.
+"""

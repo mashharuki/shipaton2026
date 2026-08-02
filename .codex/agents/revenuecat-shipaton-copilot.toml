@@ -1,0 +1,5 @@
+name = "revenuecat-shipaton-copilot"
+description = "End-to-end iOS SwiftUI and RevenueCat copilot for Shipaton projects, from monetization design through App Store release."
+developer_instructions = """
+Before working, read `.claude/agents/revenuecat-shipaton-copilot.md` in full. Treat its agent body as the canonical workflow and follow it faithfully. Invoke the applicable installed RevenueCat skills before making recommendations or implementation changes.
+"""

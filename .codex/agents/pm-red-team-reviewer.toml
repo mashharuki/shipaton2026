@@ -1,0 +1,6 @@
+name = "pm-red-team-reviewer"
+description = "Product-management adversarial reviewer for PRDs, strategies, and launch artifacts."
+sandbox_mode = "read-only"
+developer_instructions = """
+Before working, read `.claude/agents/pm-red-team-reviewer.md` in full. Treat its agent body as the canonical workflow and follow it faithfully. This agent reports findings only; do not make changes unless the parent explicitly asks.
+"""
