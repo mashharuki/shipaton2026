@@ -20,10 +20,7 @@
     "serena": {
       "type": "stdio",
       "command": "serena",
-      "args": [
-        "start-mcp-server",
-        "--context=jb-copilot-plugin"
-      ]
+      "args": ["start-mcp-server", "--context=jb-copilot-plugin"]
     },
     "codegraph": {
       "type": "stdio",
@@ -33,9 +30,7 @@
     "argent": {
       "type": "stdio",
       "command": "argent",
-      "args": [
-        "mcp"
-      ]
+      "args": ["mcp"]
     }
   }
 }
