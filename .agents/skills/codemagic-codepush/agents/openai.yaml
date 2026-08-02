@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codemagic CodePush"
+  short_description: "Set up OTA updates for React Native iOS and Android apps"
+  default_prompt: "Use $codemagic-codepush to configure CodePush with Codemagic for both iOS and Android."
