@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.codex/hooks/log-session.sh\"",
+            "command": "pnpm run format && pnpm run check && pnpm run knip && bash \"$(git rev-parse --show-toplevel)/.codex/hooks/log-session.sh\"",
             "timeout": 5
           }
         ]

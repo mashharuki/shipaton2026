@@ -171,7 +171,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "serena-hooks cleanup --client=claude-code"
+            "command": "pnpm run format && pnpm run check && pnpm run knip && serena-hooks cleanup --client=claude-code"
           }
         ]
       }
