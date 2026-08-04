@@ -42,22 +42,6 @@ describe("x-api-key auth", () => {
 });
 
 describe("route stubs", () => {
-  it("GET /v1/datasets/:name returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/datasets/timetable",
-      authed(),
-    );
-    expect(res.status).toBe(501);
-  });
-
-  it("GET /v1/train-status/:railwayId returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/train-status/RAIL_CHUO",
-      authed(),
-    );
-    expect(res.status).toBe(501);
-  });
-
   it("PUT /v1/push-registrations/:id returns 501", async () => {
     const res = await SELF.fetch(
       "http://localhost/v1/push-registrations/push-1",

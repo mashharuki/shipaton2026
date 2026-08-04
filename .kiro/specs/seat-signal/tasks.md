@@ -57,7 +57,7 @@
   - _Requirements: 3.1, 5.8, 15.3_
 
 - [ ] 3. バックエンド API・集約・通知
-- [ ] 3.1 (P) データセット配信 API を実装する
+- [x] 3.1 (P) データセット配信 API を実装する
   - 版指定付きの取得と、最新版と一致する場合の notModified 応答を実装する
   - KV に投入済みの payload を配信する
   - 完了条件: 統合テストで「版更新時に payload が返り、一致時に notModified となる」ことが検証される
@@ -65,7 +65,7 @@
   - _Boundary: Datasets API_
   - _Requirements: 5.8, 15.2_
 
-- [ ] 3.2 (P) 運行情報プロキシ API を実装する
+- [x] 3.2 (P) 運行情報プロキシ API を実装する
   - ODPT からの運行情報取得（トークンはサーバ側のみ）と 60 秒 KV キャッシュを実装する
   - ODPT 障害時はキャッシュ済みの値を stale フラグ付きで返す
   - 完了条件: 統合テストでキャッシュヒット・stale フォールバックの両分岐が検証される
@@ -404,3 +404,28 @@
   satisfy requirements.md 5.8's "対象区間の全提供時間帯"; no weekend data is seeded since weekend is
   outside the approved "平日朝夕" MVP scope cut. `correction.json` seeds `stats: []` (no feedback
   exists pre-launch) rather than fabricated data.
+- **3.1**: Implemented exactly per the 2.3 storage convention above — `datasets.ts` reads
+  `dataset:{name}` from `STATUS_CACHE`, 404s if absent, and compares `?since=` to the stored
+  `version` for the `notModified`/`payload` branch. No spec conflict, no scope beyond the task text.
+- **3.2**: requirements.md/design.md never define (a) a mapping from our internal `railwayId` (single-
+  line MVP scope, `RAIL_CHUO` per 2.3) to ODPT's own `odpt.Railway:*` resource identifiers, or (b)
+  ODPT's `odpt:TrainInformation` response shape. Resolved locally in
+  `apps/backend/src/services/odpt-client.ts` rather than blocking: a small `ODPT_RAILWAY_IDS` map
+  (currently just `RAIL_CHUO`) — any other `railwayId` short-circuits to 404 `not_found` without
+  calling ODPT; `odpt:trainInformationStatus.ja` text is pattern-matched for 平常/見合わせ/運休, with
+  delay minutes parsed from `odpt:trainInformationText` via `/(\d+)\s*分/`. Revisit this mapping and
+  the field-matching heuristic against a real ODPT response before production traffic — it was never
+  exercised against the live API, only against mocked `fetch`. Cache design uses two `STATUS_CACHE`
+  keys per railway: `train-status:fresh:{id}` (60s TTL, drives the cache-hit branch) and
+  `train-status:last:{id}` (no TTL, last-known-good value served with `stale: true` on ODPT failure)
+  — needed because a single 60s-TTL key can't serve both "skip ODPT within 60s" and "fall back after
+  the entry expires or ODPT errors" at once. Error responses reuse shared's 5-entry `ErrorCode` enum
+  (no dedicated not-found code exists): `http_error` for 404/502, `unknown` for the defensive 500
+  catch-all. Gotcha for anyone adding Workers-runtime fetch mocks: build the mocked `Response` inside
+  `vi.spyOn(globalThis,"fetch").mockImplementation(async () => ...)`, not via a `Response` built
+  earlier and handed to `mockResolvedValue` — a pre-built one belongs to the outer test's IoContext
+  and throws ("Cannot perform I/O on behalf of a different request") when its body is read inside the
+  `SELF.fetch`-triggered request. Also: KV state is **not** isolated per `it()` in this project's
+  `@cloudflare/vitest-pool-workers` config — tests must explicitly clear the keys they depend on in
+  `beforeEach` (see `apps/backend/test/routes/datasets.test.ts` / `train-status.test.ts`) or state
+  leaks across tests in the same file.
