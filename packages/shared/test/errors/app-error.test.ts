@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createAppError, isAppError, toAppError } from "./app-error";
+import {
+  createAppError,
+  isAppError,
+  toAppError,
+} from "../../src/errors/app-error";
 
 describe("createAppError", () => {
   it("should omit cause when not provided", () => {

@@ -10,10 +10,5 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": [
-    "src",
-    "test/result.test.ts",
-    "test/utils/time.test.ts",
-    "test/utils/validation.test.ts"
-  ]
+  "include": ["src", "test"]
 }
