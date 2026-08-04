@@ -1,31 +1,41 @@
 # Suggested Commands
 
-Run from repo root unless noted. This is a pnpm repo without real workspace linking (see
-`mem:tech_stack`), so most app-specific commands must be run with `pnpm --dir apps/<app> <cmd>`
-or by `cd`-ing into the app dir — do not assume `pnpm -F frontend <cmd>` filtering works since
-`pnpm-workspace.yaml` has no package globs.
+Run from repo root unless noted. `pnpm-workspace.yaml` now has real `packages:` globs
+(`apps/*`, `packages/*` — see `mem:tech_stack`), so `pnpm --filter <workspace-name> <cmd>` /
+`pnpm -F <workspace-name> <cmd>` work directly — prefer this over `cd`/`pnpm --dir`. Workspace
+names are the `name` field in each package.json: `shared`, `frontend`, `backend`.
 
 ## Root
 - `pnpm format` — Biome format --write, whole repo.
 - `pnpm check` — Biome check (lint), whole repo.
 - `pnpm knip` — find unused files/exports/deps.
+- `pnpm --filter shared test` / `pnpm --filter shared run typecheck` — the only workspace with a
+  real test suite today (vitest). Run this after any change to `packages/shared`.
+- `pnpm --filter backend run typecheck`, `pnpm --filter frontend run typecheck` — per-workspace
+  typecheck (also what CI runs in the typecheck matrix job).
 
 ## Frontend (`apps/frontend`, Expo)
-- `pnpm --dir apps/frontend start` — Expo dev server.
-- `pnpm --dir apps/frontend ios` / `android` / `web` — platform-targeted dev server.
-- `pnpm --dir apps/frontend lint` — `expo lint`.
-- `pnpm --dir apps/frontend reset-project` — runs `scripts/reset-project.js` (Expo template
+- `pnpm --filter frontend start` — Expo dev server.
+- `pnpm --filter frontend ios` / `android` / `web` — platform-targeted dev server.
+- `pnpm --filter frontend lint` — `expo lint`.
+- `pnpm --filter frontend reset-project` — runs `scripts/reset-project.js` (Expo template
   reset script — destructive, only if starting the template over).
 - Per repo-wide argent rule set, prefer `mcp__argent__*` MCP tools (if available) over raw
   `xcrun`/`adb`/simulator commands for any iOS simulator / Android emulator interaction with this
   app — check `.claude/rules/argent.md` availability_check before using.
 
 ## Backend (`apps/backend`, Cloudflare Workers/Hono)
-- `pnpm --dir apps/backend dev` — `wrangler dev` local server.
-- `pnpm --dir apps/backend deploy` — `wrangler deploy --minify` (deploys to Cloudflare — treat as
+- `pnpm --filter backend dev` — `wrangler dev` local server.
+- `pnpm --filter backend deploy` — `wrangler deploy --minify` (deploys to Cloudflare — treat as
   a real-world side-effecting action, confirm with user before running).
-- `pnpm --dir apps/backend cf-typegen` — regenerates `CloudflareBindings` types from
+- `pnpm --filter backend cf-typegen` — regenerates `CloudflareBindings` types from
   `wrangler.jsonc` bindings; re-run after editing bindings in `wrangler.jsonc`.
+
+## CI parity (what `.github/workflows/ci.yaml` runs on every push/PR to main)
+1. `pnpm check` (Biome, whole repo)
+2. `pnpm --filter <shared|backend|frontend> run typecheck` (matrix)
+3. `pnpm --filter <shared|backend|frontend> --if-present run test` (matrix; only `shared` has a
+   test script today, others are silently skipped)
 
 ## Darwin-specific notes
 - Use `startdocker` to start Docker if a task needs it and Docker isn't running (per

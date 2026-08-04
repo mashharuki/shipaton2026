@@ -4,21 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A Cloudflare Workers backend built with [Hono](https://hono.dev). Currently a fresh scaffold (`src/index.ts` only has the default `Hello Hono!` route) — there is no routing structure, data layer, or bindings configured yet.
+A Cloudflare Workers backend built with [Hono](https://hono.dev). Currently a fresh scaffold (`src/index.ts` only has the default `Hello Hono!` route) — there is no routing structure, data layer, or bindings configured yet. The product this will eventually serve is **SeatSignal** (see root `CLAUDE.md` and `.kiro/specs/seat-signal/`); the backend implementation phase (Workers/D1/KV infra, API routes) hasn't started — `.kiro/specs/seat-signal/tasks.md` Phase 2/3 is the plan for it.
 
-This package lives inside the `shipaton2026` pnpm monorepo (`apps/backend`, sibling to `apps/frontend`, a React Native/Expo app). Formatting/linting (Biome) and unused-code checks (knip) are configured at the monorepo root, not here — run them from the repo root, not from `apps/backend`.
+This package lives inside the `shipaton2026` pnpm monorepo (`apps/backend`, sibling to `apps/frontend`, a React Native/Expo app, and `packages/shared`, a shared TS domain package). Formatting/linting (Biome) and unused-code checks (knip) are configured at the monorepo root, not here — run them from the repo root, not from `apps/backend`.
+
+`shared` (workspace package, `"shared": "workspace:*"` dep) is already available and should be the source of truth once routes are built: `packages/shared/src/schemas/api.schema.ts` and `dataset.schema.ts` define the intended request/response contracts, `packages/shared/src/errors/` provides `AppError`/`ErrorCode`, and `packages/shared/src/result.ts` provides the `Result` type — reuse these rather than redefining shapes locally.
 
 ## Commands
 
-Run from `apps/backend`:
+Run from repo root (workspace filtering works — `pnpm-workspace.yaml` has real globs):
 
 ```sh
-npm run dev         # wrangler dev — local dev server
-npm run deploy      # wrangler deploy --minify
-npm run cf-typegen  # regenerate CloudflareBindings types from wrangler.jsonc into worker-configuration.d.ts
+pnpm --filter backend dev          # wrangler dev — local dev server
+pnpm --filter backend deploy       # wrangler deploy --minify
+pnpm --filter backend cf-typegen   # regenerate CloudflareBindings types from wrangler.jsonc into worker-configuration.d.ts
+pnpm --filter backend run typecheck
 ```
 
-Run from the monorepo root (`/Users/harukikondo/git/shipaton2026`):
+Repo-wide:
 
 ```sh
 pnpm format   # biome format --write .
@@ -26,7 +29,7 @@ pnpm check    # biome check .
 pnpm knip     # find unused files/exports/deps across the monorepo
 ```
 
-There is no test runner configured for this package yet.
+There is no test runner configured for this package yet (CI's vitest matrix job uses `--if-present` and currently skips it — add a `test` script here once tests exist, per `.claude/rules/testing.md`).
 
 ## Architecture notes
 
