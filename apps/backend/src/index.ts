@@ -6,6 +6,7 @@ import { feedbackRoute } from "./routes/feedback";
 import { pushRegistrationsRoute } from "./routes/push-registrations";
 import { trainStatusRoute } from "./routes/train-status";
 
+// Honoインスタンスを生成
 const app = new OpenAPIHono<{ Bindings: CloudflareBindings }>();
 
 // x-api-key applies to all /v1/* routes (design.md line 504/507); /doc stays

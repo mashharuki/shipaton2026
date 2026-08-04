@@ -13,7 +13,7 @@ import {
   upsertCorrectionStats,
   upsertMetric,
   upsertPushRegistration,
-} from "./queries";
+} from "../../src/db/queries";
 
 declare global {
   namespace Cloudflare {
