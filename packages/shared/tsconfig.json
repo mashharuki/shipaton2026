@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["ESNext"],
+    "types": [],
+    "noEmit": true,
+    "isolatedModules": true
+  },
+  "include": [
+    "src",
+    "test/result.test.ts",
+    "test/utils/time.test.ts",
+    "test/utils/validation.test.ts"
+  ]
+}
