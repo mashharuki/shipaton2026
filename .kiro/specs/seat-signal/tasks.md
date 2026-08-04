@@ -34,7 +34,6 @@
   - 完了条件: PR 作成時にワークフローが起動し、lint・型チェック・テストの全ジョブがグリーンで完了する
   - _Requirements: 18.6_
 
-- [ ] 2. バックエンド基盤: 実行環境・データ基盤・API 骨格
 - [x] 2.1 Workers の実行バインディングと D1 データ基盤を構築する
   - D1・KV バインディング、Cron Trigger（日次・5 分毎）、シークレット（ODPT トークン・API 共有キー）を構成し、バインディング型を再生成する
   - D1 スキーマ（フィードバック・補正統計・誤差指標・分析イベント・通知登録）と、パラメタライズドクエリのみの型付きクエリ関数を実装する
@@ -380,7 +379,7 @@
   (line 240) says `apps/backend/src/index.ts` should end up with a `scheduled` export and CORS, but
   task 2.2's own bullets don't ask for either, and 2.2 explicitly freezes `index.ts` for all
   subsequent "API タスク" (`以後の API タスクは自分のルートモジュールのみを変更し、アプリ組立て
-  ファイルには触れない`). Checked every task in section 3 (3.1–3.8): **none currently claims
+ファイルには触れない`). Checked every task in section 3 (3.1–3.8): **none currently claims
   ownership of adding a `scheduled` export or CORS to `index.ts`.** This matters concretely because
   `wrangler.jsonc` already has daily/5-min Cron Triggers configured (task 2.1) with no handler to
   invoke them once deployed. Not fixed in 2.2 because it's outside that task's stated scope and
