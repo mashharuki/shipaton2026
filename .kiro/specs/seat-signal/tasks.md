@@ -35,7 +35,7 @@
   - _Requirements: 18.6_
 
 - [ ] 2. バックエンド基盤: 実行環境・データ基盤・API 骨格
-- [ ] 2.1 Workers の実行バインディングと D1 データ基盤を構築する
+- [x] 2.1 Workers の実行バインディングと D1 データ基盤を構築する
   - D1・KV バインディング、Cron Trigger（日次・5 分毎）、シークレット（ODPT トークン・API 共有キー）を構成し、バインディング型を再生成する
   - D1 スキーマ（フィードバック・補正統計・誤差指標・分析イベント・通知登録）と、パラメタライズドクエリのみの型付きクエリ関数を実装する
   - Workers 統合テスト基盤（vitest-pool-workers）を導入する
@@ -354,3 +354,25 @@
   - 完了条件: 上記シナリオが dev build 実機で完走し、各状態遷移の確認結果が記録される
   - _Depends: 6.4_
   - _Requirements: 13.3, 13.4, 13.5, 13.6, 13.8, 18.5_
+
+## Implementation Notes
+
+- **2.1**: D1 migrations live at `apps/backend/src/db/migrations/0001_init_schema.sql`, not
+  `db/schema.sql` as design.md's File Structure Plan names it — `@cloudflare/vitest-pool-workers`'s
+  `readD1Migrations()`/`applyD1Migrations()` (the only supported way to apply D1 migrations inside
+  this test runner) require the standard `NNNN_name.sql` migrations-directory format. The same
+  directory is wired as `d1_databases[].migrations_dir` in `wrangler.jsonc`, so
+  `wrangler d1 migrations apply seatsignal-db --local` (`pnpm --filter backend db:migrate:local`)
+  uses the identical files for real local dev.
+- **2.1**: `.github/workflows/ci.yaml`'s backend typecheck job needs a `pnpm --filter backend cf-typegen`
+  step before `tsc --noEmit` (mirroring the existing "Generate Expo environment types" step for
+  frontend) — `apps/backend/tsconfig.json` now requires the generated (gitignored)
+  `worker-configuration.d.ts` for `D1Database`/`KVNamespace`/`CloudflareBindings` types, and CI
+  doesn't generate it yet. Not fixed as part of 2.1 because `.github/workflows/**` edits are denied
+  by this repo's Claude Code permission settings — needs a human to apply this before merge, or CI's
+  backend typecheck job will fail.
+- **2.1**: `wrangler.jsonc`'s `d1_databases`/`kv_namespaces` IDs are placeholder zero-UUIDs (local
+  Miniflare D1/KV testing doesn't require real Cloudflare-issued IDs). Before any real deploy, run
+  `wrangler d1 create seatsignal-db` and `wrangler kv namespace create seatsignal-status-cache`
+  against the target Cloudflare account and update the IDs — deliberately not run here since it
+  creates live resources in a real, authenticated Cloudflare account.
