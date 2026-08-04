@@ -1,10 +1,12 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   errorResponseSchema,
+  isErr,
   okResponseSchema,
   pushRegistrationParamsSchema,
   pushRegistrationRequestSchema,
 } from "shared";
+import { deletePushRegistration, upsertPushRegistration } from "../db/queries";
 
 const putPushRegistrationRoute = createRoute({
   method: "put",
@@ -33,10 +35,6 @@ const putPushRegistrationRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "サーバエラー",
     },
-    501: {
-      content: { "application/json": { schema: errorResponseSchema } },
-      description: "未実装（task 3.6 で実装予定）",
-    },
   },
 });
 
@@ -62,19 +60,41 @@ const deletePushRegistrationRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "サーバエラー",
     },
-    501: {
-      content: { "application/json": { schema: errorResponseSchema } },
-      description: "未実装（task 3.6 で実装予定）",
-    },
   },
 });
 
 export const pushRegistrationsRoute = new OpenAPIHono<{
   Bindings: CloudflareBindings;
 }>()
-  .openapi(putPushRegistrationRoute, (c) => {
-    return c.json({ error: { code: "unknown" } } as const, 501);
+  .openapi(putPushRegistrationRoute, async (c) => {
+    const { id } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    const result = await upsertPushRegistration(c.env.DB, {
+      id,
+      expoPushToken: body.expoPushToken,
+      fromStationId: body.fromStationId,
+      toStationId: body.toStationId,
+      weekdays: body.weekdays,
+      notifyAt: body.notifyAt,
+      leadMinutes: body.leadMinutes,
+      locale: body.locale,
+      lastSentDate: null,
+    });
+    if (isErr(result)) {
+      return c.json({ error: { code: "unknown" } } as const, 500);
+    }
+    return c.json({ ok: true } as const, 200);
   })
-  .openapi(deletePushRegistrationRoute, (c) => {
-    return c.json({ error: { code: "unknown" } } as const, 501);
+  .openapi(deletePushRegistrationRoute, async (c) => {
+    const { id } = c.req.valid("param");
+
+    const result = await deletePushRegistration(c.env.DB, id);
+    if (isErr(result)) {
+      return c.json({ error: { code: "unknown" } } as const, 500);
+    }
+    if (result.data === 0) {
+      return c.json({ error: { code: "http_error" } } as const, 404);
+    }
+    return c.json({ ok: true } as const, 200);
   });

@@ -1,10 +1,14 @@
 import { $, createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   errorResponseSchema,
+  isErr,
   postEventsRequestSchema,
   postEventsResponseSchema,
 } from "shared";
+import { insertAnalyticsEvent } from "../db/queries";
 import { ipRateLimit } from "../middleware/rate-limit";
+
+const MAX_EVENTS_PER_BATCH = 20;
 
 const postEventsRoute = createRoute({
   method: "post",
@@ -34,10 +38,6 @@ const postEventsRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "サーバエラー",
     },
-    501: {
-      content: { "application/json": { schema: errorResponseSchema } },
-      description: "未実装（task 3.5 で実装予定）",
-    },
   },
 });
 
@@ -46,6 +46,25 @@ export const eventsRoute = $(
     "/v1/events",
     ipRateLimit("events"),
   ),
-).openapi(postEventsRoute, (c) => {
-  return c.json({ error: { code: "unknown" } } as const, 501);
+).openapi(postEventsRoute, async (c) => {
+  const { events } = c.req.valid("json");
+
+  if (events.length > MAX_EVENTS_PER_BATCH) {
+    return c.json({ error: { code: "validation_error" } } as const, 413);
+  }
+
+  for (const event of events) {
+    const result = await insertAnalyticsEvent(c.env.DB, {
+      id: crypto.randomUUID(),
+      name: event.name,
+      propsJson: JSON.stringify(event.props),
+      sessionId: event.sessionId,
+      createdAt: event.occurredAt,
+    });
+    if (isErr(result)) {
+      return c.json({ error: { code: "unknown" } } as const, 500);
+    }
+  }
+
+  return c.json({ accepted: events.length }, 200);
 });

@@ -380,12 +380,13 @@ export async function upsertPushRegistration(
 export async function deletePushRegistration(
   db: D1Database,
   id: string,
-): Promise<Result<void, AppError>> {
+): Promise<Result<number, AppError>> {
   return runQuery("deletePushRegistration", async () => {
-    await db
+    const result = await db
       .prepare("DELETE FROM push_registrations WHERE id = ?")
       .bind(id)
       .run();
+    return result.meta.changes ?? 0;
   });
 }
 

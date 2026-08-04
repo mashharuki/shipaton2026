@@ -58,36 +58,6 @@ describe("x-api-key auth", () => {
   });
 });
 
-describe("route stubs", () => {
-  it("PUT /v1/push-registrations/:id returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/push-registrations/push-1",
-      authed({
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          expoPushToken: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
-          fromStationId: "STA_SHINJUKU",
-          toStationId: "STA_TOKYO",
-          weekdays: ["mon", "tue", "wed", "thu", "fri"],
-          notifyAt: "07:45",
-          leadMinutes: 20,
-          locale: "ja",
-        }),
-      }),
-    );
-    expect(res.status).toBe(501);
-  });
-
-  it("DELETE /v1/push-registrations/:id returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/push-registrations/push-1",
-      authed({ method: "DELETE" }),
-    );
-    expect(res.status).toBe(501);
-  });
-});
-
 describe("IP rate limit on write endpoints", () => {
   it("returns 429 after exceeding the feedback quota for one IP", async () => {
     const body = JSON.stringify({
@@ -144,7 +114,7 @@ describe("IP rate limit on write endpoints", () => {
       statuses.push(res.status);
     }
 
-    expect(statuses.filter((s) => s === 501).length).toBe(30);
+    expect(statuses.filter((s) => s === 200).length).toBe(30);
     expect(statuses.at(-1)).toBe(429);
   });
 });
