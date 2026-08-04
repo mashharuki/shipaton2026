@@ -135,6 +135,37 @@ export async function listFeedbackForAggregation(
   });
 }
 
+// Unlike listFeedbackForAggregation, not scoped to a single railwayId --
+// the daily aggregation batch (task 3.4) recomputes correction_stats across
+// every railway/leg/bucket/day-type cell in one full pass.
+export async function listFeedbackSince(
+  db: D1Database,
+  sinceIso: string,
+): Promise<Result<FeedbackRow[], AppError>> {
+  return runQuery("listFeedbackSince", async () => {
+    const { results } = await db
+      .prepare(
+        "SELECT * FROM feedback WHERE created_at >= ? ORDER BY created_at ASC",
+      )
+      .bind(sinceIso)
+      .all<Record<string, unknown>>();
+    return results.map(toFeedbackRow);
+  });
+}
+
+export async function deleteExpiredFeedback(
+  db: D1Database,
+  cutoffIso: string,
+): Promise<Result<number, AppError>> {
+  return runQuery("deleteExpiredFeedback", async () => {
+    const result = await db
+      .prepare("DELETE FROM feedback WHERE created_at < ?")
+      .bind(cutoffIso)
+      .run();
+    return result.meta.changes ?? 0;
+  });
+}
+
 function toCorrectionStatsRow(
   raw: Record<string, unknown>,
 ): CorrectionStatsRow {
@@ -174,6 +205,17 @@ export async function upsertCorrectionStats(
         stats.computedAt,
       )
       .run();
+  });
+}
+
+// Full-recompute idempotency (task 3.4: "全量再計算") -- cells that no
+// longer meet the sample-size threshold must not linger from a previous
+// run, so the aggregation batch clears the table before repopulating it.
+export async function deleteAllCorrectionStats(
+  db: D1Database,
+): Promise<Result<void, AppError>> {
+  return runQuery("deleteAllCorrectionStats", async () => {
+    await db.prepare("DELETE FROM correction_stats").run();
   });
 }
 

@@ -1,5 +1,18 @@
-import { SELF } from "cloudflare:test";
-import { describe, expect, it } from "vitest";
+import {
+  applyD1Migrations,
+  type D1Migration,
+  env,
+  SELF,
+} from "cloudflare:test";
+import { beforeAll, describe, expect, it } from "vitest";
+
+declare global {
+  namespace Cloudflare {
+    interface Env {
+      TEST_MIGRATIONS: D1Migration[];
+    }
+  }
+}
 
 const API_KEY = "test-shared-key";
 
@@ -9,6 +22,10 @@ function authed(init: RequestInit = {}): RequestInit {
     headers: { ...init.headers, "x-api-key": API_KEY },
   };
 }
+
+beforeAll(async () => {
+  await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+});
 
 describe("GET /doc", () => {
   it("responds without an api key and lists all 5 route operations", async () => {
@@ -96,7 +113,7 @@ describe("IP rate limit on write endpoints", () => {
       statuses.push(res.status);
     }
 
-    expect(statuses.filter((s) => s === 501).length).toBe(30);
+    expect(statuses.filter((s) => s === 200).length).toBe(30);
     expect(statuses.at(-1)).toBe(429);
   });
 
