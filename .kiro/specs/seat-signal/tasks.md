@@ -87,14 +87,14 @@
   - _Depends: 3.3_
   - _Requirements: 5.9, 8.8, 16.2, 16.3_
 
-- [ ] 3.5 (P) 分析イベント収集 API を実装する
+- [x] 3.5 (P) 分析イベント収集 API を実装する
   - 最大 20 件のバッチ受付・超過時の 413 応答を実装する
   - スキーマ外フィールドを含むイベントを拒否し、Paywall トリガー種別などの定義済みプロパティを保存する
   - 完了条件: 統合テストで受理数の応答・スキーマ外拒否・上限超過の各分岐が検証される
   - _Boundary: Events API_
   - _Requirements: 17.1, 17.3, 17.5_
 
-- [ ] 3.6 (P) 通知登録 API を実装する
+- [x] 3.6 (P) 通知登録 API を実装する
   - 通知登録の作成/更新と削除を実装する（保存項目はトークン・駅ペア・曜日・時刻・リード時間・ロケールのみ）
   - 完了条件: 統合テストで登録・更新・削除と最小項目制約が検証される
   - _Boundary: PushRegistrations API_
@@ -466,3 +466,25 @@
   arbitrary feedback row rather than tracked per railway, correct only under the single-railway MVP
   scope already baked into `metrics`' schema (PK is `date` alone) — revisit together when a second
   railway is onboarded.
+- **3.5**: `postEventsRequestSchema`'s `events` array is deliberately unbounded (no `.max(20)`) so a
+  >20 batch reaches the route handler instead of failing schema validation with a 400 -- the handler
+  itself checks `events.length` and returns the task-required `413`, not `400`. `analytics_events.
+  created_at` stores the client-supplied `occurredAt` verbatim (schema-validated as `z.iso.datetime()`
+  only, no bounds check), not a server-received timestamp -- reasoning: it's the semantically correct
+  "when it happened" for funnel time-series (17.3/17.4), but a malicious/buggy client could skew that
+  series with a back/future-dated event; revisit if analytics integrity ever needs hardening. The
+  per-event insert loop is not transactional (no transaction helper exists anywhere in `queries.ts`
+  to reuse) -- a mid-batch D1 failure leaves prior events committed and returns 500 with no rollback;
+  acceptable for this task's scope (its completion condition only covers accepted-count/schema-
+  rejection/413, not partial-failure atomicity), but a future task touching this path should know.
+- **3.6**: `deletePushRegistration` (`db/queries.ts`) now returns `Result<number, AppError>` (the D1
+  `meta.changes` count) instead of `Result<void, AppError>`, mirroring the exact pattern already used
+  for `deleteExpiredFeedback` in 3.4 -- needed so the DELETE route can tell "row existed and was
+  removed" (200) from "no such row" (404). Its one pre-existing caller (`test/db/queries.test.ts`)
+  only asserted `isOk(...)`, never `.data`, so this was a compatible widening, not a breaking change.
+  PUT always resets `last_sent_date` to `null` on every upsert, including no-op resubmissions of an
+  identical body -- intentional (a schedule change should let the registration fire again even if
+  today's send already happened), but **task 3.7** should know: once its cron sets `last_sent_date`
+  for dedup, a client re-PUTing an *unchanged* registration after today's notification already fired
+  would reset that flag and could cause a same-day duplicate send. Not testable yet since no
+  `last_sent_date` producer exists before 3.7.
