@@ -72,14 +72,14 @@
   - _Boundary: TrainStatus API_
   - _Requirements: 7.3, 7.4_
 
-- [ ] 3.3 (P) フィードバック受付 API を実装する
+- [x] 3.3 (P) フィードバック受付 API を実装する
   - 匿名 Trip ID・時間帯バケットのみのペイロードを受け付けて保存する
   - 個人単位でフィードバックを参照できる読み出し手段を提供しない
   - 完了条件: 統合テストで正常保存と、識別子・位置情報を含むペイロードの拒否が検証される
   - _Boundary: Feedback API_
   - _Requirements: 8.6, 8.7, 16.2, 16.4_
 
-- [ ] 3.4 フィードバック集約と誤差測定の日次バッチを実装する
+- [x] 3.4 フィードバック集約と誤差測定の日次バッチを実装する
   - サンプル数 5 未満のセルを出力しない補正統計の全量再計算（冪等）を実装する
   - 予測値と実測フィードバックの誤差指標（MAE）を日次記録する
   - 保持期間（90 日）を超えたフィードバックを削除する
@@ -429,3 +429,40 @@
   `@cloudflare/vitest-pool-workers` config — tests must explicitly clear the keys they depend on in
   `beforeEach` (see `apps/backend/test/routes/datasets.test.ts` / `train-status.test.ts`) or state
   leaks across tests in the same file.
+- **3.3**: `feedback.ts` derives `day_type` server-side via shared's `toDayType(new Date())` since the
+  client payload has no such field (matches task 1.1's stated intent: this helper is "feedback/予測/
+  集約で共用"). The "reject a payload with identifier/location fields" completion condition is
+  satisfied structurally by `feedbackPayloadSchema` being a zod `strictObject`-based
+  `discriminatedUnion` (unknown keys are rejected by the schema itself, not by hand-written
+  stripping) — the integration test only asserts a non-200 status for such payloads, not the exact
+  error body shape, since OpenAPIHono's default validation-error hook doesn't yet emit this backend's
+  `{error:{code}}` shape (same pre-existing, cross-cutting, not-yet-owned gap noted for 3.1/3.2).
+  `test/index.test.ts`'s existing feedback rate-limit test now expects `200` instead of `501` for the
+  first 30 requests, and gained a `beforeAll(applyD1Migrations(...))` since `/v1/feedback` performs
+  real D1 writes now.
+- **3.4**: requirements.md/design.md never define a numeric formula for turning a feedback row into
+  `correction_stats.delta_score` or `metrics.mae_standing_min` — feedback only carries a categorical
+  `seatedOutcome` and an optional categorical `vsExpected` (less/as/more crowded than predicted),
+  never a numeric "actual standing minutes". Resolved in `services/feedback-aggregator.ts`: `vsExpected`
+  is the sole signal (it's the purpose-built calibration answer, Req 8.3/8.5), mapped to
+  `-0.1 / 0 / +0.1` (rows without it contribute `0` -- "no reported deviation" -- but still count
+  toward the cell's sample size); `delta_score` is the per-cell mean of that signal, and
+  `mae_standing_min` reuses the *same* signal (mean of `|value| * STANDING_MINUTES_SCALE`), so it
+  actually reports "average magnitude of reported crowding-perception deviation, in minutes", not a
+  literal measured standing-time error -- revisit once feedback captures a real duration.
+  `runAggregateFeedback` (`cron/aggregate-feedback.ts`) is a directly-callable, directly-tested
+  function, deliberately **not** wired into `index.ts`'s (nonexistent) `scheduled` export — that gap
+  was already flagged as unresolved and needing human sign-off in task 2.2's Implementation Note
+  above, and remains unresolved; this task only implements and proves the aggregation *logic*, which
+  is all its own completion condition requires. `correction_stats` is fully cleared
+  (`deleteAllCorrectionStats`) before each rebuild rather than only upserted, so a cell that drops
+  below the n>=5 threshold between runs doesn't leave a stale row -- genuine "全量再計算". Batch order
+  is fetch-within-retention → rebuild correction_stats → record MAE → delete expired feedback
+  (deletion last, so aggregation never has to reason about soon-to-be-deleted rows). The `metrics.date`
+  value uses `now.toISOString().slice(0,10)` (UTC) with no explicit JST conversion; this is only
+  correct because the cron fires at 18:00 UTC (= 03:00 JST the next day per `wrangler.jsonc`), so
+  `now`'s UTC calendar date already equals the JST day being summarized for this *specific* schedule
+  — if the trigger time ever changes, this needs revisiting. `metrics.railwayId` is taken from an
+  arbitrary feedback row rather than tracked per railway, correct only under the single-railway MVP
+  scope already baked into `metrics`' schema (PK is `date` alone) — revisit together when a second
+  railway is onboarded.
