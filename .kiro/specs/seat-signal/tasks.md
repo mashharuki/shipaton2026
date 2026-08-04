@@ -49,7 +49,7 @@
   - 完了条件: ローカル dev サーバが起動し、ドキュメントエンドポイントが応答し、各スタブが 501 を返す
   - _Requirements: 5.8, 8.6, 10.1, 17.1_
 
-- [ ] 2.3 最小データセットの生成と KV 投入を整備する
+- [x] 2.3 最小データセットの生成と KV 投入を整備する
   - 対象 1 路線分のスキーマ適合データセット 3 種を生成するスクリプトを実装する
   - 生成物を KV へ投入するスクリプトを実装する（Datasets API と通知 Cron が同一 payload を読む）
   - 生成物を開発・テスト・E2E 共用のフィクスチャとして配置する
@@ -392,3 +392,16 @@
   middleware assembly; CORS ownership is unassigned pending a decision on whether task 4.2 (frontend
   API client) or task 4.6 (Playwright E2E against Expo web, where CORS failures would first become
   observable) should carry a small explicit cross-boundary allowance for it.
+- **2.3**: KV storage convention for datasets — `push-datasets-to-kv.ts` writes each dataset under
+  key `dataset:{name}` (`dataset:timetable` / `dataset:congestion` / `dataset:correction`) in the
+  `STATUS_CACHE` KV binding (the only KV binding declared in task 2.1; design.md line 514 names only
+  one, so datasets and the ODPT status cache share it, differentiated by key prefix, not a second
+  binding). The stored value is the JSON-stringified `{version, payload}` shape — i.e. exactly
+  `createDatasetResponseSchema(...)`'s "payload" branch — so task 3.1's Datasets API can read
+  `env.STATUS_CACHE.get(`dataset:${name}`)`, `JSON.parse` it, and compare its `version` against the
+  request's `?since=` query param almost verbatim (return `{version, notModified: true}` on match,
+  the parsed value as-is otherwise). Congestion coverage intentionally spans every weekday
+  morning+evening time bucket the sibling timetable dataset offers (07:00-08:00, 18:00-19:00) to
+  satisfy requirements.md 5.8's "対象区間の全提供時間帯"; no weekend data is seeded since weekend is
+  outside the approved "平日朝夕" MVP scope cut. `correction.json` seeds `stats: []` (no feedback
+  exists pre-launch) rather than fabricated data.

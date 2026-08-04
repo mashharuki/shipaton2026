@@ -1,0 +1,908 @@
+{
+  "version": "1",
+  "payload": {
+    "schemaVersion": 1,
+    "profiles": [
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:00",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:15",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:30",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "08:00",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:00",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:15",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:30",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "18:45",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 1,
+        "loadScore": 0.3,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 2,
+        "loadScore": 0.37,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 3,
+        "loadScore": 0.44,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.51,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 5,
+        "loadScore": 0.5800000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 6,
+        "loadScore": 0.65,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 7,
+        "loadScore": 0.72,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 8,
+        "loadScore": 0.79,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 9,
+        "loadScore": 0.8600000000000001,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "19:00",
+        "dayType": "weekday",
+        "carNumber": 10,
+        "loadScore": 0.9300000000000002,
+        "sampleSize": 0
+      }
+    ]
+  }
+}
