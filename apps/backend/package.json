@@ -12,8 +12,10 @@
     "db:migrate:local": "wrangler d1 migrations apply seatsignal-db --local"
   },
   "dependencies": {
+    "@hono/zod-openapi": "1.5.1",
     "hono": "^4.12.33",
-    "shared": "workspace:*"
+    "shared": "workspace:*",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.20.1",

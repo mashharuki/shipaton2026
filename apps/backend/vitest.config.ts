@@ -19,7 +19,13 @@ export default defineConfig({
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
       miniflare: {
-        bindings: { TEST_MIGRATIONS: migrations },
+        bindings: {
+          TEST_MIGRATIONS: migrations,
+          // Secrets are never in wrangler.jsonc/committed .dev.vars (gitignored,
+          // developer-local) -- fix them here so tests are deterministic in CI.
+          ODPT_TOKEN: "test-odpt-token",
+          API_SHARED_KEY: "test-shared-key",
+        },
       },
     }),
   ],

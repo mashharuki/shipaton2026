@@ -34,6 +34,18 @@
       "migrations_dir": "src/db/migrations"
     }
   ],
+  "ratelimits": [
+    {
+      // IP 単位のレート制限（/v1/feedback, /v1/events）— design.md line 602.
+      // namespace_id is developer-chosen (no live resource to provision, unlike D1/KV).
+      "name": "API_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    }
+  ],
   "triggers": {
     "crons": [
       // 日次 03:00 JST（= 18:00 UTC）: フィードバック集約バッチ

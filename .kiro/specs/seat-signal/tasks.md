@@ -42,7 +42,7 @@
   - 完了条件: マイグレーション適用済みのローカル D1 に対して型付きクエリの読み書きテストが通る
   - _Requirements: 5.9, 8.6, 10.1, 17.1_
 
-- [ ] 2.2 API 骨格と全ルートスタブを確立する
+- [x] 2.2 API 骨格と全ルートスタブを確立する
   - OpenAPIHono ベースのアプリ骨格、x-api-key 認証ミドルウェア、IP レート制限を実装する
   - 全 5 ルート（データセット・運行情報・フィードバック・イベント・通知登録）のモジュールスタブを作成しルート登録まで先行して行う — 以後の API タスクは自分のルートモジュールのみを変更し、アプリ組立てファイルには触れない
   - dev 環境で OpenAPI ドキュメント配信エンドポイントを公開する
@@ -376,3 +376,19 @@
   `wrangler d1 create seatsignal-db` and `wrangler kv namespace create seatsignal-status-cache`
   against the target Cloudflare account and update the IDs — deliberately not run here since it
   creates live resources in a real, authenticated Cloudflare account.
+- **2.2 — unresolved task-plan gap, needs a human decision**: design.md's "Modified Files" section
+  (line 240) says `apps/backend/src/index.ts` should end up with a `scheduled` export and CORS, but
+  task 2.2's own bullets don't ask for either, and 2.2 explicitly freezes `index.ts` for all
+  subsequent "API タスク" (`以後の API タスクは自分のルートモジュールのみを変更し、アプリ組立て
+  ファイルには触れない`). Checked every task in section 3 (3.1–3.8): **none currently claims
+  ownership of adding a `scheduled` export or CORS to `index.ts`.** This matters concretely because
+  `wrangler.jsonc` already has daily/5-min Cron Triggers configured (task 2.1) with no handler to
+  invoke them once deployed. Not fixed in 2.2 because it's outside that task's stated scope and
+  because amending another approved task's `_Boundary:_`/text isn't something to do unilaterally
+  mid-implementation. Suggested resolution (needs sign-off, not applied): add
+  `_Boundary: index.ts (scheduled export only)_` to task 3.4 (the earliest cron-consuming task,
+  daily aggregation) authorizing it to add the `scheduled` export and dispatch-by-cron-name to
+  `index.ts`, with task 3.7 extending the same handler's switch rather than re-touching route/
+  middleware assembly; CORS ownership is unassigned pending a decision on whether task 4.2 (frontend
+  API client) or task 4.6 (Playwright E2E against Expo web, where CORS failures would first become
+  observable) should carry a small explicit cross-boundary allowance for it.
