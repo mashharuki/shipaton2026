@@ -13,7 +13,7 @@ const migrations = await readD1Migrations(
 
 export default defineConfig({
   test: {
-    include: ["src/**/*.test.ts"],
+    include: ["test/**/*.test.ts"],
   },
   plugins: [
     cloudflareTest({
