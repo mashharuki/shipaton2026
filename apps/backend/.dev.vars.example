@@ -1,0 +1,9 @@
+# Copy to .dev.vars (gitignored) for local `wrangler dev` / vitest-pool-workers runs.
+# Production values are set via `wrangler secret put <NAME>` -- never committed.
+
+# ODPT (Open Data Platform for Transportation) API token. See docs/memo.md for
+# the ODPT licensing/attribution requirements that gate real deployment.
+ODPT_TOKEN=
+
+# Shared key required in the `x-api-key` header for backend API requests (task 2.2).
+API_SHARED_KEY=

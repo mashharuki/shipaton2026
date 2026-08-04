@@ -45,6 +45,9 @@ jobs:
         working-directory: apps/frontend
         run: |
           printf '/// <reference types="expo/types" />\n\n// NOTE: This file should not be edited and should be in your git ignore' > expo-env.d.ts
+      - name: Generate Cloudflare Worker types
+        if: matrix.workspace == 'backend'
+        run: pnpm --filter backend cf-typegen
       - run: pnpm --filter ${{ matrix.workspace }} run typecheck
 
   test:

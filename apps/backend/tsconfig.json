@@ -5,8 +5,10 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "lib": ["ESNext"],
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "hono/jsx",
+    "types": ["@cloudflare/vitest-pool-workers/types"]
   }
 }

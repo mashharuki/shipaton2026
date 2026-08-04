@@ -2,32 +2,59 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "backend",
   "main": "src/index.ts",
-  "compatibility_date": "2026-08-02"
+  "compatibility_date": "2026-08-02",
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
-  // "kv_namespaces": [
-  //   {
-  //     "binding": "MY_KV_NAMESPACE",
-  //     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  //   }
-  // ],
+  "kv_namespaces": [
+    {
+      // ODPT 運行情報キャッシュ（TTL 60s）— design.md Implementation Notes (line 514)
+      "binding": "STATUS_CACHE",
+      // TODO(2.1): real deploy needs `wrangler kv namespace create seatsignal-status-cache`
+      // (not run here — creates a live resource in the connected Cloudflare account).
+      "id": "00000000000000000000000000000000"
+    }
+  ],
   // "r2_buckets": [
   //   {
   //     "binding": "MY_BUCKET",
   //     "bucket_name": "my-bucket"
   //   }
   // ],
-  // "d1_databases": [
-  //   {
-  //     "binding": "MY_DB",
-  //     "database_name": "my-database",
-  //     "database_id": ""
-  //   }
-  // ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "seatsignal-db",
+      // TODO(2.1): real deploy needs `wrangler d1 create seatsignal-db`
+      // (not run here — creates a live resource in the connected Cloudflare account).
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "src/db/migrations"
+    }
+  ],
+  "ratelimits": [
+    {
+      // IP 単位のレート制限（/v1/feedback, /v1/events）— design.md line 602.
+      // namespace_id is developer-chosen (no live resource to provision, unlike D1/KV).
+      "name": "API_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 30,
+        "period": 60
+      }
+    }
+  ],
+  "triggers": {
+    "crons": [
+      // 日次 03:00 JST（= 18:00 UTC）: フィードバック集約バッチ
+      // （cron/aggregate-feedback.ts, task 3.4）— design.md line 510
+      "0 18 * * *",
+      // 5分毎: 通勤通知バッチ（cron/notify-commuters.ts, task 3.7）
+      "*/5 * * * *"
+    ]
+  }
   // "ai": {
   //   "binding": "AI"
   // },

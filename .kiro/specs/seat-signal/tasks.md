@@ -34,22 +34,21 @@
   - 完了条件: PR 作成時にワークフローが起動し、lint・型チェック・テストの全ジョブがグリーンで完了する
   - _Requirements: 18.6_
 
-- [ ] 2. バックエンド基盤: 実行環境・データ基盤・API 骨格
-- [ ] 2.1 Workers の実行バインディングと D1 データ基盤を構築する
+- [x] 2.1 Workers の実行バインディングと D1 データ基盤を構築する
   - D1・KV バインディング、Cron Trigger（日次・5 分毎）、シークレット（ODPT トークン・API 共有キー）を構成し、バインディング型を再生成する
   - D1 スキーマ（フィードバック・補正統計・誤差指標・分析イベント・通知登録）と、パラメタライズドクエリのみの型付きクエリ関数を実装する
   - Workers 統合テスト基盤（vitest-pool-workers）を導入する
   - 完了条件: マイグレーション適用済みのローカル D1 に対して型付きクエリの読み書きテストが通る
   - _Requirements: 5.9, 8.6, 10.1, 17.1_
 
-- [ ] 2.2 API 骨格と全ルートスタブを確立する
+- [x] 2.2 API 骨格と全ルートスタブを確立する
   - OpenAPIHono ベースのアプリ骨格、x-api-key 認証ミドルウェア、IP レート制限を実装する
   - 全 5 ルート（データセット・運行情報・フィードバック・イベント・通知登録）のモジュールスタブを作成しルート登録まで先行して行う — 以後の API タスクは自分のルートモジュールのみを変更し、アプリ組立てファイルには触れない
   - dev 環境で OpenAPI ドキュメント配信エンドポイントを公開する
   - 完了条件: ローカル dev サーバが起動し、ドキュメントエンドポイントが応答し、各スタブが 501 を返す
   - _Requirements: 5.8, 8.6, 10.1, 17.1_
 
-- [ ] 2.3 最小データセットの生成と KV 投入を整備する
+- [x] 2.3 最小データセットの生成と KV 投入を整備する
   - 対象 1 路線分のスキーマ適合データセット 3 種を生成するスクリプトを実装する
   - 生成物を KV へ投入するスクリプトを実装する（Datasets API と通知 Cron が同一 payload を読む）
   - 生成物を開発・テスト・E2E 共用のフィクスチャとして配置する
@@ -354,3 +353,54 @@
   - 完了条件: 上記シナリオが dev build 実機で完走し、各状態遷移の確認結果が記録される
   - _Depends: 6.4_
   - _Requirements: 13.3, 13.4, 13.5, 13.6, 13.8, 18.5_
+
+## Implementation Notes
+
+- **2.1**: D1 migrations live at `apps/backend/src/db/migrations/0001_init_schema.sql`, not
+  `db/schema.sql` as design.md's File Structure Plan names it — `@cloudflare/vitest-pool-workers`'s
+  `readD1Migrations()`/`applyD1Migrations()` (the only supported way to apply D1 migrations inside
+  this test runner) require the standard `NNNN_name.sql` migrations-directory format. The same
+  directory is wired as `d1_databases[].migrations_dir` in `wrangler.jsonc`, so
+  `wrangler d1 migrations apply seatsignal-db --local` (`pnpm --filter backend db:migrate:local`)
+  uses the identical files for real local dev.
+- **2.1**: `.github/workflows/ci.yaml`'s backend typecheck job needs a `pnpm --filter backend cf-typegen`
+  step before `tsc --noEmit` (mirroring the existing "Generate Expo environment types" step for
+  frontend) — `apps/backend/tsconfig.json` now requires the generated (gitignored)
+  `worker-configuration.d.ts` for `D1Database`/`KVNamespace`/`CloudflareBindings` types, and CI
+  doesn't generate it yet. Not fixed as part of 2.1 because `.github/workflows/**` edits are denied
+  by this repo's Claude Code permission settings — needs a human to apply this before merge, or CI's
+  backend typecheck job will fail.
+- **2.1**: `wrangler.jsonc`'s `d1_databases`/`kv_namespaces` IDs are placeholder zero-UUIDs (local
+  Miniflare D1/KV testing doesn't require real Cloudflare-issued IDs). Before any real deploy, run
+  `wrangler d1 create seatsignal-db` and `wrangler kv namespace create seatsignal-status-cache`
+  against the target Cloudflare account and update the IDs — deliberately not run here since it
+  creates live resources in a real, authenticated Cloudflare account.
+- **2.2 — unresolved task-plan gap, needs a human decision**: design.md's "Modified Files" section
+  (line 240) says `apps/backend/src/index.ts` should end up with a `scheduled` export and CORS, but
+  task 2.2's own bullets don't ask for either, and 2.2 explicitly freezes `index.ts` for all
+  subsequent "API タスク" (`以後の API タスクは自分のルートモジュールのみを変更し、アプリ組立て
+ファイルには触れない`). Checked every task in section 3 (3.1–3.8): **none currently claims
+  ownership of adding a `scheduled` export or CORS to `index.ts`.** This matters concretely because
+  `wrangler.jsonc` already has daily/5-min Cron Triggers configured (task 2.1) with no handler to
+  invoke them once deployed. Not fixed in 2.2 because it's outside that task's stated scope and
+  because amending another approved task's `_Boundary:_`/text isn't something to do unilaterally
+  mid-implementation. Suggested resolution (needs sign-off, not applied): add
+  `_Boundary: index.ts (scheduled export only)_` to task 3.4 (the earliest cron-consuming task,
+  daily aggregation) authorizing it to add the `scheduled` export and dispatch-by-cron-name to
+  `index.ts`, with task 3.7 extending the same handler's switch rather than re-touching route/
+  middleware assembly; CORS ownership is unassigned pending a decision on whether task 4.2 (frontend
+  API client) or task 4.6 (Playwright E2E against Expo web, where CORS failures would first become
+  observable) should carry a small explicit cross-boundary allowance for it.
+- **2.3**: KV storage convention for datasets — `push-datasets-to-kv.ts` writes each dataset under
+  key `dataset:{name}` (`dataset:timetable` / `dataset:congestion` / `dataset:correction`) in the
+  `STATUS_CACHE` KV binding (the only KV binding declared in task 2.1; design.md line 514 names only
+  one, so datasets and the ODPT status cache share it, differentiated by key prefix, not a second
+  binding). The stored value is the JSON-stringified `{version, payload}` shape — i.e. exactly
+  `createDatasetResponseSchema(...)`'s "payload" branch — so task 3.1's Datasets API can read
+  `env.STATUS_CACHE.get(`dataset:${name}`)`, `JSON.parse` it, and compare its `version` against the
+  request's `?since=` query param almost verbatim (return `{version, notModified: true}` on match,
+  the parsed value as-is otherwise). Congestion coverage intentionally spans every weekday
+  morning+evening time bucket the sibling timetable dataset offers (07:00-08:00, 18:00-19:00) to
+  satisfy requirements.md 5.8's "対象区間の全提供時間帯"; no weekend data is seeded since weekend is
+  outside the approved "平日朝夕" MVP scope cut. `correction.json` seeds `stats: []` (no feedback
+  exists pre-launch) rather than fabricated data.
