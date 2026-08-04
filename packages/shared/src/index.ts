@@ -1,3 +1,20 @@
+export {
+  FREE_DAILY_SEARCH_LIMIT,
+  FREE_SAVED_ROUTE_LIMIT,
+  PRO_ENTITLEMENT_ID,
+} from "./constants/plan-limits";
+export {
+  CONFIDENCE_SAMPLE_THRESHOLDS,
+  DELAY_TO_STANDING_MINUTES_RATIO,
+  PREDICTION_FACTOR_MESSAGE_KEYS,
+  RANGE_CONFIDENCE_LEVELS,
+  RANGE_SPREAD_RATIO,
+  STANDING_MINUTES_SCALE,
+} from "./constants/prediction";
+export {
+  FEEDBACK_RETENTION_DAYS,
+  MIN_SAMPLE_SIZE_FOR_AGGREGATION,
+} from "./constants/retention";
 export type { AppError } from "./errors/app-error";
 export { createAppError, isAppError, toAppError } from "./errors/app-error";
 export type { ErrorCode } from "./errors/error-codes";
@@ -6,6 +23,15 @@ export {
   ERROR_MESSAGE_KEYS,
   getErrorMessageKey,
 } from "./errors/error-messages";
+export type {
+  PredictionConfidence,
+  PredictionFactor,
+  PredictionFactorKind,
+  ScorePredictionInput,
+  ScorePredictionResult,
+  StandingMinutesEstimate,
+} from "./prediction/scoring";
+export { scorePrediction } from "./prediction/scoring";
 export type { Result } from "./result";
 export { err, isErr, isOk, ok } from "./result";
 export {

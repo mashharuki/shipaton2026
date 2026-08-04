@@ -1,0 +1,3 @@
+export const FEEDBACK_RETENTION_DAYS = 90;
+
+export const MIN_SAMPLE_SIZE_FOR_AGGREGATION = 5;
