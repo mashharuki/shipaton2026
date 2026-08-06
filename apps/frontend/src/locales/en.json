@@ -1,4 +1,14 @@
 {
+  "common": {
+    "retry": "Retry"
+  },
+  "errors": {
+    "offline": "You're offline. Check your connection and try again.",
+    "timeout": "The request took too long. Please try again.",
+    "httpError": "Something went wrong on our end. Please try again.",
+    "validation": "We received an unexpected response. Please try again.",
+    "unknown": "Something went wrong. Please try again."
+  },
   "tabs": {
     "home": "Home",
     "report": "Report",
