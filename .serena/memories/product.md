@@ -22,13 +22,19 @@ Conditional-Go verdict with kill-criteria — check this doc before expanding sc
 
 ## Implementation status (check `.kiro/specs/seat-signal/tasks.md` for current truth)
 
-Phase 1 ("共有基盤" — shared foundation) is the only phase complete: shared Result/error utils,
-API/dataset/analytics-events zod schemas, prediction scoring pure functions (all in
-`packages/shared/src/`), and the CI pipeline. Phases 2–7 (backend Workers/D1/KV infra & routes,
-frontend screens, monetization/paywall, notifications, i18n, store submission) are **not started**
-— `apps/backend/src/index.ts` is still the Hono starter route, `apps/frontend/src/app/` is still
-the Expo template screen. Don't assume routes, screens, or bindings exist beyond what's in
-`packages/shared`.
+Phases 1–5 done: shared foundation (Result/errors/schemas/scoring), backend Workers infra + all 5
+API routes + aggregation/notification cron logic + OpenAPI generation, frontend app shell +
+dataset sync + i18n + analytics client + Playwright infra, and the core loop (preferences → route
+search → prediction → 3-route comparison → route-detail/boarding-position screens). Not started:
+phase 6 (RevenueCat subscription/paywall — `packages/shared`'s `PRO_ENTITLEMENT_ID`/plan-limit
+constants exist as the contract only), phase 7 (Live Comfort Coach + ride feedback), phase 8
+(saved routes/push notification client/weekly report), phase 9 (onboarding/settings/attribution),
+phase 10 (integration/E2E/sandbox-billing verification).
+
+Known unresolved gap (see tasks.md Implementation Notes, tasks 2.2/3.4/3.7): `wrangler.jsonc`
+configures daily + 5-min Cron Triggers and both batch jobs are implemented+tested as callable
+functions, but `apps/backend/src/index.ts` has no `scheduled` export — neither cron actually fires
+in a real deployment yet. Needs human sign-off on which task owns adding it.
 
 ## Key domain types (packages/shared/src)
 
@@ -36,11 +42,11 @@ the Expo template screen. Don't assume routes, screens, or bindings exist beyond
   adjustments + feedback correction + delay into a standing-minutes estimate; confidence
   (`low`/`medium`/`high`) derived from `sampleSize` vs `CONFIDENCE_SAMPLE_THRESHOLDS`; low/medium
   confidence returns a `{rangeMin, rangeMax}` estimate instead of a point value (enforces the MAE
-  guardrail above at the type level).
+  guardrail above at the type level). Consumed directly by backend's `services/prediction.ts` and
+  frontend's `features/prediction/prediction-engine.ts` — same function, both runtimes.
 - `schemas/api.schema.ts`, `schemas/dataset.schema.ts`, `schemas/analytics-events.ts` — zod
-  contracts for the not-yet-built backend API, dataset ingestion, and analytics events. Treat
-  these as the source of truth for backend route shapes when Phase 2/3 tasks are implemented.
+  contracts, now the live backend route/dataset/analytics-event shapes (not aspirational).
 - `constants/plan-limits.ts` — free-tier limits + `PRO_ENTITLEMENT_ID` (RevenueCat entitlement
-  key referenced from constants, not hardcoded per call site).
+  key referenced from constants, not hardcoded per call site) — still unconsumed until phase 6.
 - `errors/` — `ErrorCode` union + `AppError` + `createAppError`/`toAppError`/`isAppError`, per the
   Result-pattern convention in `.claude/rules/code-style.md`.

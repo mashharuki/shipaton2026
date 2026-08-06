@@ -46,4 +46,4 @@ the least-validated Pro feature rather than its core value driver.
 
 ---
 _Focus on patterns and purpose, not exhaustive feature lists_
-_Last synced with codebase: 2026-08-04 (kiro-steering sync — see `.kiro/specs/seat-signal/` and `docs/pm/review-seatsignal-idea-2026-08-04.md`)_
+_Last synced with codebase: 2026-08-06 (kiro-steering sync — see `.kiro/specs/seat-signal/` and `docs/pm/review-seatsignal-idea-2026-08-04.md`)_
