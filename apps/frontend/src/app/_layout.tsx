@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 
 import { useDatasetSync } from "@/features/dataset/use-dataset-sync";
+import { configurePurchases } from "@/features/subscription/purchases-client";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import "@/lib/i18n";
 import { queryClient } from "@/lib/query-client";
@@ -15,6 +16,11 @@ import { queryClient } from "@/lib/query-client";
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? "",
 });
+
+// 6.1: configured once at module load (same pattern as Sentry.init above)
+// rather than inside an effect, so it's guaranteed ready before the first
+// screen that calls getOfferings()/getCustomerInfo() mounts.
+configurePurchases();
 
 // 4.3: needs to run as a descendant of QueryClientProvider (useDatasetSync
 // is a useQuery under the hood), so it can't just be a hook call inside

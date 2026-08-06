@@ -210,7 +210,7 @@
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
 - [ ] 6. サブスクリプション（課金検証レーンを早期確立）
-- [ ] 6.1 (P) RevenueCat SDK 導入と開発ビルドを確立する
+- [x] 6.1 (P) RevenueCat SDK 導入と開発ビルドを確立する
   - 課金 SDK と Paywall UI SDK を導入し、EAS development build を作成して実機起動する
   - sandbox 環境で商品情報（月額・年額）が取得できることを確認する
   - Expo Go では Preview API Mode で動作し、課金以外の機能開発を阻害しないことを確認する
@@ -897,3 +897,58 @@
   6.1-6.4. Still open per 5.4's note above: `route-detail.tsx` renders `insufficient_data`/
   `dataset_missing` via the same `ErrorState` component as `results.tsx`, not Req 15.3's literal
   "timetable-only" fallback view -- that fallback still has no owning task.
+- **6.1 -- MANUAL_VERIFY_REQUIRED, needs human follow-up**: RevenueCat dashboard fully provisioned via
+  MCP: project `SeatSignal` (`proj507b933c`), apps `SeatSignal iOS` (app_store, bundle
+  `com.seatsignal.app`) and `SeatSignal Android` (play_store, package `com.seatsignal.app`), entitlement
+  `pro`, offering `default` (current) with `$rc_monthly`/`$rc_annual` packages, each carrying both the
+  real-store product (`com.seatsignal.app.pro.{monthly,annual}` / `seatsignal_pro:{monthly,annual}`)
+  and a Test Store product (`seatsignal_pro_{monthly,annual}_test`, priced ¥680/¥5,400 via
+  `create-product-prices` -- that endpoint only works on `test_store` products, real-store products get
+  pricing from App Store Connect/Play Console instead). `app_store_connect_api_key_configured: false` on
+  the iOS app -- a human still needs to upload the App Store Connect In-App Purchase key (or legacy
+  shared secret) in the RevenueCat dashboard, and register the two real product IDs above in App Store
+  Connect / Play Console with matching prices, before real-store purchases can work end-to-end. The
+  task's own completion condition ("dev build 実機で Offering の商品 2 種が取得でき") needs an EAS dev
+  build installed on a physical device -- **not performed**: this environment has no `eas login` session
+  (now installs via `pnpm --filter frontend exec eas`, added as a devDependency) and no physical device
+  attached. What WAS verified: `pnpm --filter frontend run typecheck`/`test`, `pnpm check` (Biome) all
+  clean; the app boots without crashing under Expo Go on a booted iOS simulator (argent, screenshot
+  evidence) with `Purchases.configure()` actually running (not skipped) via `_layout.tsx`. A human owes:
+  `eas login`, `eas build --profile development --platform ios` (and `android`), install on a physical
+  device, then confirm `getOfferings()` on the real-store key surfaces both packages -- task 6.3's
+  Paywall screen is where this becomes visually checkable (same offering, real UI).
+- **6.1**: Discovered react-native-purchases' Expo Go "Preview API Mode" is NOT automatic for every API
+  key as its README's prose implies -- it only activates for a RevenueCat **Test Store** key. Configuring
+  with the real `appl_…`/`goog_…` key inside Expo Go throws `Invalid API key. The native store is not
+  available when running inside Expo Go...` (confirmed by running the app in Expo Go against a booted
+  simulator before this fix). Fixed in `purchases-client.ts`: `Constants.appOwnership === "expo"` (from
+  `expo-constants`) picks the Test Store key specifically when running under literal Expo Go, real
+  per-platform keys otherwise. Note `Constants.executionEnvironment` -- the API the type declares
+  `appOwnership` deprecated in favor of -- can NOT make this distinction: both Expo Go and an
+  expo-dev-client build report `"storeClient"`, so it would silently point a real dev-client build at the
+  Test Store key. `appOwnership` is the only signal that's true exclusively inside the real Expo Go app;
+  used its deprecated API deliberately here. Any later task touching Expo-Go-vs-dev-client detection
+  should reuse `isRunningInExpoGo()` from `purchases-client.ts` rather than re-deriving this.
+- **6.1**: `.env.local` (`apps/frontend/`) is blocked from direct Read/Write by this environment's
+  permission settings (sensible default for a secrets-shaped filename) even though RevenueCat SDK keys
+  are public/safe to embed -- could not add `EXPO_PUBLIC_REVENUECAT_{IOS,ANDROID,TEST_STORE}_API_KEY` to
+  it directly. A human needs to add these three lines to `apps/frontend/.env.local` themselves (values
+  in the human-facing summary of this task); until then, local `expo start` runs with an empty
+  RevenueCat API key and `Purchases.configure()` will fail auth on first network call.
+- **6.1**: Independent review (kiro-review) caught that `configurePurchases()`'s first version had no
+  web branch -- `Platform.OS === "web"` fell through to the Android key path, and
+  `Purchases.configure()` with a `goog_…` key on web throws synchronously (react-native-purchases 10.7
+  routes web through `@revenuecat/purchases-js`, which rejects any key not shaped `rcb_|test_|pdl_|strp_`)
+  -- crashing the app at `_layout.tsx` module load and taking down `pnpm --filter frontend run e2e`
+  (Playwright) with it. Fixed: `configurePurchases()` now no-ops on `Platform.OS === "web"` --
+  design.md scopes react-native-purchases to iOS/Android only (no RC Web Billing key exists in this
+  project's RevenueCat setup), and design.md's Testing Strategy already treats web/Playwright as
+  core-loop E2E with billing mocked at the entitlement layer, real purchases being native-only. Also
+  surfaced in the same fix: `if (__DEV__)` throws `ReferenceError: __DEV__ is not defined` under this
+  project's Vitest (no RN/Metro global there) -- guarded as
+  `if (typeof __DEV__ !== "undefined" && __DEV__)`. Regression-tested in
+  `test/features/subscription/purchases-client.test.ts` (5 cases: iOS/Android/Expo-Go key selection,
+  web no-op, configure-once idempotency), written RED-first against the pre-fix code. Any later
+  RevenueCat SDK call added outside `purchases-client.ts` should route through this file rather than
+  importing `react-native-purchases` directly, both for the design.md boundary and to inherit this
+  web-safety guard.
