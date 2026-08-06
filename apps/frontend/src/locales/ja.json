@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "home": "ホーム",
+    "report": "レポート",
+    "settings": "設定"
+  },
+  "home": {
+    "title": "SeatSignal",
+    "placeholder": "検索機能は近日公開予定です"
+  },
+  "report": {
+    "title": "週間レポート",
+    "placeholder": "レポートは近日公開予定です"
+  },
+  "settings": {
+    "title": "設定",
+    "appearance": "外観",
+    "appearanceSystem": "システムに合わせる",
+    "appearanceLight": "ライト",
+    "appearanceDark": "ダーク"
+  }
+}

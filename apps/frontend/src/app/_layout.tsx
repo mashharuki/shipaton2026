@@ -1,18 +1,31 @@
+import * as Sentry from "@sentry/react-native";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useColorScheme } from "react-native";
 
-import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import AppTabs from "@/components/app-tabs";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
+import "@/lib/i18n";
+import { queryClient } from "@/lib/query-client";
 
-SplashScreen.preventAutoHideAsync();
+// 15.4: crash reporting. DSN comes from EXPO_PUBLIC_SENTRY_DSN (Expo's public
+// env-var convention -- a Sentry DSN is meant to be embedded in the client
+// bundle, unlike a real secret). No real Sentry project exists yet, so this
+// runs with an empty DSN (SDK no-ops safely) until a human supplies one --
+// see tasks.md's Implementation Notes for 4.1.
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? "",
+});
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function RootLayout() {
+  const colorScheme = useAppColorScheme();
+
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <AppTabs />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);

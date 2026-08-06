@@ -6,17 +6,18 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 
-export default function HomeScreen() {
+// 11.x 週間レポートのスクリーン骨格 -- 集計・可視化は task 8.3 の担当。
+export default function ReportScreen() {
   const { t } = useTranslation();
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedText type="title" style={styles.title}>
-          {t("home.title")}
+          {t("report.title")}
         </ThemedText>
         <ThemedText type="default" themeColor="textSecondary">
-          {t("home.placeholder")}
+          {t("report.placeholder")}
         </ThemedText>
       </SafeAreaView>
     </ThemedView>
