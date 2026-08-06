@@ -3,6 +3,9 @@ export const ERROR_CODES = [
   "timeout",
   "http_error",
   "validation_error",
+  "dataset_missing",
+  "out_of_area",
+  "insufficient_data",
   "unknown",
 ] as const;
 

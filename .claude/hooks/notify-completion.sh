@@ -9,7 +9,9 @@
 set -euo pipefail
 
 INPUT=$(cat)
-STOP_REASON=$(echo "$INPUT" | jq -r '.stop_reason // "unknown"')
+
+# Safely extract stop_reason; default to "unknown" if JSON is invalid or empty
+STOP_REASON=$(printf '%s\n' "$INPUT" | jq -r '.stop_reason // "unknown"' 2>/dev/null || echo "unknown")
 
 # Only notify on normal completion
 if [ "$STOP_REASON" != "end_turn" ]; then
@@ -24,7 +26,7 @@ fi
 # Slack notification (optional)
 if [ -n "${SLACK_WEBHOOK_URL:-}" ]; then
   BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
-  PROJECT=$(basename "$CLAUDE_PROJECT_DIR" 2>/dev/null || echo "unknown")
+  PROJECT=$(basename "${CLAUDE_PROJECT_DIR:-}" 2>/dev/null || echo "unknown")
 
   curl -s -X POST "$SLACK_WEBHOOK_URL" \
     -H 'Content-Type: application/json' \

@@ -57,7 +57,7 @@
   - _Requirements: 3.1, 5.8, 15.3_
 
 - [ ] 3. バックエンド API・集約・通知
-- [ ] 3.1 (P) データセット配信 API を実装する
+- [x] 3.1 (P) データセット配信 API を実装する
   - 版指定付きの取得と、最新版と一致する場合の notModified 応答を実装する
   - KV に投入済みの payload を配信する
   - 完了条件: 統合テストで「版更新時に payload が返り、一致時に notModified となる」ことが検証される
@@ -65,21 +65,21 @@
   - _Boundary: Datasets API_
   - _Requirements: 5.8, 15.2_
 
-- [ ] 3.2 (P) 運行情報プロキシ API を実装する
+- [x] 3.2 (P) 運行情報プロキシ API を実装する
   - ODPT からの運行情報取得（トークンはサーバ側のみ）と 60 秒 KV キャッシュを実装する
   - ODPT 障害時はキャッシュ済みの値を stale フラグ付きで返す
   - 完了条件: 統合テストでキャッシュヒット・stale フォールバックの両分岐が検証される
   - _Boundary: TrainStatus API_
   - _Requirements: 7.3, 7.4_
 
-- [ ] 3.3 (P) フィードバック受付 API を実装する
+- [x] 3.3 (P) フィードバック受付 API を実装する
   - 匿名 Trip ID・時間帯バケットのみのペイロードを受け付けて保存する
   - 個人単位でフィードバックを参照できる読み出し手段を提供しない
   - 完了条件: 統合テストで正常保存と、識別子・位置情報を含むペイロードの拒否が検証される
   - _Boundary: Feedback API_
   - _Requirements: 8.6, 8.7, 16.2, 16.4_
 
-- [ ] 3.4 フィードバック集約と誤差測定の日次バッチを実装する
+- [x] 3.4 フィードバック集約と誤差測定の日次バッチを実装する
   - サンプル数 5 未満のセルを出力しない補正統計の全量再計算（冪等）を実装する
   - 予測値と実測フィードバックの誤差指標（MAE）を日次記録する
   - 保持期間（90 日）を超えたフィードバックを削除する
@@ -87,20 +87,20 @@
   - _Depends: 3.3_
   - _Requirements: 5.9, 8.8, 16.2, 16.3_
 
-- [ ] 3.5 (P) 分析イベント収集 API を実装する
+- [x] 3.5 (P) 分析イベント収集 API を実装する
   - 最大 20 件のバッチ受付・超過時の 413 応答を実装する
   - スキーマ外フィールドを含むイベントを拒否し、Paywall トリガー種別などの定義済みプロパティを保存する
   - 完了条件: 統合テストで受理数の応答・スキーマ外拒否・上限超過の各分岐が検証される
   - _Boundary: Events API_
   - _Requirements: 17.1, 17.3, 17.5_
 
-- [ ] 3.6 (P) 通知登録 API を実装する
+- [x] 3.6 (P) 通知登録 API を実装する
   - 通知登録の作成/更新と削除を実装する（保存項目はトークン・駅ペア・曜日・時刻・リード時間・ロケールのみ）
   - 完了条件: 統合テストで登録・更新・削除と最小項目制約が検証される
   - _Boundary: PushRegistrations API_
   - _Requirements: 10.1, 10.5_
 
-- [ ] 3.7 通知配信バッチを実装する
+- [x] 3.7 通知配信バッチを実装する
   - 通知時刻の 15〜30 分前ウィンドウに該当する登録を抽出する
   - KV のデータセット payload（時刻表・混雑プロファイル）と D1 の補正統計を入力に、共有スコアリング関数で配信時点の予測を計算する
   - 通常より混雑が予測される場合は代替候補と削減できる予想立ち時間、変化理由（雨・イベント等）を含む通知を生成し、Expo Push で送信する
@@ -109,7 +109,7 @@
   - _Depends: 2.3, 3.6_
   - _Requirements: 10.1, 10.2, 10.3_
 
-- [ ] 3.8 OpenAPI 仕様書の生成とドリフト検証を実装する
+- [x] 3.8 OpenAPI 仕様書の生成とドリフト検証を実装する
   - ルート定義から OpenAPI 3.0 の yaml を生成するスクリプトを実装し、生成物をコミットする
   - 全ルートの operationId・summary・tags、全スキーマの example、共有 ErrorResponse、securityScheme、servers 2 件（ローカル・本番）を含める
   - ルート定義から再生成したドキュメントとコミット済み yaml の一致を検証するテストを追加する
@@ -118,20 +118,20 @@
   - _Requirements: 5.8, 8.6, 10.1, 17.1_
 
 - [ ] 4. フロントエンド基盤
-- [ ] 4.1 依存導入とアプリ骨格を構築する
+- [x] 4.1 依存導入とアプリ骨格を構築する
   - 追加依存（状態管理・データフェッチ・SQLite・通知・i18n・クラッシュ計測ほか）を Expo 推奨の解決で導入する
   - ルートレイアウトに Provider 群を組み込み、ホーム/レポート/設定のタブ骨格とダーク/ライト外観切替を実装する
   - クラッシュ計測を初期化し、テンプレート由来の不要画面・コンポーネントを削除する
   - 完了条件: シミュレータでタブ 3 画面が表示され、外観切替が機能し、クラッシュがダッシュボードに記録される
   - _Requirements: 14.2, 15.4_
 
-- [ ] 4.2 API クライアントとエラー表示基盤を実装する
+- [x] 4.2 API クライアントとエラー表示基盤を実装する
   - オフライン検出・タイムアウト・HTTP エラーを共有エラーコードへ正規化する API クライアントを実装する
   - エラー種別に応じた文言と再試行手段を提示する共通エラー表示コンポーネントを実装する
   - 完了条件: オフライン時にオフライン表示と再試行、サーバエラー時に理解可能なメッセージが表示されるユニットテストが通る
   - _Requirements: 3.3, 13.7, 15.1, 15.5_
 
-- [ ] 4.3 (P) ローカル DB とデータセット同期を実装する
+- [x] 4.3 (P) ローカル DB とデータセット同期を実装する
   - SQLite のマイグレーション管理と、データセット 3 種の格納・版管理を実装する
   - 起動時と 24 時間間隔の同期、同期失敗時の既存データでの継続動作を実装する
   - 未同期路線の要求に対してはデータ欠如を示すエラーを返し、時刻表のみ表示への切替を促せるようにする
@@ -140,7 +140,7 @@
   - _Boundary: DatasetRepository_
   - _Requirements: 5.8, 15.2, 15.3_
 
-- [ ] 4.4 (P) 多言語基盤と言語切替を実装する
+- [x] 4.4 (P) 多言語基盤と言語切替を実装する
   - 日本語・英語の文言リソースと i18n 初期化を実装する
   - 設定からの言語切替を全画面へ即時反映する
   - 共有エラーコード→文言キー→表示文言の解決を接続する
@@ -148,7 +148,7 @@
   - _Boundary: i18n_
   - _Requirements: 14.1, 14.3_
 
-- [ ] 4.5 (P) 分析イベントクライアントを実装する
+- [x] 4.5 (P) 分析イベントクライアントを実装する
   - イベントのバッファリングと最大 20 件のバッチ送信・失敗時再送を実装する
   - 対象路線・時間帯・ルート種別・差分時間・プラン種別・予測信頼度などの共通プロパティ付与を実装する
   - 完了条件: 発火したイベントがバッチ送信され、収集 API 経由で D1 に記録されることが確認できる
@@ -156,7 +156,7 @@
   - _Boundary: AnalyticsClient_
   - _Requirements: 17.1, 17.2, 17.4_
 
-- [ ] 4.6 (P) Playwright E2E 基盤を導入する
+- [x] 4.6 (P) Playwright E2E 基盤を導入する
   - Playwright を導入し、Expo の web ターゲット起動とローカル Workers（またはモック API）を束ねる E2E 実行設定を作成する
   - 主要画面の共通セレクタ方針（testID ベース）を定め、タブ表示までのスモークテストを作成する
   - CI パイプラインに Playwright ジョブを追加する（1.4 のワークフローを拡張）
@@ -166,7 +166,7 @@
   - _Requirements: 18.6_
 
 - [ ] 5. 中核ループ: 検索・予測・比較・詳細
-- [ ] 5.1 (P) 快適性プリファレンス設定を実装する
+- [x] 5.1 (P) 快適性プリファレンス設定を実装する
   - 速さ重視/バランス重視/快適さ重視の優先度と許容追加移動時間の設定を実装する
   - 立ち時間・乗換・歩行の許容度として設定を受け付け、身体的事情の直接入力を求めない
   - 設定を永続化し、次回以降の検索結果の順位付けに反映されるよう公開する
@@ -174,7 +174,7 @@
   - _Boundary: PreferenceStore_
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 5.2 (P) ルート検索エンジンを実装する
+- [x] 5.2 (P) ルート検索エンジンを実装する
   - 保存済み時刻表からの経路候補列挙（対象区間内・乗換含む）を端末内で実装する
   - 対象区間外の指定には区間外であることを示すエラーを返す
   - 最近使った検索条件の保存と再利用を実装する
@@ -183,7 +183,7 @@
   - _Boundary: RouteSearchEngine_
   - _Requirements: 3.1, 3.2, 3.4, 16.1_
 
-- [ ] 5.3 予測エンジンの統合と理由説明を実装する
+- [x] 5.3 予測エンジンの統合と理由説明を実装する
   - ローカル DB のプロファイル・補正統計を共有スコアリング関数へ接続し、ルート区間ごとの予測を端末内で算出する
   - 途中駅ごとの着座確率と、使用した要素のみに基づく理由説明文の生成を実装する
   - 説明可能なデータがない場合の「データ不足」表示と、予測データ不足時の時刻表のみ表示への切替を実装する
@@ -191,7 +191,7 @@
   - _Depends: 1.3, 4.3_
   - _Requirements: 5.1, 5.6, 5.7, 6.2, 15.3, 16.1_
 
-- [ ] 5.4 3 ルート選定と比較画面を実装する
+- [x] 5.4 3 ルート選定と比較画面を実装する
   - プリファレンスを反映した「最速」「バランス」「最も快適」の 3 案選定を実装する
   - 各案に到着時刻・所要時間・最速との差分・予想立ち時間・予想着座時間・着座確率・乗換回数・快適性スコア・信頼度を表示する
   - 快適ルート選択時に「追加 N 分で予想立ち時間を M 分削減」の差分表示を行う
@@ -200,7 +200,7 @@
   - _Depends: 5.1, 5.2, 5.3_
   - _Requirements: 2.3, 3.5, 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 5.5 ルート詳細・乗車位置案内画面を実装する
+- [x] 5.5 ルート詳細・乗車位置案内画面を実装する
   - 利用列車・発車時刻・推奨号車・推奨乗車位置・推奨理由・信頼度の表示を実装する
   - 途中駅ごとの着座確率の変化を表示する
   - 案内粒度は号車または車両エリア単位に限定する（ドア単位の精度を提示しない）
@@ -388,9 +388,14 @@
   `_Boundary: index.ts (scheduled export only)_` to task 3.4 (the earliest cron-consuming task,
   daily aggregation) authorizing it to add the `scheduled` export and dispatch-by-cron-name to
   `index.ts`, with task 3.7 extending the same handler's switch rather than re-touching route/
-  middleware assembly; CORS ownership is unassigned pending a decision on whether task 4.2 (frontend
-  API client) or task 4.6 (Playwright E2E against Expo web, where CORS failures would first become
-  observable) should carry a small explicit cross-boundary allowance for it.
+  middleware assembly; CORS ownership update: task 4.2 (frontend API client) deliberately did **not**
+  take it up — `apps/frontend/src/lib/api-client.ts` is a plain `fetch()` wrapper that normalizes
+  whatever the browser/runtime reports (a CORS failure surfaces through its existing `offline`
+  catch branch same as any other network failure), so CORS itself remains a backend `index.ts`
+  concern with no frontend-side code to carry the allowance. Ownership now falls to task 4.6
+  (Playwright E2E against Expo web) as the first task where a missing CORS header would actually be
+  observable and blocking — **resolved in 4.6**, see its own Implementation Notes entry below
+  (`hono/cors` added to `apps/backend/src/index.ts`).
 - **2.3**: KV storage convention for datasets — `push-datasets-to-kv.ts` writes each dataset under
   key `dataset:{name}` (`dataset:timetable` / `dataset:congestion` / `dataset:correction`) in the
   `STATUS_CACHE` KV binding (the only KV binding declared in task 2.1; design.md line 514 names only
@@ -404,3 +409,491 @@
   satisfy requirements.md 5.8's "対象区間の全提供時間帯"; no weekend data is seeded since weekend is
   outside the approved "平日朝夕" MVP scope cut. `correction.json` seeds `stats: []` (no feedback
   exists pre-launch) rather than fabricated data.
+- **3.1**: Implemented exactly per the 2.3 storage convention above — `datasets.ts` reads
+  `dataset:{name}` from `STATUS_CACHE`, 404s if absent, and compares `?since=` to the stored
+  `version` for the `notModified`/`payload` branch. No spec conflict, no scope beyond the task text.
+- **3.2**: requirements.md/design.md never define (a) a mapping from our internal `railwayId` (single-
+  line MVP scope, `RAIL_CHUO` per 2.3) to ODPT's own `odpt.Railway:*` resource identifiers, or (b)
+  ODPT's `odpt:TrainInformation` response shape. Resolved locally in
+  `apps/backend/src/services/odpt-client.ts` rather than blocking: a small `ODPT_RAILWAY_IDS` map
+  (currently just `RAIL_CHUO`) — any other `railwayId` short-circuits to 404 `not_found` without
+  calling ODPT; `odpt:trainInformationStatus.ja` text is pattern-matched for 平常/見合わせ/運休, with
+  delay minutes parsed from `odpt:trainInformationText` via `/(\d+)\s*分/`. Revisit this mapping and
+  the field-matching heuristic against a real ODPT response before production traffic — it was never
+  exercised against the live API, only against mocked `fetch`. Cache design uses two `STATUS_CACHE`
+  keys per railway: `train-status:fresh:{id}` (60s TTL, drives the cache-hit branch) and
+  `train-status:last:{id}` (no TTL, last-known-good value served with `stale: true` on ODPT failure)
+  — needed because a single 60s-TTL key can't serve both "skip ODPT within 60s" and "fall back after
+  the entry expires or ODPT errors" at once. Error responses reuse shared's 5-entry `ErrorCode` enum
+  (no dedicated not-found code exists): `http_error` for 404/502, `unknown` for the defensive 500
+  catch-all. Gotcha for anyone adding Workers-runtime fetch mocks: build the mocked `Response` inside
+  `vi.spyOn(globalThis,"fetch").mockImplementation(async () => ...)`, not via a `Response` built
+  earlier and handed to `mockResolvedValue` — a pre-built one belongs to the outer test's IoContext
+  and throws ("Cannot perform I/O on behalf of a different request") when its body is read inside the
+  `SELF.fetch`-triggered request. Also: KV state is **not** isolated per `it()` in this project's
+  `@cloudflare/vitest-pool-workers` config — tests must explicitly clear the keys they depend on in
+  `beforeEach` (see `apps/backend/test/routes/datasets.test.ts` / `train-status.test.ts`) or state
+  leaks across tests in the same file.
+- **3.3**: `feedback.ts` derives `day_type` server-side via shared's `toDayType(new Date())` since the
+  client payload has no such field (matches task 1.1's stated intent: this helper is "feedback/予測/
+  集約で共用"). The "reject a payload with identifier/location fields" completion condition is
+  satisfied structurally by `feedbackPayloadSchema` being a zod `strictObject`-based
+  `discriminatedUnion` (unknown keys are rejected by the schema itself, not by hand-written
+  stripping) — the integration test only asserts a non-200 status for such payloads, not the exact
+  error body shape, since OpenAPIHono's default validation-error hook doesn't yet emit this backend's
+  `{error:{code}}` shape (same pre-existing, cross-cutting, not-yet-owned gap noted for 3.1/3.2).
+  `test/index.test.ts`'s existing feedback rate-limit test now expects `200` instead of `501` for the
+  first 30 requests, and gained a `beforeAll(applyD1Migrations(...))` since `/v1/feedback` performs
+  real D1 writes now.
+- **3.4**: requirements.md/design.md never define a numeric formula for turning a feedback row into
+  `correction_stats.delta_score` or `metrics.mae_standing_min` — feedback only carries a categorical
+  `seatedOutcome` and an optional categorical `vsExpected` (less/as/more crowded than predicted),
+  never a numeric "actual standing minutes". Resolved in `services/feedback-aggregator.ts`: `vsExpected`
+  is the sole signal (it's the purpose-built calibration answer, Req 8.3/8.5), mapped to
+  `-0.1 / 0 / +0.1` (rows without it contribute `0` -- "no reported deviation" -- but still count
+  toward the cell's sample size); `delta_score` is the per-cell mean of that signal, and
+  `mae_standing_min` reuses the *same* signal (mean of `|value| * STANDING_MINUTES_SCALE`), so it
+  actually reports "average magnitude of reported crowding-perception deviation, in minutes", not a
+  literal measured standing-time error -- revisit once feedback captures a real duration.
+  `runAggregateFeedback` (`cron/aggregate-feedback.ts`) is a directly-callable, directly-tested
+  function, deliberately **not** wired into `index.ts`'s (nonexistent) `scheduled` export — that gap
+  was already flagged as unresolved and needing human sign-off in task 2.2's Implementation Note
+  above, and remains unresolved; this task only implements and proves the aggregation *logic*, which
+  is all its own completion condition requires. `correction_stats` is fully cleared
+  (`deleteAllCorrectionStats`) before each rebuild rather than only upserted, so a cell that drops
+  below the n>=5 threshold between runs doesn't leave a stale row -- genuine "全量再計算". Batch order
+  is fetch-within-retention → rebuild correction_stats → record MAE → delete expired feedback
+  (deletion last, so aggregation never has to reason about soon-to-be-deleted rows). The `metrics.date`
+  value uses `now.toISOString().slice(0,10)` (UTC) with no explicit JST conversion; this is only
+  correct because the cron fires at 18:00 UTC (= 03:00 JST the next day per `wrangler.jsonc`), so
+  `now`'s UTC calendar date already equals the JST day being summarized for this *specific* schedule
+  — if the trigger time ever changes, this needs revisiting. `metrics.railwayId` is taken from an
+  arbitrary feedback row rather than tracked per railway, correct only under the single-railway MVP
+  scope already baked into `metrics`' schema (PK is `date` alone) — revisit together when a second
+  railway is onboarded.
+- **3.5**: `postEventsRequestSchema`'s `events` array is deliberately unbounded (no `.max(20)`) so a
+  >20 batch reaches the route handler instead of failing schema validation with a 400 -- the handler
+  itself checks `events.length` and returns the task-required `413`, not `400`. `analytics_events.
+  created_at` stores the client-supplied `occurredAt` verbatim (schema-validated as `z.iso.datetime()`
+  only, no bounds check), not a server-received timestamp -- reasoning: it's the semantically correct
+  "when it happened" for funnel time-series (17.3/17.4), but a malicious/buggy client could skew that
+  series with a back/future-dated event; revisit if analytics integrity ever needs hardening. The
+  per-event insert loop is not transactional (no transaction helper exists anywhere in `queries.ts`
+  to reuse) -- a mid-batch D1 failure leaves prior events committed and returns 500 with no rollback;
+  acceptable for this task's scope (its completion condition only covers accepted-count/schema-
+  rejection/413, not partial-failure atomicity), but a future task touching this path should know.
+- **3.6**: `deletePushRegistration` (`db/queries.ts`) now returns `Result<number, AppError>` (the D1
+  `meta.changes` count) instead of `Result<void, AppError>`, mirroring the exact pattern already used
+  for `deleteExpiredFeedback` in 3.4 -- needed so the DELETE route can tell "row existed and was
+  removed" (200) from "no such row" (404). Its one pre-existing caller (`test/db/queries.test.ts`)
+  only asserted `isOk(...)`, never `.data`, so this was a compatible widening, not a breaking change.
+  PUT always resets `last_sent_date` to `null` on every upsert, including no-op resubmissions of an
+  identical body -- intentional (a schedule change should let the registration fire again even if
+  today's send already happened), but **task 3.7** should know: once its cron sets `last_sent_date`
+  for dedup, a client re-PUTing an *unchanged* registration after today's notification already fired
+  would reset that flag and could cause a same-day duplicate send. Not testable yet since no
+  `last_sent_date` producer exists before 3.7.
+- **3.7**: `services/prediction.ts`'s `buildNotificationPrediction` grounds "should notify" and the
+  delivered reason entirely in `correction_stats.deltaScore > 0` (feedback indicates more crowding
+  than the base profile predicted) -- the only real "vs. normal" signal available. No weather/event
+  dataset exists anywhere in this codebase, so Requirement 10.3's "雨・イベント等" reason text cannot
+  be produced from real data; `cron/notify-commuters.ts`'s `REASON_COPY` phrases the feedback-based
+  reason for users instead (ja/en), and both the push `body` and `data.reasonFactor` carry it (an
+  earlier draft computed but silently dropped this field before delivery -- caught by task-local
+  review, fixed, and covered by `test/cron/notify-commuters.test.ts`'s payload-content assertion).
+  "Alternative candidate" (10.2) is a different time bucket for the same leg from the congestion
+  dataset, not a different route/train -- full route search is client-owned per design.md's
+  architecture (backend is limited to data delivery/collection/notification), and the congestion
+  schema only supports a bucket-level comparison. `dataset:timetable` is deliberately not read by
+  this batch: `push_registrations` already stores the specific fromStationId/toStationId/notifyAt the
+  user chose, so no route/timetable lookup is structurally needed to score that already-known leg+
+  time (design.md's Batch/Job Contract line naming 時刻表 alongside 混雑プロファイル as inputs appears
+  to be imprecise prose rather than a real requirement -- worth a design.md correction if audited).
+  Like 3.4, this batch is a directly-callable, directly-tested function (`runNotifyCommuters(db, kv,
+  now)`) deliberately **not** wired into `index.ts`'s (still-nonexistent) `scheduled` export -- same
+  unresolved gap flagged in task 2.2's note, still needing human sign-off. Window matching
+  (`isInNotifyWindow`) explicitly shifts timestamps by a whole-hour JST offset and reads UTC getters
+  (never `getHours()`/`getDay()`) so the 5-minute window match is identical under the Workers runtime
+  and a local-timezone-dependent Node test runner; this is stricter than 3.3/3.4's coarser JST-agnostic
+  day-boundary logic because a wrong window would mean sending (or missing) notifications at the wrong
+  clock time, not just mis-dating a batch record. Two accepted, non-blocking follow-ups from review:
+  (a) `sendExpoPushNotifications` is called once for the whole matched batch, then `last_sent_date` is
+  marked in a sequential loop that returns on the first D1 error -- a registration after a mid-loop
+  failure was already sent a real push but won't have its dedup flag set, which only matters if this
+  batch is ever retried within the same 5-minute window (no such retry policy exists yet); (b) task
+  3.6's `listPushRegistrationsForWindow` (exact `notify_at =` match) is now unused in production code
+  since per-registration `leadMinutes` can't be expressed as a single SQL match -- left in place with
+  its existing 3.6 test rather than deleted, since removing another task's tested code is outside this
+  task's boundary.
+- **3.8 -- MANUAL_VERIFY_REQUIRED, needs human follow-up**: the task's own completion condition
+  ("生成した yaml を Postman にインポートし、全エンドポイントがサンプルペイロード付きで実行可能で
+  あることを確認する") is a manual click-through in an external tool this environment has no access
+  to -- **not performed**. What was verified instead, automatically and repeatably via
+  `apps/backend/test/openapi-drift.test.ts`: `openapi.yaml` is byte-for-byte reproducible from the
+  live route definitions (`app.getOpenAPIDocument(openApiConfig)`, deep-equal against the parsed
+  committed file -- confirmed this actually fails on a hand-edited drift, not just scaffolding),
+  every operation has `operationId`/`tags`/`summary`, and every 4xx/5xx response `$ref`s the shared
+  `ErrorResponse` component. A human still owes the literal Postman import before this is fully
+  signed off. `index.ts` was touched (extracted `openApiConfig` as a named export reused by
+  `scripts/generate-openapi.ts`; registered the `ApiKeyAuth` securityScheme + default `security`) --
+  judged in-boundary because 3.8 is not itself a route-owning "API タスク" under task 2.2's assembly-
+  file freeze, and design.md has no other home for document-level `securityScheme`/`security`/
+  `servers` metadata. `packages/shared/src/schemas/api.schema.ts` also gained `id: "ErrorResponse"`/
+  `id: "OkResponse"` (zod4 `.meta({id})`, documented by `@asteasolutions/zod-to-openapi` v8 as
+  equivalent to `.openapi(id)`) so the generator emits real `$ref`s instead of inlining the same
+  schema at every usage site, plus `example` on `getTrainStatusParamsSchema.railwayId` and
+  `pushRegistrationParamsSchema.id` (design.md's OpenAPI checklist names these two path params
+  explicitly) -- metadata-only additions, no shape/validation change, no regression in either
+  package's existing test suite. `info.version` in `openapi.yaml` ("0.1.0") is independent of
+  `apps/backend/package.json`'s `"version"` ("1.0.0") -- design.md never names which is the source of
+  truth for "API バージョンと同期"; left as the pre-existing API-version convention rather than
+  guessing.
+- **4.1 -- MANUAL_VERIFY_REQUIRED for one clause, needs human follow-up**: the completion condition's
+  「クラッシュがダッシュボードに記録される」cannot be literally verified in this environment -- no
+  real Sentry organization/project/DSN exists yet (`EXPO_PUBLIC_SENTRY_DSN` intentionally unset, per
+  the earlier WIP commit `8cfcd84`); `Sentry.init({ dsn: "" })` no-ops safely rather than crashing,
+  but there is no live dashboard to confirm delivery against. Everything else in the completion
+  condition WAS mechanically verified via argent MCP against a booted iOS 26.5 simulator
+  (`CF242168-DA23-439B-ABAC-05323A716580`): `describe` confirmed all 3 tabs (ホーム/レポート/設定)
+  render with correct i18n text, tapping 設定→ダーク flipped the whole UI including the tab bar to
+  dark theme instantly (system/light/dark all reachable), and `debugger-log-registry` showed 0 JS
+  error entries through the interaction sequence. A human still owes provisioning a real Sentry
+  project and confirming a test crash appears on its dashboard before this clause is fully signed
+  off -- mirrors 3.8's precedent for a completion-condition clause this environment has no access to
+  verify end-to-end.
+  Also discovered and fixed during verification: `npx expo run:ios`/`run:android` failed the Xcode
+  build itself (exit 65, `xcodebuild` "Bundle React Native code and images" phase) because
+  `@sentry/react-native`'s Expo config plugin unconditionally wraps that phase with `sentry-xcode.sh`,
+  which calls `sentry-cli` and hard-fails with "An organization ID or slug is required" when no
+  org/project/auth token is configured -- this wasn't a pre-existing-and-ignorable warning, it blocked
+  every native build. Fixed by prefixing `apps/frontend/package.json`'s `ios`/`android` scripts with
+  `SENTRY_DISABLE_AUTO_UPLOAD=true` (the fix `sentry-cli`'s own error output names). No config-plugin
+  option exists to disable this per-platform build-phase wrapping declaratively (checked
+  `@sentry/react-native/plugin/build/withSentryIOS.js` -- the wrapper script and env-var gate are
+  hardcoded, not exposed as a `PluginProps` field), and `ios`/`android` are gitignored/regenerated by
+  Expo prebuild each run, so hand-editing the generated `ios/sentry.properties` or an
+  `ios/.xcode.env.local` would not survive a clean prebuild -- the npm-script env-var prefix is the
+  only fix that's both committed and prebuild-proof. Revisit once a real Sentry project exists and
+  source-map upload should actually run (e.g. gate the env var on `EXPO_PUBLIC_SENTRY_DSN` being set,
+  or drop it once CI/EAS supplies real `SENTRY_AUTH_TOKEN`/org/project).
+- **4.2**: Followed the real `packages/shared/src/errors/error-codes.ts` `ERROR_CODES` vocabulary
+  (`offline | timeout | http_error | validation_error | unknown`, already implemented and approved in
+  task 1.1/1.2) rather than design.md's Error Strategy prose (line 551), which names a stale
+  `offline | timeout | server | invalid_response` set that was never actually implemented -- the
+  shared package is the real, already-approved contract both frontend and backend consume, so
+  matching it (not the stale prose) is the correct source of truth; worth a design.md correction if
+  audited. `apps/frontend/src/lib/api-client.ts`'s `apiRequest<T>()` normalizes fetch-level
+  `TypeError`/network rejection to `offline`, an `AbortController`-driven timeout (default 8000ms) to
+  `timeout`, non-`ok` HTTP responses to `http_error`, and both JSON-parse failure and zod schema
+  mismatch to `validation_error` via shared's `parseToResult` -- matches design.md's Components table
+  row `ApiClient | frontend/lib | HTTP + zod 検証 + Result | 15.1, 15.5`.
+  For the error-display half: this task's own completion-condition wording ("...表示されるユニット
+  テストが通る") reads like it wants render-level proof, but design.md's Testing Strategy section
+  explicitly scopes frontend Vitest coverage to domain-layer logic only (its "Unit Tests（frontend
+  ドメイン層）" list names `prediction-engine`/`route-ranker`/`usage-limiter`+`subscription-gate`/
+  `coach-session`/`explanation` as the pattern) and separately assigns UI-render-level error-display
+  verification to Playwright E2E scenario 4 (`14.3, 15.1, 15.5`), owned by task 10.2 (depends on
+  4.6's Playwright infra, not this task). Confirmed by spike (then reverted) that this isn't a close
+  call: adding `react-test-renderer` and rendering `error-state.tsx` under this project's Vitest
+  config fails immediately with `RolldownError: Parse failure: ... Flow is not supported` pointing at
+  `react-native/index.js:1` itself -- Vite/Rolldown has no Flow-stripping transform (unlike
+  Metro/Babel, which RN normally requires), so no RN-component-rendering test tool (this one or
+  `@testing-library/react-native`, which transitively imports `react-native` the same way) can work
+  here without a nontrivial new Babel/Flow transform pipeline addition, which is out of this task's
+  scope. Resolved instead by extracting the actual decision logic -- given an `AppError`, which i18n
+  `messageKey` to show and whether a retry affordance applies -- into a pure, Vitest-testable function
+  `apps/frontend/src/lib/error-display.ts#getErrorDisplayContent()`, tested in
+  `test/lib/error-display.test.ts` for the `offline` and `http_error` cases plus every code in
+  shared's `ERROR_CODES` against shared's own `ERROR_MESSAGE_KEYS` map (9 tests total across both new
+  test files). `error-state.tsx` (the JSX layer) consumes it but is itself unverified by Vitest --
+  that remaining gap is JSX/rendering wiring only, not business logic, and is left to task 10.2's
+  Playwright suite as design.md already planned. `error-state.tsx` is also not yet imported by any
+  screen (expected: it's `frontend/lib`-adjacent infrastructure per design.md's Components table, not
+  a screen-owning task; wiring lands with whichever screen task first needs it, e.g. 5.x).
+- **4.3**: Split the DatasetRepository boundary into two layers so the sync/version/missing-data
+  *decisions* (this task's actual completion condition -- "テストで検証される") stay Vitest-testable
+  without touching `expo-sqlite`, which -- like `react-native` itself (see 4.2's note) -- has no
+  native runtime under this project's Vitest/Vite pipeline. `apps/frontend/src/features/dataset/
+  dataset-repository.ts` (sync loop, `notModified`/failure/schema-version handling, `dataset_missing`
+  getters) depends only on a typed `DatasetStore` port (`dataset-store.ts`), never on SQL directly --
+  fully covered by 7 tests in `test/features/dataset/dataset-repository.test.ts` against a hand-rolled
+  in-memory fake, including the literal "airplane mode" scenario the completion condition names
+  (sync fails after a prior success → old data keeps being served). The real SQL adapter
+  (`createSqliteDatasetStore()` in `dataset-store.ts`, backed by `apps/frontend/src/lib/db.ts`'s
+  `DbPort`/`getDb()` singleton) is thin and NOT unit tested -- but was verified end-to-end against a
+  real iOS 26.5 simulator + a real `wrangler dev` backend (migrated D1, KV-pushed fixture datasets):
+  temporarily instrumented `use-dataset-sync.ts` to expose results on `globalThis`, drove it via
+  argent's `debugger-evaluate`, confirmed the full real chain (fetch with `x-api-key` → zod validate →
+  SQLite transaction INSERT → SQLite SELECT readback) actually returns the expected 5 stations / 50
+  timetable entries, then reverted the instrumentation (confirmed clean via `git diff` -- no
+  `globalThis.__debug*` or similar left in the committed file). `datasets_meta` gained a
+  `schema_version` column beyond design.md's `(name, version, synced_at)` (design.md line 529) to
+  support design.md line 545's forward-compatibility mandate: `syncOne()` now rejects a payload whose
+  `schemaVersion` doesn't match this client build's `SUPPORTED_SCHEMA_VERSIONS` map, taking the exact
+  same "keep serving existing data" path as any other sync failure (this was originally missed, then
+  added in a review remediation round -- see task-local review history).
+  **Cross-boundary fix discovered during the live-verification pass above, applied to already-approved
+  task 4.2's `apps/frontend/src/lib/api-client.ts`**: `apps/backend/src/middleware/api-key.ts` requires
+  an `x-api-key` header on every `/v1/*` route (401 otherwise), but 4.2's `apiRequest()` never sent
+  one -- invisible in 4.2's own review since that review only ever exercised `apiRequest` against a
+  mocked `fetch`, never a real server. Fixed by adding `apps/frontend/src/lib/config.ts#API_SHARED_KEY`
+  (reads `EXPO_PUBLIC_API_SHARED_KEY`, matching `apps/backend/.dev.vars`'s `API_SHARED_KEY` for local
+  dev, same `EXPO_PUBLIC_*`-for-client-bundle-values convention 4.1 established for the Sentry DSN)
+  and always sending `"x-api-key": API_SHARED_KEY` from `apiRequest()`; covered by a new test in the
+  existing `test/lib/api-client.test.ts`. Without this, EVERY real backend call from the frontend --
+  not just 4.3's -- would have silently 401'd in any live/production environment; left unfixed it
+  would have blocked every future task built on `api-client.ts` the same way. A local
+  `apps/frontend/.env.local` (gitignored, not part of any commit) holds the matching dev-only
+  placeholder value for local live-testing.
+  **Also touches `packages/shared` (approved in 1.1/1.2) and `apps/backend/openapi.yaml` (generated
+  artifact owned by 3.8)**: design.md line ~470 names `dataset_missing` as the code DatasetRepository
+  should return for an unsynced dataset, but `packages/shared/src/errors/error-codes.ts`'s
+  `ERROR_CODES` didn't have it. Added `"dataset_missing"` there plus `errors.datasetMissing` to
+  `error-messages.ts` and both locale files -- this flows through `errorResponseSchema`'s
+  `z.enum(ERROR_CODES)` on the backend, which changed the OpenAPI-documented error-code enum and broke
+  3.8's drift test until `pnpm --filter backend openapi` was re-run (verified: the regenerated
+  `openapi.yaml` diff is exactly and only the enum addition, no hand-editing, and the drift test
+  passes again).
+- **4.4**: The first two bullets ("日英文言リソースと i18n 初期化", "共有エラーコード→文言キー→表示
+  文言の解決を接続する") were already fully done by already-approved tasks 4.1 (`lib/i18n.ts`,
+  `locales/*`) and 4.2 (`error-display.ts#getErrorDisplayContent()`, already unit-tested against every
+  `shared` `ErrorCode`) -- this task only needed to add the actual language-switcher UI. Added a
+  "言語/Language" section to `settings.tsx` mirroring 4.1's appearance-toggle section exactly, reading/
+  writing `i18n.language` directly via `useTranslation()`'s returned `i18n` object rather than adding a
+  redundant zustand store -- react-i18next's `useTranslation` already subscribes every consuming
+  component to i18next's `languageChanged` event, so `i18n.changeLanguage(locale)` alone drives the
+  immediate app-wide reflection 14.3 requires. Language option labels ("日本語"/"English") are
+  hardcoded, not run through `t()`, since language names are conventionally shown in their own
+  language regardless of the active UI language. No kv-store persistence yet (same accepted, already-
+  documented deferral as 4.1's theme preference -- "revisit once one lands"); the completion condition
+  only requires same-session immediate reflection, which this satisfies. No new Vitest test: per 4.2's
+  already-established, review-confirmed precedent, RN component rendering cannot work under this
+  project's Vitest/Vite pipeline (Flow-parse failure on `react-native/index.js` itself), and design.md
+  explicitly assigns "言語切替の即時反映" verification to Playwright E2E scenario 4 (task 10.2), not
+  this task. Verified live instead: booted an iOS 26.5 simulator, tapped Settings → English via
+  argent, confirmed via `describe` that every visible string changed instantly including the tab bar
+  (not part of `settings.tsx` itself) and the Home tab's placeholder text after navigating away and
+  back -- all without a restart -- with 0 JS errors logged throughout.
+- **4.5**: `apps/frontend/src/lib/analytics.ts#createAnalyticsClient()` reserves its batch
+  synchronously (`buffer.splice(0, MAX_BATCH_SIZE)`) before the first `await` so a `track()`-triggered
+  auto-flush and a manual `flush()` call can never grab the same events -- no lock needed, each
+  `flush()` call just owns whatever was in the buffer at its own synchronous entry point. On failure
+  the batch goes back via `buffer.unshift(...batch)` ("失敗時再送"); this can duplicate-send events
+  whose batch partially landed before a mid-batch D1 failure, since 3.5's Implementation Note already
+  disclosed the backend's per-event insert loop isn't transactional -- a pre-existing, disclosed
+  limitation this task doesn't attempt to fix (would need server-side dedup, outside `AnalyticsClient`'s
+  frontend-only boundary). Common-property attachment (17.2's 対象路線・時間帯・ルート種別 etc.) is
+  built as a `setCommonProps()` extension point merged into every `track()` call (event-specific props
+  win on conflict) -- the actual state (plan type from 6.2's SubscriptionGate, confidence from 5.3's
+  PredictionEngine) doesn't exist yet at this task's boundary, so wiring real values in is left to
+  those future tasks. `randomUUID()` (session ID) comes from `expo-crypto`, which -- like `react-native`
+  and `expo-sqlite` before it -- can't be parsed under this project's Vitest/Vite pipeline (Flow
+  syntax). Unlike 4.3's DB port/adapter split, this task used `vi.mock("expo-crypto", ...)` in the test
+  file instead of constructor-injecting the ID generator -- simpler and sufficient here since
+  `randomUUID()` is a leaf call with no branching logic worth testing in isolation, `vi.mock` hoists
+  before the real module ever loads so the Flow-syntax file is never parsed either way. Completion
+  condition's "収集 API 経由で D1 に記録されることが確認できる" was verified live (not just unit
+  tests): temporarily exposed a `createAnalyticsClient()` instance on `globalThis` from `_layout.tsx`,
+  drove `track()`/`flush()` via argent's `debugger-evaluate` against a real `wrangler dev` backend, then
+  confirmed via `wrangler d1 execute --local` that both events landed in `analytics_events` with correct
+  `props_json` and a shared `session_id` -- then fully reverted the `_layout.tsx` instrumentation
+  (confirmed empty `git diff`).
+- **4.6**: first review round rejected this task because the CI bullet wasn't just unverified, it was
+  genuinely unimplemented (no job existed in `ci.yaml` at all -- `.github/workflows/**` is denied by
+  this environment's Claude Code permission settings) -- unlike 3.8's "manual click on an otherwise-
+  complete artifact" precedent, that didn't qualify for a softer MANUAL_VERIFY_REQUIRED framing, so the
+  task was left unchecked with a `_Blocked:_` annotation and a ready-to-paste job drafted below for a
+  human to apply. **Resolved**: the user applied the drafted `e2e:` job to `.github/workflows/ci.yaml`
+  verbatim and confirmed it went green -- `_Blocked:_` removed from the task line, checkbox now `[x]`.
+  Everything else was already done and verified green locally (`pnpm --filter frontend e2e`, run three
+  times across this task for reproducibility) -- `apps/frontend/
+  playwright.config.ts` bundles two `webServer` entries (Expo web on :8081, `wrangler dev` on :8787,
+  its readiness probe pointed at `/doc` since `/` has no route handler and 404s -- design.md: "ローカル
+  Workers（またはモック API）を束ねる"), `apps/frontend/e2e/smoke.spec.ts` loads the app and clicks
+  through all 3 tabs using the testID selector convention this task establishes (`components/
+  app-tabs.web.tsx`'s `TabTrigger`s get `testID="tab-{home,report,settings}"`, each screen's root
+  `ThemedView` gets `testID="{home,report,settings}-screen"` -- react-native-web forwards `testID`
+  straight to `data-testid` in the DOM, so `page.getByTestId(...)` works with zero extra plumbing).
+  Discovered and fixed along the way: `expo-sqlite` (added in 4.3) broke Expo web bundling entirely
+  (`GET /` 500'd with "Unable to resolve module ./wa-sqlite/wa-sqlite.wasm") since Metro doesn't treat
+  `.wasm` as a bundleable asset by default -- fixed in `apps/frontend/metro.config.js` per Expo's own
+  documented fix (`config.resolver.assetExts.push("wasm")` + COEP/COOP response headers for
+  `SharedArrayBuffer`), confirmed harmless for native since both additions are dev-server/bundler-only.
+  **The CI job itself could NOT be added** -- `.github/workflows/**` edits are denied by this
+  environment's Claude Code permission settings (same restriction already flagged, still unresolved, in
+  task 2.1's Implementation Note above). The job below is drafted, typo-checked against the existing
+  `test:` job's exact conventions (`pnpm/action-setup@v4`, `node-version: lts/*`, `cache: pnpm`,
+  `pnpm install --frozen-lockfile`), and ready to paste into `.github/workflows/ci.yaml` right after the
+  existing `test:` job -- a human needs to add it and confirm it goes green before this task's
+  completion condition ("ローカルと CI の双方でスモークテストがグリーンになる") is fully satisfied:
+  ```yaml
+    e2e:
+      name: Playwright E2E (frontend)
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: pnpm/action-setup@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: lts/*
+            cache: pnpm
+        - run: pnpm install --frozen-lockfile
+        - name: Install Playwright browsers
+          working-directory: apps/frontend
+          run: npx playwright install --with-deps chromium
+        - name: Apply local D1 migrations
+          working-directory: apps/backend
+          run: pnpm run db:migrate:local
+        - name: Run E2E smoke tests
+          working-directory: apps/frontend
+          run: pnpm run e2e
+  ```
+  Also resolved during the same review round: 2.2's Implementation Note had explicitly deferred CORS
+  ownership to "whichever of 4.2 or 4.6 first makes it observable/blocking" and 4.3's note already
+  narrowed that to 4.6 specifically -- the reviewer confirmed zero CORS handling existed anywhere in
+  the repo, a real (if currently silent, since `api-client.ts` swallows CORS failures into an ignored
+  `offline` Result) blocker for task 10.2's real API-calling Playwright scenarios. Added `hono/cors`
+  to `apps/backend/src/index.ts`, applied to `/v1/*` before `apiKeyAuth` (so preflight `OPTIONS`
+  requests get answered before the key check would reject them), `origin: "*"` -- deliberately
+  permissive rather than hardcoding `http://localhost:8081`, since this API has no
+  cookies/sessions anywhere in its design (accountless, x-api-key-gated per security.md) for a
+  wildcard origin to expose; a single hardcoded dev origin would also just break in every other
+  environment (staging, a real web deployment) this task doesn't yet know the URL of. Covered by 2 new
+  tests in the existing `apps/backend/test/index.test.ts` (preflight `OPTIONS` returns 204 with the
+  header pre-auth, and an authenticated GET still carries it) -- full backend suite now 62/62.
+- **5.1 -- task's own completion condition structurally depends on task 5.4, which doesn't exist
+  yet**: first review round rejected an initial version that bundled a preference-driven route-ranking
+  function into `preference-store.ts` -- design.md's Components table assigns "3 案選定・プリファレンス
+  反映" to **RouteRanker** (task 5.4, line 354), not PreferenceStore, and the Requirements Traceability
+  row for 2.1-2.4 is literally `ComfortPreference` 型 → RouteRanker (line 329): PreferenceStore's job
+  ends at exposing the typed, persisted value; RouteRanker is what's supposed to consume it and
+  actually change route ordering. Removed the ranking logic entirely (`rankRoutesByPreference`,
+  `RouteCandidateMetrics`, `scoreCandidate`, weight tables) rather than relocating it into a premature
+  `route-ranker.ts` stub, since task 5.4 wasn't in this session's scope and a half-built RouteRanker
+  file risks its own boundary confusion later. `apps/frontend/src/features/preferences/
+  preference-store.ts` now contains only the persisted `ComfortPreference` state
+  (`speedComfortBalance`/`maxExtraMinutes`/`transferTolerance`/`walkingTolerance` -- no physical/body
+  field, per Req 2.4) via zustand `persist` backed by `lib/kv-store.ts` (the first real use of
+  `expo-sqlite/kv-store` in this codebase; tests mock the module the same way 4.5 mocked `expo-crypto`,
+  since it transitively imports `react-native` and hits the same Flow-parse wall under Vitest).
+  **This means task 5.1's own literal completion condition** ("設定変更後の検索で 3 案の選定・順位が
+  変わることがテストで検証される") **is not satisfied by this task alone** -- it's deferred to task
+  5.4 (depends on 5.3's PredictionEngine too, neither built yet). What IS verified: persisted get/set
+  works correctly (3 tests: default shape + no physical fields, merge-not-replace semantics,
+  independent per-field updates), and -- beyond the unit tests -- live-verified on a real iOS 26.5
+  simulator via argent's `debugger-evaluate`: set a preference, read the raw `expo-sqlite/kv-store`
+  value back (confirmed real persisted JSON), then did a full app **restart** (not just a JS reload)
+  and confirmed the rehydrated state matched what was set beforehand -- genuine cross-restart
+  persistence proof, not just a passing mock. When task 5.4 lands, its own Implementation Notes should
+  close this loop by confirming Req 2.3 end-to-end.
+- **5.2**: `route-search-engine.ts#searchRoutes()` takes an already-loaded `TimetableDatasetPayload` as
+  a plain argument rather than fetching it itself (matches design.md's file split: `route-search-
+  engine.ts` = pure graph search, a separate not-yet-built `use-route-search.ts` = "検索実行 hook
+  （無料枠チェック→検索→3案選定）" owns calling DatasetRepository first). Direct-route and transfer
+  matching compare each train's stop **index within its own sorted stop list**, not raw station `seq`
+  values compared across different trains -- `seq` is only guaranteed comparable for stations that
+  share a train's own path; comparing it across two independently-routed trains (a transfer scenario)
+  is not reliable in general. The transfer search also skips generating a transfer via a train that
+  already reaches the destination directly (redundant with the `direct` candidates), which is a
+  presence-only check (doesn't confirm the destination comes *after* boarding) -- fine for every
+  current fixture (single-direction trains only) but would need tightening if a loop/bidirectional
+  route is ever modeled. Tests use the real committed cross-workspace fixture
+  (`apps/backend/fixtures/datasets/timetable.json`, per task 2.3's "開発・テスト・E2E 共用のフィクス
+  チャ" intent) for direct-route/out_of_area coverage, plus a small synthetic 2-line fixture (inline in
+  the test) to prove 1-transfer logic, since the real fixture is a single railway line with no actual
+  transfer scenario to exercise. Added `out_of_area` to `packages/shared`'s `ERROR_CODES`/
+  `ERROR_MESSAGE_KEYS` (+ locale strings) -- named explicitly in design.md's System Flow section as the
+  code RouteSearchEngine should return for an out-of-network station, same pattern as 4.3's
+  `dataset_missing` addition -- which required regenerating `apps/backend/openapi.yaml` again (drift
+  check would otherwise fail; regeneration confirmed purely mechanical, just the new enum entry).
+  `recent-searches.ts` reuses the same `lib/kv-store.ts` from 5.1, capped at 5 entries, dedup-and-move-
+  to-front on a repeat search -- also live-verified via `debugger-evaluate` alongside 5.1's persistence
+  check.
+- **5.3**: `predictLeg(congestion, correction, query)` is a pure, synchronous function (data passed in,
+  not fetched) matching the same substitution 4.3/5.2 already made against design.md's literal
+  interface shapes -- `packages/shared/src/prediction/scoring.ts#scorePrediction()` (task 1.3) owns the
+  standingMinutes/confidence/factors formula shared with the backend notify batch; this task's own job
+  is the connection layer (aggregating car-level congestion rows to a leg-level `baseLoadScore` +
+  summed `sampleSize`, looking up a matching correction entry) plus deriving the fields
+  `scorePrediction()` doesn't own (`seatProbability`, `seatedMinutes`, `comfortScore`,
+  `perStationSeatProbability`). Added `insufficient_data` to shared's `ERROR_CODES` (+ message key +
+  locale strings) for "no congestion profile matches this leg/time/day at all" -- distinct from 4.3's
+  `dataset_missing` (dataset never synced), which is caught one layer up by
+  `DatasetRepository.getCongestionData()` before this function is ever called with real data. Also
+  added a `prediction.factor.*` locale namespace (6 keys) matching `PREDICTION_FACTOR_MESSAGE_KEYS`
+  (`packages/shared/src/constants/prediction.ts`) verbatim, ready for whichever screen task first
+  renders `PredictionFactor.messageKey` via `t()`.
+  `perStationSeatProbability` is a **documented approximation, not real measured data**: the only
+  committed congestion fixture has exactly one `legKey` (the whole boarding-to-alighting span, no
+  sub-leg granularity), so there is no real per-intermediate-station variance to report. Rather than
+  return a flat, unchanging probability for every station (technically honest but fails Req 6.2's
+  literal "show the change per station"), this interpolates a small monotonic step (+0.05 per station
+  traveled, capped at 1.0) from the leg's own `seatProbability` -- explicitly commented as an assumption
+  ("further along the route ⇒ more chances someone ahead already got off"), not a claim of measured
+  per-station precision. Whichever task first renders this (6.x route detail) should not display it
+  with false decimal precision.
+  `explainPrediction(factors)` returns message KEYS, not resolved display text -- resolution to actual
+  localized strings is deferred to the render layer via `t()`, matching 4.2's `error-display.ts`/
+  `ErrorState` pattern already established in this codebase.
+  Req 15.3's "予測データ不足時の時刻表のみ表示への切替" (switch to timetable-only display when
+  prediction data is insufficient) is satisfied only at the signal level here (`err(insufficient_data)`
+  / `err(dataset_missing)` are the two error codes a caller can branch on) -- no screen exists yet to
+  perform the actual UI switch; that lands with whichever screen task first consumes these results
+  (5.4/5.5).
+- **5.4**: `results.tsx` currently renders `err(insufficient_data)`/`err(dataset_missing)` through the
+  existing 4.2 `ErrorState` component (retry button + localized message), not the literal
+  "timetable-only" fallback view Req 15.3 describes -- that fallback still has no owning task; not
+  fixed here since it's outside 5.4's own Requirements (2.3, 3.5, 4.1-4.4). Flagging for whichever task
+  picks up 15.3's UI (5.5 route detail, or a dedicated follow-up).
+- **5.4**: Routing was restructured from a flat `<AppTabs/>` root render to `app/_layout.tsx` using
+  expo-router's top-level `<Stack>` wrapping a `(tabs)` route group (`app/(tabs)/_layout.tsx` renders
+  `AppTabs`) plus a sibling `results` screen -- needed because the previous root layout had no
+  navigator capable of reaching a non-tab screen. `index.tsx`/`report.tsx`/`settings.tsx` moved into
+  `(tabs)/` via `git mv` to preserve history.
+- **5.4**: Home screen's search trigger is a hardcoded demo query (Shinjuku→Tokyo, 07:30) since no
+  search-form task precedes 5.4 in `tasks.md` (5.4 only depends on 5.1-5.3) -- a real station-picker
+  search form is unscheduled future work; this is the minimal honest way to reach `results.tsx`
+  end-to-end for this task's own completion criteria.
+- **5.4**: With the current single-`legKey` fixture (see 5.3's note above), all route candidates for a
+  given search resolve to identical standing/seated/probability/comfort metrics regardless of
+  departure time -- only arrival time and total duration differ. This is expected given the fixture's
+  data shape, verified live on iOS simulator (3 route cards render correctly with real computed
+  values), not a route-ranker.ts logic bug. `RouteCard`'s "追加 N 分で M 分削減" diff line correctly
+  stays hidden in this case since `diffFromFastestMinutes` is 0.
+- **5.4**: `route-ranker.ts`'s "balanced" pick is chosen only from candidates not already claimed by
+  "fastest"/"comfort" (forced 3-way distinctness across the 3 slots), so it is not necessarily the
+  single globally-best blended-score candidate if that candidate was already assigned elsewhere. This
+  is a deliberate interpretation of "3 distinct picks" per Req 4.1, exercised by a dedicated test.
+- **5.5**: `recommendBoarding()` (in `prediction-engine.ts`, alongside `predictLeg()`) recommends the
+  car with the lowest average `loadScore` among the congestion profiles matching the leg/time/day --
+  the same car-level rows `predictLeg()` itself averages away for its leg-level estimate. Car
+  granularity only (Req 6.3): `BoardingAdvice`/`CarComparison` have no door-level field, matching the
+  congestion dataset schema itself (`congestionProfileEntrySchema` has `carNumber`, no door field), so
+  there is nothing finer to report even if a task asked for it.
+- **5.5**: `route-detail.tsx`'s "ホーム上の待機位置と進行方向" (Req 6.4) is a numbered car-box diagram
+  (1..carCount, recommended car highlighted) plus a from→to direction label using real station display
+  names -- deliberately does NOT label either end of the diagram "front"/"rear" of the physical train,
+  since no field in the dataset indicates which end that is. This is an honest visual representation
+  within what the data supports, not a claim of verified platform geometry.
+- **5.5**: Exported `confidenceForSampleSize` from `packages/shared/src/prediction/scoring.ts` (was
+  private, used only by `scorePrediction()`) so `recommendBoarding()` can reuse the exact same
+  low/medium/high sample-size thresholds instead of re-deriving them -- per design.md's "閾値は定数
+  モジュールで一元管理". No behavior change to any existing caller.
+- **5.5**: Extracted `minutesOfDay`/`floorToTimeBucket` (from `route-ranker.ts`'s private helpers) into
+  `apps/frontend/src/lib/clock-time.ts`, and `intermediateStationIds` (same source) into
+  `apps/frontend/src/lib/station-utils.ts`, so `use-route-detail.ts` (5.5) doesn't duplicate logic
+  `route-ranker.ts` (5.4) already had. `route-ranker.ts` now imports both instead of defining them
+  locally -- pure extraction, no behavior change (`route-ranker.test.ts` still passes unmodified).
+- **5.5**: Route selection passes `RouteLeg[]` through the router as a JSON-encoded `legs` search param
+  (`results.tsx` → `route-detail.tsx`) rather than the richer `RankedRoute`/`PredictionResult` objects
+  already computed on the results screen -- `route-detail.tsx` recomputes prediction + boarding advice
+  itself via `useRouteDetail`, which is safe per PredictionEngine's own invariant ("同一入力＋同一
+  データセット版 → 同一出力") and avoids serializing computed objects through navigation.
+  `route-detail.tsx` treats a missing/unparseable `legs` param as "no route selected" (shows
+  `ErrorState`) since Expo Router also targets web, where the URL is an external input surface.
+- **5.5**: The route-detail screen is intentionally NOT Paywall-gated here even though Req 12.4 lists
+  "詳細な号車・乗車位置案内" as a Free-tier-restricted feature -- task 6.3 explicitly owns wiring that
+  gate ("比較・詳細画面の Pro 専用要素...をゲートする"), and 5.5's own `_Requirements:` are only
+  6.1-6.4. Still open per 5.4's note above: `route-detail.tsx` renders `insufficient_data`/
+  `dataset_missing` via the same `ErrorState` component as `results.tsx`, not Req 15.3's literal
+  "timetable-only" fallback view -- that fallback still has no owning task.

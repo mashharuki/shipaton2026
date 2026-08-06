@@ -1,5 +1,18 @@
-import { SELF } from "cloudflare:test";
-import { describe, expect, it } from "vitest";
+import {
+  applyD1Migrations,
+  type D1Migration,
+  env,
+  SELF,
+} from "cloudflare:test";
+import { beforeAll, describe, expect, it } from "vitest";
+
+declare global {
+  namespace Cloudflare {
+    interface Env {
+      TEST_MIGRATIONS: D1Migration[];
+    }
+  }
+}
 
 const API_KEY = "test-shared-key";
 
@@ -9,6 +22,10 @@ function authed(init: RequestInit = {}): RequestInit {
     headers: { ...init.headers, "x-api-key": API_KEY },
   };
 }
+
+beforeAll(async () => {
+  await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
+});
 
 describe("GET /doc", () => {
   it("responds without an api key and lists all 5 route operations", async () => {
@@ -29,6 +46,28 @@ describe("GET /doc", () => {
   });
 });
 
+describe("CORS on /v1/*", () => {
+  it("allows a cross-origin preflight request without requiring an api key", async () => {
+    const res = await SELF.fetch("http://localhost/v1/datasets/timetable", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "http://localhost:8081",
+        "Access-Control-Request-Method": "GET",
+      },
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("includes the CORS header on an authenticated response too", async () => {
+    const res = await SELF.fetch(
+      "http://localhost/v1/datasets/timetable",
+      authed({ headers: { Origin: "http://localhost:8081" } }),
+    );
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+});
+
 describe("x-api-key auth", () => {
   it("rejects /v1/* requests without a valid key", async () => {
     const missing = await SELF.fetch("http://localhost/v1/datasets/timetable");
@@ -38,52 +77,6 @@ describe("x-api-key auth", () => {
       headers: { "x-api-key": "wrong-key" },
     });
     expect(wrong.status).toBe(401);
-  });
-});
-
-describe("route stubs", () => {
-  it("GET /v1/datasets/:name returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/datasets/timetable",
-      authed(),
-    );
-    expect(res.status).toBe(501);
-  });
-
-  it("GET /v1/train-status/:railwayId returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/train-status/RAIL_CHUO",
-      authed(),
-    );
-    expect(res.status).toBe(501);
-  });
-
-  it("PUT /v1/push-registrations/:id returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/push-registrations/push-1",
-      authed({
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          expoPushToken: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
-          fromStationId: "STA_SHINJUKU",
-          toStationId: "STA_TOKYO",
-          weekdays: ["mon", "tue", "wed", "thu", "fri"],
-          notifyAt: "07:45",
-          leadMinutes: 20,
-          locale: "ja",
-        }),
-      }),
-    );
-    expect(res.status).toBe(501);
-  });
-
-  it("DELETE /v1/push-registrations/:id returns 501", async () => {
-    const res = await SELF.fetch(
-      "http://localhost/v1/push-registrations/push-1",
-      authed({ method: "DELETE" }),
-    );
-    expect(res.status).toBe(501);
   });
 });
 
@@ -112,7 +105,7 @@ describe("IP rate limit on write endpoints", () => {
       statuses.push(res.status);
     }
 
-    expect(statuses.filter((s) => s === 501).length).toBe(30);
+    expect(statuses.filter((s) => s === 200).length).toBe(30);
     expect(statuses.at(-1)).toBe(429);
   });
 
@@ -143,7 +136,7 @@ describe("IP rate limit on write endpoints", () => {
       statuses.push(res.status);
     }
 
-    expect(statuses.filter((s) => s === 501).length).toBe(30);
+    expect(statuses.filter((s) => s === 200).length).toBe(30);
     expect(statuses.at(-1)).toBe(429);
   });
 });

@@ -135,6 +135,37 @@ export async function listFeedbackForAggregation(
   });
 }
 
+// Unlike listFeedbackForAggregation, not scoped to a single railwayId --
+// the daily aggregation batch (task 3.4) recomputes correction_stats across
+// every railway/leg/bucket/day-type cell in one full pass.
+export async function listFeedbackSince(
+  db: D1Database,
+  sinceIso: string,
+): Promise<Result<FeedbackRow[], AppError>> {
+  return runQuery("listFeedbackSince", async () => {
+    const { results } = await db
+      .prepare(
+        "SELECT * FROM feedback WHERE created_at >= ? ORDER BY created_at ASC",
+      )
+      .bind(sinceIso)
+      .all<Record<string, unknown>>();
+    return results.map(toFeedbackRow);
+  });
+}
+
+export async function deleteExpiredFeedback(
+  db: D1Database,
+  cutoffIso: string,
+): Promise<Result<number, AppError>> {
+  return runQuery("deleteExpiredFeedback", async () => {
+    const result = await db
+      .prepare("DELETE FROM feedback WHERE created_at < ?")
+      .bind(cutoffIso)
+      .run();
+    return result.meta.changes ?? 0;
+  });
+}
+
 function toCorrectionStatsRow(
   raw: Record<string, unknown>,
 ): CorrectionStatsRow {
@@ -177,6 +208,17 @@ export async function upsertCorrectionStats(
   });
 }
 
+// Full-recompute idempotency (task 3.4: "全量再計算") -- cells that no
+// longer meet the sample-size threshold must not linger from a previous
+// run, so the aggregation batch clears the table before repopulating it.
+export async function deleteAllCorrectionStats(
+  db: D1Database,
+): Promise<Result<void, AppError>> {
+  return runQuery("deleteAllCorrectionStats", async () => {
+    await db.prepare("DELETE FROM correction_stats").run();
+  });
+}
+
 export async function getCorrectionStats(
   db: D1Database,
   key: {
@@ -194,6 +236,24 @@ export async function getCorrectionStats(
       .bind(key.railwayId, key.legKey, key.timeBucket, key.dayType)
       .first<Record<string, unknown>>();
     return row ? toCorrectionStatsRow(row) : null;
+  });
+}
+
+// notify-commuters (task 3.7) needs every time-bucket cell for a leg -- both
+// to test the current bucket for a positive delta and to compare it against
+// other buckets for an alternative-departure recommendation.
+export async function listCorrectionStatsForLeg(
+  db: D1Database,
+  key: { railwayId: string; legKey: string; dayType: DayType },
+): Promise<Result<CorrectionStatsRow[], AppError>> {
+  return runQuery("listCorrectionStatsForLeg", async () => {
+    const { results } = await db
+      .prepare(
+        "SELECT * FROM correction_stats WHERE railway_id = ? AND leg_key = ? AND day_type = ?",
+      )
+      .bind(key.railwayId, key.legKey, key.dayType)
+      .all<Record<string, unknown>>();
+    return results.map(toCorrectionStatsRow);
   });
 }
 
@@ -338,12 +398,13 @@ export async function upsertPushRegistration(
 export async function deletePushRegistration(
   db: D1Database,
   id: string,
-): Promise<Result<void, AppError>> {
+): Promise<Result<number, AppError>> {
   return runQuery("deletePushRegistration", async () => {
-    await db
+    const result = await db
       .prepare("DELETE FROM push_registrations WHERE id = ?")
       .bind(id)
       .run();
+    return result.meta.changes ?? 0;
   });
 }
 
@@ -357,5 +418,33 @@ export async function listPushRegistrationsForWindow(
       .bind(notifyAt)
       .all<Record<string, unknown>>();
     return results.map(toPushRegistrationRow);
+  });
+}
+
+// notify-commuters (task 3.7) evaluates every registration's own
+// (notifyAt - leadMinutes) window on each 5-minute tick -- since leadMinutes
+// varies per row, that can't be expressed as a single `notify_at = ?` match,
+// so the batch fetches the (small, MVP-scale) full table and filters in app
+// code (see cron/notify-commuters.ts's `isInNotifyWindow`).
+export async function listAllPushRegistrations(
+  db: D1Database,
+): Promise<Result<PushRegistrationRow[], AppError>> {
+  return runQuery("listAllPushRegistrations", async () => {
+    const { results } = await db
+      .prepare("SELECT * FROM push_registrations")
+      .all<Record<string, unknown>>();
+    return results.map(toPushRegistrationRow);
+  });
+}
+
+export async function markPushRegistrationSent(
+  db: D1Database,
+  params: { id: string; sentDate: string },
+): Promise<Result<void, AppError>> {
+  return runQuery("markPushRegistrationSent", async () => {
+    await db
+      .prepare("UPDATE push_registrations SET last_sent_date = ? WHERE id = ?")
+      .bind(params.sentDate, params.id)
+      .run();
   });
 }

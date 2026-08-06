@@ -68,3 +68,24 @@ jobs:
       # --if-present skips workspaces that don't declare a "test" script yet
       # (backend/frontend), so this job auto-covers them once later tasks add one.
       - run: pnpm --filter ${{ matrix.workspace }} --if-present run test
+
+  e2e:
+    name: Playwright E2E (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        working-directory: apps/frontend
+        run: npx playwright install --with-deps chromium
+      - name: Apply local D1 migrations
+        working-directory: apps/backend
+        run: pnpm run db:migrate:local
+      - name: Run E2E smoke tests
+        working-directory: apps/frontend
+        run: pnpm run e2e

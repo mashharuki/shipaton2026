@@ -1,0 +1,85 @@
+{
+  "common": {
+    "retry": "Retry",
+    "back": "Back"
+  },
+  "errors": {
+    "offline": "You're offline. Check your connection and try again.",
+    "timeout": "The request took too long. Please try again.",
+    "httpError": "Something went wrong on our end. Please try again.",
+    "validation": "We received an unexpected response. Please try again.",
+    "datasetMissing": "Data for this line isn't downloaded yet. You can still view the timetable.",
+    "outOfArea": "This route isn't supported yet. Try a station within our covered area.",
+    "insufficientData": "Not enough data to explain this prediction yet.",
+    "unknown": "Something went wrong. Please try again."
+  },
+  "prediction": {
+    "factor": {
+      "baseProfile": "Typical crowding for this time of day",
+      "dayType": "Weekday/weekend pattern",
+      "weather": "Weather conditions",
+      "event": "Nearby event",
+      "feedbackCorrection": "Recent rider feedback",
+      "delay": "Current delays"
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "report": "Report",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "SeatSignal",
+    "placeholder": "Search is coming soon",
+    "demoSearch": "Search Shinjuku → Tokyo (demo)"
+  },
+  "results": {
+    "title": "Compare routes",
+    "loading": "Calculating your options…",
+    "fastest": "Fastest",
+    "balanced": "Balanced",
+    "comfort": "Most comfortable",
+    "arrivalTime": "Arrival",
+    "duration": "Duration",
+    "diffFromFastest": "+{{minutes}} min vs fastest",
+    "standingMinutes": "Expected standing",
+    "standingMinutesRange": "{{min}}–{{max}} min",
+    "standingMinutesPoint": "{{minutes}} min",
+    "seatedMinutes": "Expected seated",
+    "seatProbability": "Seat chance",
+    "transferCount": "Transfers",
+    "comfortScore": "Comfort score",
+    "confidence": "Confidence",
+    "confidenceLow": "Low",
+    "confidenceMedium": "Medium",
+    "confidenceHigh": "High",
+    "comfortDiff": "Add {{extra}} min to cut expected standing time by {{reduced}} min",
+    "minutesValue": "{{minutes}} min",
+    "percentValue": "{{percent}}%"
+  },
+  "routeDetail": {
+    "title": "Route detail",
+    "loading": "Calculating…",
+    "trainLabel": "Train",
+    "departureLabel": "Departs",
+    "direction": "Direction of travel",
+    "recommendedCar": "Recommended car: {{car}}",
+    "waitingPosition": "Waiting position on the platform (by car)",
+    "perStationTitle": "Seat chance by station",
+    "reason": {
+      "lowestCongestion": "This car is expected to be the least crowded on this leg"
+    }
+  },
+  "report": {
+    "title": "Weekly report",
+    "placeholder": "Reports are coming soon"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "appearanceSystem": "Match system",
+    "appearanceLight": "Light",
+    "appearanceDark": "Dark",
+    "language": "Language"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "common": {
+    "retry": "再試行",
+    "back": "戻る"
+  },
+  "errors": {
+    "offline": "オフラインです。通信状態を確認してもう一度お試しください。",
+    "timeout": "通信がタイムアウトしました。もう一度お試しください。",
+    "httpError": "サーバー側で問題が発生しました。もう一度お試しください。",
+    "validation": "想定外の応答を受信しました。もう一度お試しください。",
+    "datasetMissing": "この路線のデータはまだダウンロードされていません。時刻表は引き続き閲覧できます。",
+    "outOfArea": "この区間は未対応です。対象区間内の駅を指定してください。",
+    "insufficientData": "この予測を説明できるデータがまだありません。",
+    "unknown": "問題が発生しました。もう一度お試しください。"
+  },
+  "prediction": {
+    "factor": {
+      "baseProfile": "この時間帯の通常の混雑傾向",
+      "dayType": "平日・休日のパターン",
+      "weather": "天候の影響",
+      "event": "近隣イベントの影響",
+      "feedbackCorrection": "最近の利用者フィードバック",
+      "delay": "現在の遅延"
+    }
+  },
+  "tabs": {
+    "home": "ホーム",
+    "report": "レポート",
+    "settings": "設定"
+  },
+  "home": {
+    "title": "SeatSignal",
+    "placeholder": "検索機能は近日公開予定です",
+    "demoSearch": "新宿→東京を検索（デモ）"
+  },
+  "results": {
+    "title": "ルート比較",
+    "loading": "計算中…",
+    "fastest": "最速",
+    "balanced": "バランス",
+    "comfort": "最も快適",
+    "arrivalTime": "到着",
+    "duration": "所要時間",
+    "diffFromFastest": "最速との差 +{{minutes}} 分",
+    "standingMinutes": "予想立ち時間",
+    "standingMinutesRange": "{{min}}〜{{max}} 分",
+    "standingMinutesPoint": "{{minutes}} 分",
+    "seatedMinutes": "予想着座時間",
+    "seatProbability": "着座確率",
+    "transferCount": "乗換回数",
+    "comfortScore": "快適性スコア",
+    "confidence": "信頼度",
+    "confidenceLow": "低",
+    "confidenceMedium": "中",
+    "confidenceHigh": "高",
+    "comfortDiff": "追加 {{extra}} 分で予想立ち時間を {{reduced}} 分削減",
+    "minutesValue": "{{minutes}} 分",
+    "percentValue": "{{percent}}%"
+  },
+  "routeDetail": {
+    "title": "ルート詳細",
+    "loading": "計算中…",
+    "trainLabel": "利用列車",
+    "departureLabel": "発車",
+    "direction": "進行方向",
+    "recommendedCar": "推奨号車: {{car}} 号車",
+    "waitingPosition": "ホーム上の待機位置（号車）",
+    "perStationTitle": "駅ごとの着座確率",
+    "reason": {
+      "lowestCongestion": "この号車は同区間の中で最も混雑が少ない見込みです"
+    }
+  },
+  "report": {
+    "title": "週間レポート",
+    "placeholder": "レポートは近日公開予定です"
+  },
+  "settings": {
+    "title": "設定",
+    "appearance": "外観",
+    "appearanceSystem": "システムに合わせる",
+    "appearanceLight": "ライト",
+    "appearanceDark": "ダーク",
+    "language": "言語"
+  }
+}
