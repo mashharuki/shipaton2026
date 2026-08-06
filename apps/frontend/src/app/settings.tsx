@@ -36,7 +36,7 @@ export default function SettingsScreen() {
   const setPreference = useThemeStore((state) => state.setPreference);
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} testID="settings-screen">
       <SafeAreaView style={styles.safeArea}>
         <ThemedText type="title" style={styles.title}>
           {t("settings.title")}

@@ -11,7 +11,7 @@ export default function ReportScreen() {
   const { t } = useTranslation();
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} testID="report-screen">
       <SafeAreaView style={styles.safeArea}>
         <ThemedText type="title" style={styles.title}>
           {t("report.title")}

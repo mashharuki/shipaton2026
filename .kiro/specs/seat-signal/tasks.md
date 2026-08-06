@@ -164,6 +164,11 @@
   - _Depends: 1.4, 4.1_
   - _Boundary: E2E Infrastructure_
   - _Requirements: 18.6_
+  - _Blocked: CI ジョブ（`.github/workflows/ci.yaml` への Playwright ジョブ追加）が適用できない --
+    この環境の Claude Code 権限設定で `.github/workflows/**` への書き込みが拒否されているため。
+    ローカル E2E 基盤（`playwright.config.ts`・testID 規約・スモークテスト）は完了しグリーン確認済み
+    （後述 Implementation Notes 参照）。貼り付け用の CI ジョブ YAML も用意済み -- 人手での適用と
+    実際の CI グリーン確認が必要。_
 
 - [ ] 5. 中核ループ: 検索・予測・比較・詳細
 - [ ] 5.1 (P) 快適性プリファレンス設定を実装する
@@ -394,7 +399,8 @@
   catch branch same as any other network failure), so CORS itself remains a backend `index.ts`
   concern with no frontend-side code to carry the allowance. Ownership now falls to task 4.6
   (Playwright E2E against Expo web) as the first task where a missing CORS header would actually be
-  observable and blocking — still unresolved, still needs sign-off before 4.6 starts.
+  observable and blocking — **resolved in 4.6**, see its own Implementation Notes entry below
+  (`hono/cors` added to `apps/backend/src/index.ts`).
 - **2.3**: KV storage convention for datasets — `push-datasets-to-kv.ts` writes each dataset under
   key `dataset:{name}` (`dataset:timetable` / `dataset:congestion` / `dataset:correction`) in the
   `STATUS_CACHE` KV binding (the only KV binding declared in task 2.1; design.md line 514 names only
@@ -697,3 +703,64 @@
   confirmed via `wrangler d1 execute --local` that both events landed in `analytics_events` with correct
   `props_json` and a shared `session_id` -- then fully reverted the `_layout.tsx` instrumentation
   (confirmed empty `git diff`).
+- **4.6 -- BLOCKED on the CI half, needs human follow-up (see `_Blocked:_` on the task line above)**:
+  first review round rejected this task specifically because the CI bullet wasn't just unverified, it
+  was genuinely unimplemented (no job exists in `ci.yaml` at all) -- unlike 3.8's "manual click on an
+  otherwise-complete artifact" precedent, this doesn't qualify for a softer MANUAL_VERIFY_REQUIRED
+  framing, so the task is left unchecked with a `_Blocked:_` annotation instead. Everything else is
+  done and verified green (`pnpm --filter frontend e2e`, run three times across this task for
+  reproducibility) -- `apps/frontend/
+  playwright.config.ts` bundles two `webServer` entries (Expo web on :8081, `wrangler dev` on :8787,
+  its readiness probe pointed at `/doc` since `/` has no route handler and 404s -- design.md: "ローカル
+  Workers（またはモック API）を束ねる"), `apps/frontend/e2e/smoke.spec.ts` loads the app and clicks
+  through all 3 tabs using the testID selector convention this task establishes (`components/
+  app-tabs.web.tsx`'s `TabTrigger`s get `testID="tab-{home,report,settings}"`, each screen's root
+  `ThemedView` gets `testID="{home,report,settings}-screen"` -- react-native-web forwards `testID`
+  straight to `data-testid` in the DOM, so `page.getByTestId(...)` works with zero extra plumbing).
+  Discovered and fixed along the way: `expo-sqlite` (added in 4.3) broke Expo web bundling entirely
+  (`GET /` 500'd with "Unable to resolve module ./wa-sqlite/wa-sqlite.wasm") since Metro doesn't treat
+  `.wasm` as a bundleable asset by default -- fixed in `apps/frontend/metro.config.js` per Expo's own
+  documented fix (`config.resolver.assetExts.push("wasm")` + COEP/COOP response headers for
+  `SharedArrayBuffer`), confirmed harmless for native since both additions are dev-server/bundler-only.
+  **The CI job itself could NOT be added** -- `.github/workflows/**` edits are denied by this
+  environment's Claude Code permission settings (same restriction already flagged, still unresolved, in
+  task 2.1's Implementation Note above). The job below is drafted, typo-checked against the existing
+  `test:` job's exact conventions (`pnpm/action-setup@v4`, `node-version: lts/*`, `cache: pnpm`,
+  `pnpm install --frozen-lockfile`), and ready to paste into `.github/workflows/ci.yaml` right after the
+  existing `test:` job -- a human needs to add it and confirm it goes green before this task's
+  completion condition ("ローカルと CI の双方でスモークテストがグリーンになる") is fully satisfied:
+  ```yaml
+    e2e:
+      name: Playwright E2E (frontend)
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: pnpm/action-setup@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: lts/*
+            cache: pnpm
+        - run: pnpm install --frozen-lockfile
+        - name: Install Playwright browsers
+          working-directory: apps/frontend
+          run: npx playwright install --with-deps chromium
+        - name: Apply local D1 migrations
+          working-directory: apps/backend
+          run: pnpm run db:migrate:local
+        - name: Run E2E smoke tests
+          working-directory: apps/frontend
+          run: pnpm run e2e
+  ```
+  Also resolved during the same review round: 2.2's Implementation Note had explicitly deferred CORS
+  ownership to "whichever of 4.2 or 4.6 first makes it observable/blocking" and 4.3's note already
+  narrowed that to 4.6 specifically -- the reviewer confirmed zero CORS handling existed anywhere in
+  the repo, a real (if currently silent, since `api-client.ts` swallows CORS failures into an ignored
+  `offline` Result) blocker for task 10.2's real API-calling Playwright scenarios. Added `hono/cors`
+  to `apps/backend/src/index.ts`, applied to `/v1/*` before `apiKeyAuth` (so preflight `OPTIONS`
+  requests get answered before the key check would reject them), `origin: "*"` -- deliberately
+  permissive rather than hardcoding `http://localhost:8081`, since this API has no
+  cookies/sessions anywhere in its design (accountless, x-api-key-gated per security.md) for a
+  wildcard origin to expose; a single hardcoded dev origin would also just break in every other
+  environment (staging, a real web deployment) this task doesn't yet know the URL of. Covered by 2 new
+  tests in the existing `apps/backend/test/index.test.ts` (preflight `OPTIONS` returns 204 with the
+  header pre-auth, and an authenticated GET still carries it) -- full backend suite now 62/62.

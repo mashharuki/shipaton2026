@@ -35,6 +35,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3",
     "vitest": "4.1.10"
@@ -47,7 +48,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "private": true
 }

@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { cors } from "hono/cors";
 import { apiKeyAuth } from "./middleware/api-key";
 import { datasetsRoute } from "./routes/datasets";
 import { eventsRoute } from "./routes/events";
@@ -8,6 +9,23 @@ import { trainStatusRoute } from "./routes/train-status";
 
 // Honoインスタンスを生成
 const app = new OpenAPIHono<{ Bindings: CloudflareBindings }>();
+
+// 4.6: the Expo web target (Playwright E2E, and eventually the real app on
+// web) calls this API cross-origin. No cookies/sessions exist anywhere in
+// this design (accountless, x-api-key-gated per security.md) -- there is
+// nothing a wildcard origin could leak that the API key doesn't already
+// gate, so this stays permissive rather than hardcoding a single dev origin
+// that would break in every other environment. Registered before
+// apiKeyAuth so its preflight (OPTIONS) short-circuit responses are never
+// rejected by the key check.
+app.use(
+  "/v1/*",
+  cors({
+    origin: "*",
+    allowMethods: ["GET", "POST", "PUT", "DELETE"],
+    allowHeaders: ["Content-Type", "x-api-key"],
+  }),
+);
 
 // x-api-key applies to all /v1/* routes (design.md line 504/507); /doc stays
 // open so Postman/tools can import the spec without a key.

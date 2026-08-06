@@ -46,6 +46,28 @@ describe("GET /doc", () => {
   });
 });
 
+describe("CORS on /v1/*", () => {
+  it("allows a cross-origin preflight request without requiring an api key", async () => {
+    const res = await SELF.fetch("http://localhost/v1/datasets/timetable", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "http://localhost:8081",
+        "Access-Control-Request-Method": "GET",
+      },
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("includes the CORS header on an authenticated response too", async () => {
+    const res = await SELF.fetch(
+      "http://localhost/v1/datasets/timetable",
+      authed({ headers: { Origin: "http://localhost:8081" } }),
+    );
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+});
+
 describe("x-api-key auth", () => {
   it("rejects /v1/* requests without a valid key", async () => {
     const missing = await SELF.fetch("http://localhost/v1/datasets/timetable");

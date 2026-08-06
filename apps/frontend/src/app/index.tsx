@@ -10,7 +10,7 @@ export default function HomeScreen() {
   const { t } = useTranslation();
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.container} testID="home-screen">
       <SafeAreaView style={styles.safeArea}>
         <ThemedText type="title" style={styles.title}>
           {t("home.title")}
