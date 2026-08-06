@@ -9,7 +9,18 @@
     "validation": "We received an unexpected response. Please try again.",
     "datasetMissing": "Data for this line isn't downloaded yet. You can still view the timetable.",
     "outOfArea": "This route isn't supported yet. Try a station within our covered area.",
+    "insufficientData": "Not enough data to explain this prediction yet.",
     "unknown": "Something went wrong. Please try again."
+  },
+  "prediction": {
+    "factor": {
+      "baseProfile": "Typical crowding for this time of day",
+      "dayType": "Weekday/weekend pattern",
+      "weather": "Weather conditions",
+      "event": "Nearby event",
+      "feedbackCorrection": "Recent rider feedback",
+      "delay": "Current delays"
+    }
   },
   "tabs": {
     "home": "Home",

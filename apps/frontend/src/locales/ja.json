@@ -9,7 +9,18 @@
     "validation": "想定外の応答を受信しました。もう一度お試しください。",
     "datasetMissing": "この路線のデータはまだダウンロードされていません。時刻表は引き続き閲覧できます。",
     "outOfArea": "この区間は未対応です。対象区間内の駅を指定してください。",
+    "insufficientData": "この予測を説明できるデータがまだありません。",
     "unknown": "問題が発生しました。もう一度お試しください。"
+  },
+  "prediction": {
+    "factor": {
+      "baseProfile": "この時間帯の通常の混雑傾向",
+      "dayType": "平日・休日のパターン",
+      "weather": "天候の影響",
+      "event": "近隣イベントの影響",
+      "feedbackCorrection": "最近の利用者フィードバック",
+      "delay": "現在の遅延"
+    }
   },
   "tabs": {
     "home": "ホーム",

@@ -183,7 +183,7 @@
   - _Boundary: RouteSearchEngine_
   - _Requirements: 3.1, 3.2, 3.4, 16.1_
 
-- [ ] 5.3 予測エンジンの統合と理由説明を実装する
+- [x] 5.3 予測エンジンの統合と理由説明を実装する
   - ローカル DB のプロファイル・補正統計を共有スコアリング関数へ接続し、ルート区間ごとの予測を端末内で算出する
   - 途中駅ごとの着座確率と、使用した要素のみに基づく理由説明文の生成を実装する
   - 説明可能なデータがない場合の「データ不足」表示と、予測データ不足時の時刻表のみ表示への切替を実装する
@@ -809,3 +809,34 @@
   `recent-searches.ts` reuses the same `lib/kv-store.ts` from 5.1, capped at 5 entries, dedup-and-move-
   to-front on a repeat search -- also live-verified via `debugger-evaluate` alongside 5.1's persistence
   check.
+- **5.3**: `predictLeg(congestion, correction, query)` is a pure, synchronous function (data passed in,
+  not fetched) matching the same substitution 4.3/5.2 already made against design.md's literal
+  interface shapes -- `packages/shared/src/prediction/scoring.ts#scorePrediction()` (task 1.3) owns the
+  standingMinutes/confidence/factors formula shared with the backend notify batch; this task's own job
+  is the connection layer (aggregating car-level congestion rows to a leg-level `baseLoadScore` +
+  summed `sampleSize`, looking up a matching correction entry) plus deriving the fields
+  `scorePrediction()` doesn't own (`seatProbability`, `seatedMinutes`, `comfortScore`,
+  `perStationSeatProbability`). Added `insufficient_data` to shared's `ERROR_CODES` (+ message key +
+  locale strings) for "no congestion profile matches this leg/time/day at all" -- distinct from 4.3's
+  `dataset_missing` (dataset never synced), which is caught one layer up by
+  `DatasetRepository.getCongestionData()` before this function is ever called with real data. Also
+  added a `prediction.factor.*` locale namespace (6 keys) matching `PREDICTION_FACTOR_MESSAGE_KEYS`
+  (`packages/shared/src/constants/prediction.ts`) verbatim, ready for whichever screen task first
+  renders `PredictionFactor.messageKey` via `t()`.
+  `perStationSeatProbability` is a **documented approximation, not real measured data**: the only
+  committed congestion fixture has exactly one `legKey` (the whole boarding-to-alighting span, no
+  sub-leg granularity), so there is no real per-intermediate-station variance to report. Rather than
+  return a flat, unchanging probability for every station (technically honest but fails Req 6.2's
+  literal "show the change per station"), this interpolates a small monotonic step (+0.05 per station
+  traveled, capped at 1.0) from the leg's own `seatProbability` -- explicitly commented as an assumption
+  ("further along the route ⇒ more chances someone ahead already got off"), not a claim of measured
+  per-station precision. Whichever task first renders this (6.x route detail) should not display it
+  with false decimal precision.
+  `explainPrediction(factors)` returns message KEYS, not resolved display text -- resolution to actual
+  localized strings is deferred to the render layer via `t()`, matching 4.2's `error-display.ts`/
+  `ErrorState` pattern already established in this codebase.
+  Req 15.3's "予測データ不足時の時刻表のみ表示への切替" (switch to timetable-only display when
+  prediction data is insufficient) is satisfied only at the signal level here (`err(insufficient_data)`
+  / `err(dataset_missing)` are the two error codes a caller can branch on) -- no screen exists yet to
+  perform the actual UI switch; that lands with whichever screen task first consumes these results
+  (5.4/5.5).
