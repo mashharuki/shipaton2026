@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "home": "Home",
+    "report": "Report",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "SeatSignal",
+    "placeholder": "Search is coming soon"
+  },
+  "report": {
+    "title": "Weekly report",
+    "placeholder": "Reports are coming soon"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "appearanceSystem": "Match system",
+    "appearanceLight": "Light",
+    "appearanceDark": "Dark"
+  }
+}
