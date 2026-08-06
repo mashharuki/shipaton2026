@@ -131,7 +131,7 @@
   - 完了条件: オフライン時にオフライン表示と再試行、サーバエラー時に理解可能なメッセージが表示されるユニットテストが通る
   - _Requirements: 3.3, 13.7, 15.1, 15.5_
 
-- [ ] 4.3 (P) ローカル DB とデータセット同期を実装する
+- [x] 4.3 (P) ローカル DB とデータセット同期を実装する
   - SQLite のマイグレーション管理と、データセット 3 種の格納・版管理を実装する
   - 起動時と 24 時間間隔の同期、同期失敗時の既存データでの継続動作を実装する
   - 未同期路線の要求に対してはデータ欠如を示すエラーを返し、時刻表のみ表示への切替を促せるようにする
@@ -140,7 +140,7 @@
   - _Boundary: DatasetRepository_
   - _Requirements: 5.8, 15.2, 15.3_
 
-- [ ] 4.4 (P) 多言語基盤と言語切替を実装する
+- [x] 4.4 (P) 多言語基盤と言語切替を実装する
   - 日本語・英語の文言リソースと i18n 初期化を実装する
   - 設定からの言語切替を全画面へ即時反映する
   - 共有エラーコード→文言キー→表示文言の解決を接続する
@@ -609,3 +609,67 @@
   Playwright suite as design.md already planned. `error-state.tsx` is also not yet imported by any
   screen (expected: it's `frontend/lib`-adjacent infrastructure per design.md's Components table, not
   a screen-owning task; wiring lands with whichever screen task first needs it, e.g. 5.x).
+- **4.3**: Split the DatasetRepository boundary into two layers so the sync/version/missing-data
+  *decisions* (this task's actual completion condition -- "テストで検証される") stay Vitest-testable
+  without touching `expo-sqlite`, which -- like `react-native` itself (see 4.2's note) -- has no
+  native runtime under this project's Vitest/Vite pipeline. `apps/frontend/src/features/dataset/
+  dataset-repository.ts` (sync loop, `notModified`/failure/schema-version handling, `dataset_missing`
+  getters) depends only on a typed `DatasetStore` port (`dataset-store.ts`), never on SQL directly --
+  fully covered by 7 tests in `test/features/dataset/dataset-repository.test.ts` against a hand-rolled
+  in-memory fake, including the literal "airplane mode" scenario the completion condition names
+  (sync fails after a prior success → old data keeps being served). The real SQL adapter
+  (`createSqliteDatasetStore()` in `dataset-store.ts`, backed by `apps/frontend/src/lib/db.ts`'s
+  `DbPort`/`getDb()` singleton) is thin and NOT unit tested -- but was verified end-to-end against a
+  real iOS 26.5 simulator + a real `wrangler dev` backend (migrated D1, KV-pushed fixture datasets):
+  temporarily instrumented `use-dataset-sync.ts` to expose results on `globalThis`, drove it via
+  argent's `debugger-evaluate`, confirmed the full real chain (fetch with `x-api-key` → zod validate →
+  SQLite transaction INSERT → SQLite SELECT readback) actually returns the expected 5 stations / 50
+  timetable entries, then reverted the instrumentation (confirmed clean via `git diff` -- no
+  `globalThis.__debug*` or similar left in the committed file). `datasets_meta` gained a
+  `schema_version` column beyond design.md's `(name, version, synced_at)` (design.md line 529) to
+  support design.md line 545's forward-compatibility mandate: `syncOne()` now rejects a payload whose
+  `schemaVersion` doesn't match this client build's `SUPPORTED_SCHEMA_VERSIONS` map, taking the exact
+  same "keep serving existing data" path as any other sync failure (this was originally missed, then
+  added in a review remediation round -- see task-local review history).
+  **Cross-boundary fix discovered during the live-verification pass above, applied to already-approved
+  task 4.2's `apps/frontend/src/lib/api-client.ts`**: `apps/backend/src/middleware/api-key.ts` requires
+  an `x-api-key` header on every `/v1/*` route (401 otherwise), but 4.2's `apiRequest()` never sent
+  one -- invisible in 4.2's own review since that review only ever exercised `apiRequest` against a
+  mocked `fetch`, never a real server. Fixed by adding `apps/frontend/src/lib/config.ts#API_SHARED_KEY`
+  (reads `EXPO_PUBLIC_API_SHARED_KEY`, matching `apps/backend/.dev.vars`'s `API_SHARED_KEY` for local
+  dev, same `EXPO_PUBLIC_*`-for-client-bundle-values convention 4.1 established for the Sentry DSN)
+  and always sending `"x-api-key": API_SHARED_KEY` from `apiRequest()`; covered by a new test in the
+  existing `test/lib/api-client.test.ts`. Without this, EVERY real backend call from the frontend --
+  not just 4.3's -- would have silently 401'd in any live/production environment; left unfixed it
+  would have blocked every future task built on `api-client.ts` the same way. A local
+  `apps/frontend/.env.local` (gitignored, not part of any commit) holds the matching dev-only
+  placeholder value for local live-testing.
+  **Also touches `packages/shared` (approved in 1.1/1.2) and `apps/backend/openapi.yaml` (generated
+  artifact owned by 3.8)**: design.md line ~470 names `dataset_missing` as the code DatasetRepository
+  should return for an unsynced dataset, but `packages/shared/src/errors/error-codes.ts`'s
+  `ERROR_CODES` didn't have it. Added `"dataset_missing"` there plus `errors.datasetMissing` to
+  `error-messages.ts` and both locale files -- this flows through `errorResponseSchema`'s
+  `z.enum(ERROR_CODES)` on the backend, which changed the OpenAPI-documented error-code enum and broke
+  3.8's drift test until `pnpm --filter backend openapi` was re-run (verified: the regenerated
+  `openapi.yaml` diff is exactly and only the enum addition, no hand-editing, and the drift test
+  passes again).
+- **4.4**: The first two bullets ("日英文言リソースと i18n 初期化", "共有エラーコード→文言キー→表示
+  文言の解決を接続する") were already fully done by already-approved tasks 4.1 (`lib/i18n.ts`,
+  `locales/*`) and 4.2 (`error-display.ts#getErrorDisplayContent()`, already unit-tested against every
+  `shared` `ErrorCode`) -- this task only needed to add the actual language-switcher UI. Added a
+  "言語/Language" section to `settings.tsx` mirroring 4.1's appearance-toggle section exactly, reading/
+  writing `i18n.language` directly via `useTranslation()`'s returned `i18n` object rather than adding a
+  redundant zustand store -- react-i18next's `useTranslation` already subscribes every consuming
+  component to i18next's `languageChanged` event, so `i18n.changeLanguage(locale)` alone drives the
+  immediate app-wide reflection 14.3 requires. Language option labels ("日本語"/"English") are
+  hardcoded, not run through `t()`, since language names are conventionally shown in their own
+  language regardless of the active UI language. No kv-store persistence yet (same accepted, already-
+  documented deferral as 4.1's theme preference -- "revisit once one lands"); the completion condition
+  only requires same-session immediate reflection, which this satisfies. No new Vitest test: per 4.2's
+  already-established, review-confirmed precedent, RN component rendering cannot work under this
+  project's Vitest/Vite pipeline (Flow-parse failure on `react-native/index.js` itself), and design.md
+  explicitly assigns "言語切替の即時反映" verification to Playwright E2E scenario 4 (task 10.2), not
+  this task. Verified live instead: booted an iOS 26.5 simulator, tapped Settings → English via
+  argent, confirmed via `describe` that every visible string changed instantly including the tab bar
+  (not part of `settings.tsx` itself) and the Home tab's placeholder text after navigating away and
+  back -- all without a restart -- with 0 JS errors logged throughout.

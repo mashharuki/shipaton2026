@@ -7,6 +7,7 @@
     "timeout": "通信がタイムアウトしました。もう一度お試しください。",
     "httpError": "サーバー側で問題が発生しました。もう一度お試しください。",
     "validation": "想定外の応答を受信しました。もう一度お試しください。",
+    "datasetMissing": "この路線のデータはまだダウンロードされていません。時刻表は引き続き閲覧できます。",
     "unknown": "問題が発生しました。もう一度お試しください。"
   },
   "tabs": {
@@ -27,6 +28,7 @@
     "appearance": "外観",
     "appearanceSystem": "システムに合わせる",
     "appearanceLight": "ライト",
-    "appearanceDark": "ダーク"
+    "appearanceDark": "ダーク",
+    "language": "言語"
   }
 }

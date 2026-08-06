@@ -29,6 +29,7 @@ components:
                 - timeout
                 - http_error
                 - validation_error
+                - dataset_missing
                 - unknown
           required:
             - code

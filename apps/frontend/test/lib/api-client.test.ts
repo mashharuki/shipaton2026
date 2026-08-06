@@ -18,6 +18,20 @@ describe("apiRequest", () => {
     globalThis.fetch = originalFetch;
   });
 
+  it("should send the shared x-api-key header on every request", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ value: 1 }), { status: 200 }),
+      ) as unknown as typeof fetch;
+
+    await apiRequest("https://api.example.com/x", payloadSchema);
+
+    const [, init] = vi.mocked(globalThis.fetch).mock.calls[0];
+    const headers = new Headers(init?.headers);
+    expect(headers.has("x-api-key")).toBe(true);
+  });
+
   it("should return the parsed payload when the response is ok and schema-valid", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ value: 1 }), {

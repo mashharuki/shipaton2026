@@ -3,6 +3,7 @@ export const ERROR_CODES = [
   "timeout",
   "http_error",
   "validation_error",
+  "dataset_missing",
   "unknown",
 ] as const;
 

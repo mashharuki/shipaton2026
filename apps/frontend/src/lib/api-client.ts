@@ -7,6 +7,8 @@ import {
 } from "shared";
 import type { z } from "zod";
 
+import { API_SHARED_KEY } from "@/lib/config";
+
 const DEFAULT_TIMEOUT_MS = 8000;
 
 type ApiRequestOptions = {
@@ -36,9 +38,11 @@ export async function apiRequest<T>(
   try {
     response = await fetch(url, {
       method: options.method ?? "GET",
-      headers: options.body
-        ? { "Content-Type": "application/json", ...options.headers }
-        : options.headers,
+      headers: {
+        "x-api-key": API_SHARED_KEY,
+        ...(options.body ? { "Content-Type": "application/json" } : null),
+        ...options.headers,
+      },
       body: options.body ? JSON.stringify(options.body) : undefined,
       signal: controller.signal,
     });

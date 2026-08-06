@@ -7,6 +7,7 @@
     "timeout": "The request took too long. Please try again.",
     "httpError": "Something went wrong on our end. Please try again.",
     "validation": "We received an unexpected response. Please try again.",
+    "datasetMissing": "Data for this line isn't downloaded yet. You can still view the timetable.",
     "unknown": "Something went wrong. Please try again."
   },
   "tabs": {
@@ -27,6 +28,7 @@
     "appearance": "Appearance",
     "appearanceSystem": "Match system",
     "appearanceLight": "Light",
-    "appearanceDark": "Dark"
+    "appearanceDark": "Dark",
+    "language": "Language"
   }
 }

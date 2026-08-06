@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/i18n";
 import {
   THEME_PREFERENCES,
   type ThemePreference,
@@ -17,11 +18,20 @@ const PREFERENCE_LABEL_KEYS: Record<ThemePreference, string> = {
   dark: "settings.appearanceDark",
 };
 
-// 16.6 の設定ハブ本体は task 9.2 の担当（言語・通知・位置情報・データ共有・
+// Language names are proper nouns shown in their own language, not the
+// currently active one -- otherwise a user who switched away from the
+// language they read couldn't find their way back.
+const LOCALE_LABELS: Record<SupportedLocale, string> = {
+  ja: "日本語",
+  en: "English",
+};
+
+// 16.6 の設定ハブ本体は task 9.2 の担当（通知・位置情報・データ共有・
 // 履歴削除・サブスクリプション管理・プライバシーポリシー・利用規約への導線）。
-// このスクリーンは 4.1 の完了条件が要求する外観切替のみを持つ骨格。
+// このスクリーンは 4.1（外観切替）と 4.4（言語切替）の完了条件が要求する
+// トグルのみを持つ骨格。
 export default function SettingsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
 
@@ -56,6 +66,39 @@ export default function SettingsScreen() {
                     }
                   >
                     {t(PREFERENCE_LABEL_KEYS[option])}
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            ))}
+          </ThemedView>
+        </ThemedView>
+
+        <ThemedView type="backgroundElement" style={styles.section}>
+          <ThemedText type="smallBold">{t("settings.language")}</ThemedText>
+          <ThemedView style={styles.optionRow}>
+            {SUPPORTED_LOCALES.map((locale) => (
+              <Pressable
+                key={locale}
+                accessibilityRole="button"
+                accessibilityState={{ selected: i18n.language === locale }}
+                onPress={() => i18n.changeLanguage(locale)}
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <ThemedView
+                  type={
+                    i18n.language === locale
+                      ? "backgroundSelected"
+                      : "background"
+                  }
+                  style={styles.optionButton}
+                >
+                  <ThemedText
+                    type="small"
+                    themeColor={
+                      i18n.language === locale ? "text" : "textSecondary"
+                    }
+                  >
+                    {LOCALE_LABELS[locale]}
                   </ThemedText>
                 </ThemedView>
               </Pressable>
