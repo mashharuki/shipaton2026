@@ -31,7 +31,10 @@ export type {
   ScorePredictionResult,
   StandingMinutesEstimate,
 } from "./prediction/scoring";
-export { scorePrediction } from "./prediction/scoring";
+export {
+  confidenceForSampleSize,
+  scorePrediction,
+} from "./prediction/scoring";
 export type { Result } from "./result";
 export { err, isErr, isOk, ok } from "./result";
 export {

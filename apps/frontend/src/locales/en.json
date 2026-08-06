@@ -57,6 +57,19 @@
     "minutesValue": "{{minutes}} min",
     "percentValue": "{{percent}}%"
   },
+  "routeDetail": {
+    "title": "Route detail",
+    "loading": "Calculating…",
+    "trainLabel": "Train",
+    "departureLabel": "Departs",
+    "direction": "Direction of travel",
+    "recommendedCar": "Recommended car: {{car}}",
+    "waitingPosition": "Waiting position on the platform (by car)",
+    "perStationTitle": "Seat chance by station",
+    "reason": {
+      "lowestCongestion": "This car is expected to be the least crowded on this leg"
+    }
+  },
   "report": {
     "title": "Weekly report",
     "placeholder": "Reports are coming soon"

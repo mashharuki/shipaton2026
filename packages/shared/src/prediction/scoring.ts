@@ -115,7 +115,15 @@ function buildFactors(input: ScorePredictionInput): PredictionFactor[] {
   return factors;
 }
 
-function confidenceForSampleSize(sampleSize: number): PredictionConfidence {
+// Exported (not just used internally by scorePrediction) so any other
+// consumer that needs the same low/medium/high cutoff -- e.g. the
+// frontend's car-level boarding recommendation (6.1/6.3), which scores
+// confidence from a sampleSize sum without running the full standing-time
+// formula -- shares one implementation instead of re-deriving the
+// threshold logic, per design.md's "閾値は定数モジュールで一元管理".
+export function confidenceForSampleSize(
+  sampleSize: number,
+): PredictionConfidence {
   if (sampleSize < CONFIDENCE_SAMPLE_THRESHOLDS.low) {
     return "low";
   }

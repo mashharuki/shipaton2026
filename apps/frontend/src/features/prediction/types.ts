@@ -35,3 +35,27 @@ export type PredictLegQuery = {
   intermediateStationIds: string[];
   delayMinutes?: number;
 };
+
+export type CarComparison = {
+  carNumber: number;
+  loadScore: number;
+  seatProbability: number;
+};
+
+// design.md 6.1-6.4's BoardingAdvice: car-level granularity only (6.3) --
+// no per-door field exists anywhere in this type or its congestion-profile
+// input (the dataset schema itself has no door-level field to report).
+export type BoardingAdvice = {
+  recommendedCarNumber: number;
+  carCount: number;
+  carComparisons: ReadonlyArray<CarComparison>;
+  confidence: PredictionConfidence;
+  reasonMessageKey: string;
+};
+
+export type RecommendBoardingQuery = {
+  railwayId: string;
+  legKey: string;
+  timeBucket: string;
+  dayType: DayType;
+};

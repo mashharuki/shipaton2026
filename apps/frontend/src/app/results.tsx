@@ -89,6 +89,12 @@ export default function ResultsScreen() {
                 fastestStandingMinutes={
                   route.type === "comfort" ? fastestStandingMinutes : undefined
                 }
+                onPress={() =>
+                  router.push({
+                    pathname: "/route-detail",
+                    params: { legs: JSON.stringify(route.candidate.legs) },
+                  })
+                }
               />
             ))}
           </ScrollView>

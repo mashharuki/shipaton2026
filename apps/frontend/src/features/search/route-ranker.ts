@@ -15,6 +15,8 @@ import type {
 import { predictLeg } from "@/features/prediction/prediction-engine";
 import type { PredictionResult } from "@/features/prediction/types";
 import type { ComfortPreference } from "@/features/preferences/preference-store";
+import { floorToTimeBucket, minutesOfDay } from "@/lib/clock-time";
+import { intermediateStationIds } from "@/lib/station-utils";
 import type { RouteCandidate } from "./route-search-engine";
 
 export const RANKED_ROUTE_TYPES = ["fastest", "balanced", "comfort"] as const;
@@ -38,24 +40,6 @@ type EvaluatedCandidate = {
 
 const BALANCE_STANDING_WEIGHT = 1;
 
-function minutesOfDay(time: string): number {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-const MINUTES_PER_BUCKET = 15;
-
-// Congestion profiles are keyed by a 15-minute bucket (packages/shared's
-// timeBucketSchema: HH:00/15/30/45), not the exact departure time -- shared's
-// own toTimeBucket() takes a Date, but everything in this feature works on
-// "HH:mm" strings with no date context, so this floors the same way locally.
-function toTimeBucket(time: string): string {
-  const [hours, minutes] = time.split(":").map(Number);
-  const bucketMinutes =
-    Math.floor(minutes / MINUTES_PER_BUCKET) * MINUTES_PER_BUCKET;
-  return `${String(hours).padStart(2, "0")}:${String(bucketMinutes).padStart(2, "0")}`;
-}
-
 function candidateSpan(candidate: RouteCandidate): {
   fromStationId: string;
   toStationId: string;
@@ -70,34 +54,6 @@ function candidateSpan(candidate: RouteCandidate): {
     departureTime: first.departureTime,
     arrivalTime: last.arrivalTime,
   };
-}
-
-// Approximates "intermediate stations" via station `seq` ordering (same
-// dataset already used for the sync'd network) rather than re-deriving each
-// specific train's stop list -- a reasonable approximation for the current
-// single-railway MVP scope where every train on the line stops everywhere;
-// see route-search-engine.ts's own note on why raw `seq` isn't safe for
-// direction/ordering *between* trains, which doesn't apply here since this
-// is describing physical stations on one already-selected route, not
-// comparing across candidate trains.
-function intermediateStationIds(
-  timetable: TimetableDatasetPayload,
-  fromStationId: string,
-  toStationId: string,
-): string[] {
-  const seqByStation = new Map(
-    timetable.stations.map((station) => [station.id, station.seq]),
-  );
-  const fromSeq = seqByStation.get(fromStationId);
-  const toSeq = seqByStation.get(toStationId);
-  if (fromSeq === undefined || toSeq === undefined) {
-    return [];
-  }
-  const [lower, upper] = fromSeq < toSeq ? [fromSeq, toSeq] : [toSeq, fromSeq];
-  return timetable.stations
-    .filter((station) => station.seq > lower && station.seq < upper)
-    .sort((a, b) => a.seq - b.seq)
-    .map((station) => station.id);
 }
 
 function evaluate(
@@ -117,7 +73,7 @@ function evaluate(
   const predicted = predictLeg(congestion, correction, {
     railwayId,
     legKey: `${span.fromStationId}-${span.toStationId}`,
-    timeBucket: toTimeBucket(span.departureTime),
+    timeBucket: floorToTimeBucket(span.departureTime),
     dayType,
     tripMinutes: totalMinutes,
     intermediateStationIds: intermediateStationIds(

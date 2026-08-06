@@ -5,7 +5,10 @@ import type {
   CongestionDatasetPayload,
   CorrectionDatasetPayload,
 } from "@/features/dataset/dataset-store";
-import { predictLeg } from "@/features/prediction/prediction-engine";
+import {
+  predictLeg,
+  recommendBoarding,
+} from "@/features/prediction/prediction-engine";
 import congestionFixture from "../../../../backend/fixtures/datasets/congestion.json";
 import correctionFixture from "../../../../backend/fixtures/datasets/correction.json";
 
@@ -160,5 +163,68 @@ describe("predictLeg", () => {
         baseQuery.tripMinutes,
       );
     }
+  });
+});
+
+describe("recommendBoarding", () => {
+  const boardingQuery = {
+    railwayId: "RAIL_CHUO",
+    legKey: "STA_SHINJUKU-STA_TOKYO",
+    timeBucket: "07:00",
+    dayType: "weekday" as const,
+  };
+
+  it("should return insufficient_data when no congestion profile matches the query", () => {
+    const result = recommendBoarding(congestion, {
+      ...boardingQuery,
+      legKey: "STA_NOWHERE-STA_ELSE",
+    });
+
+    expect(isErr(result)).toBe(true);
+    if (isErr(result)) {
+      expect(result.error.code).toBe("insufficient_data");
+    }
+  });
+
+  it("should recommend the car with the lowest load score (6.1)", () => {
+    const congestionFixtureWithCars: CongestionDatasetPayload = {
+      schemaVersion: 1,
+      profiles: [
+        { ...boardingQuery, carNumber: 1, loadScore: 0.8, sampleSize: 10 },
+        { ...boardingQuery, carNumber: 2, loadScore: 0.3, sampleSize: 10 },
+        { ...boardingQuery, carNumber: 3, loadScore: 0.6, sampleSize: 10 },
+      ],
+    };
+
+    const result = recommendBoarding(congestionFixtureWithCars, boardingQuery);
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.data.recommendedCarNumber).toBe(2);
+      expect(result.data.carCount).toBe(3);
+    }
+  });
+
+  it("should include one comparison entry per car, sorted by car number, with no door-level field (6.3)", () => {
+    const result = recommendBoarding(congestion, boardingQuery);
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.data.carComparisons.map((c) => c.carNumber)).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+      ]);
+      for (const car of result.data.carComparisons) {
+        expect(car).not.toHaveProperty("door");
+        expect(car.seatProbability).toBeGreaterThanOrEqual(0);
+        expect(car.seatProbability).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it("should return the same recommendation for the same input (determinism, 5.2)", () => {
+    const first = recommendBoarding(congestion, boardingQuery);
+    const second = recommendBoarding(congestion, boardingQuery);
+
+    expect(first).toEqual(second);
   });
 });

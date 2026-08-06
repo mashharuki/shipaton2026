@@ -200,7 +200,7 @@
   - _Depends: 5.1, 5.2, 5.3_
   - _Requirements: 2.3, 3.5, 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 5.5 ルート詳細・乗車位置案内画面を実装する
+- [x] 5.5 ルート詳細・乗車位置案内画面を実装する
   - 利用列車・発車時刻・推奨号車・推奨乗車位置・推奨理由・信頼度の表示を実装する
   - 途中駅ごとの着座確率の変化を表示する
   - 案内粒度は号車または車両エリア単位に限定する（ドア単位の精度を提示しない）
@@ -864,3 +864,36 @@
   "fastest"/"comfort" (forced 3-way distinctness across the 3 slots), so it is not necessarily the
   single globally-best blended-score candidate if that candidate was already assigned elsewhere. This
   is a deliberate interpretation of "3 distinct picks" per Req 4.1, exercised by a dedicated test.
+- **5.5**: `recommendBoarding()` (in `prediction-engine.ts`, alongside `predictLeg()`) recommends the
+  car with the lowest average `loadScore` among the congestion profiles matching the leg/time/day --
+  the same car-level rows `predictLeg()` itself averages away for its leg-level estimate. Car
+  granularity only (Req 6.3): `BoardingAdvice`/`CarComparison` have no door-level field, matching the
+  congestion dataset schema itself (`congestionProfileEntrySchema` has `carNumber`, no door field), so
+  there is nothing finer to report even if a task asked for it.
+- **5.5**: `route-detail.tsx`'s "ホーム上の待機位置と進行方向" (Req 6.4) is a numbered car-box diagram
+  (1..carCount, recommended car highlighted) plus a from→to direction label using real station display
+  names -- deliberately does NOT label either end of the diagram "front"/"rear" of the physical train,
+  since no field in the dataset indicates which end that is. This is an honest visual representation
+  within what the data supports, not a claim of verified platform geometry.
+- **5.5**: Exported `confidenceForSampleSize` from `packages/shared/src/prediction/scoring.ts` (was
+  private, used only by `scorePrediction()`) so `recommendBoarding()` can reuse the exact same
+  low/medium/high sample-size thresholds instead of re-deriving them -- per design.md's "閾値は定数
+  モジュールで一元管理". No behavior change to any existing caller.
+- **5.5**: Extracted `minutesOfDay`/`floorToTimeBucket` (from `route-ranker.ts`'s private helpers) into
+  `apps/frontend/src/lib/clock-time.ts`, and `intermediateStationIds` (same source) into
+  `apps/frontend/src/lib/station-utils.ts`, so `use-route-detail.ts` (5.5) doesn't duplicate logic
+  `route-ranker.ts` (5.4) already had. `route-ranker.ts` now imports both instead of defining them
+  locally -- pure extraction, no behavior change (`route-ranker.test.ts` still passes unmodified).
+- **5.5**: Route selection passes `RouteLeg[]` through the router as a JSON-encoded `legs` search param
+  (`results.tsx` → `route-detail.tsx`) rather than the richer `RankedRoute`/`PredictionResult` objects
+  already computed on the results screen -- `route-detail.tsx` recomputes prediction + boarding advice
+  itself via `useRouteDetail`, which is safe per PredictionEngine's own invariant ("同一入力＋同一
+  データセット版 → 同一出力") and avoids serializing computed objects through navigation.
+  `route-detail.tsx` treats a missing/unparseable `legs` param as "no route selected" (shows
+  `ErrorState`) since Expo Router also targets web, where the URL is an external input surface.
+- **5.5**: The route-detail screen is intentionally NOT Paywall-gated here even though Req 12.4 lists
+  "詳細な号車・乗車位置案内" as a Free-tier-restricted feature -- task 6.3 explicitly owns wiring that
+  gate ("比較・詳細画面の Pro 専用要素...をゲートする"), and 5.5's own `_Requirements:` are only
+  6.1-6.4. Still open per 5.4's note above: `route-detail.tsx` renders `insufficient_data`/
+  `dataset_missing` via the same `ErrorState` component as `results.tsx`, not Req 15.3's literal
+  "timetable-only" fallback view -- that fallback still has no owning task.

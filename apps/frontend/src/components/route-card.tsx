@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import type { StandingMinutesEstimate } from "shared";
 
 import { Spacing } from "@/constants/theme";
@@ -16,7 +16,7 @@ const TYPE_LABEL_KEYS: Record<RankedRouteType, string> = {
   comfort: "results.comfort",
 };
 
-const CONFIDENCE_LABEL_KEYS: Record<string, string> = {
+export const CONFIDENCE_LABEL_KEYS: Record<string, string> = {
   low: "results.confidenceLow",
   medium: "results.confidenceMedium",
   high: "results.confidenceHigh",
@@ -36,13 +36,20 @@ export type RouteCardProps = {
   // standing-time point estimate, needed to compute "追加 N 分で M 分削減"
   // (4.3).
   fastestStandingMinutes?: number;
+  // 5.5: selecting a route to view its detail/boarding-position screen.
+  // Optional so this component stays usable in a purely-display context.
+  onPress?: () => void;
 };
 
 // 4.2/4.3: one card = one RankedRoute, showing every metric design.md's
 // requirement lists (arrival, duration, diff-from-fastest, standing/seated
 // minutes, seat probability, transfer count, comfort score, confidence),
 // plus the comfort-specific "extra time for less standing" tradeoff line.
-export function RouteCard({ route, fastestStandingMinutes }: RouteCardProps) {
+export function RouteCard({
+  route,
+  fastestStandingMinutes,
+  onPress,
+}: RouteCardProps) {
   const { t } = useTranslation();
   const standing = route.prediction.standingMinutes;
   const standingText =
@@ -68,63 +75,76 @@ export function RouteCard({ route, fastestStandingMinutes }: RouteCardProps) {
     route.diffFromFastestMinutes > 0;
 
   return (
-    <ThemedView
-      type="backgroundElement"
-      style={styles.card}
-      testID={`route-card-${route.type}`}
+    <Pressable
+      accessibilityRole={onPress ? "button" : undefined}
+      onPress={onPress}
+      disabled={!onPress}
+      style={({ pressed }) => pressed && onPress && styles.pressed}
     >
-      <ThemedText type="smallBold">{t(TYPE_LABEL_KEYS[route.type])}</ThemedText>
-      <ThemedText type="title" style={styles.arrival} testID="route-arrival">
-        {route.arrivalTime}
-      </ThemedText>
-      <ThemedText type="default" themeColor="textSecondary">
-        {t("results.duration")}:{" "}
-        {t("results.minutesValue", { minutes: route.totalMinutes })}
-      </ThemedText>
-      {route.diffFromFastestMinutes > 0 ? (
-        <ThemedText type="small" themeColor="textSecondary" testID="route-diff">
-          {t("results.diffFromFastest", {
-            minutes: route.diffFromFastestMinutes,
+      <ThemedView
+        type="backgroundElement"
+        style={styles.card}
+        testID={`route-card-${route.type}`}
+      >
+        <ThemedText type="smallBold">
+          {t(TYPE_LABEL_KEYS[route.type])}
+        </ThemedText>
+        <ThemedText type="title" style={styles.arrival} testID="route-arrival">
+          {route.arrivalTime}
+        </ThemedText>
+        <ThemedText type="default" themeColor="textSecondary">
+          {t("results.duration")}:{" "}
+          {t("results.minutesValue", { minutes: route.totalMinutes })}
+        </ThemedText>
+        {route.diffFromFastestMinutes > 0 ? (
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            testID="route-diff"
+          >
+            {t("results.diffFromFastest", {
+              minutes: route.diffFromFastestMinutes,
+            })}
+          </ThemedText>
+        ) : null}
+        <ThemedText type="default">
+          {t("results.standingMinutes")}: {standingText}
+        </ThemedText>
+        <ThemedText type="default">
+          {t("results.seatedMinutes")}:{" "}
+          {t("results.minutesValue", {
+            minutes: Math.round(route.prediction.seatedMinutes),
           })}
         </ThemedText>
-      ) : null}
-      <ThemedText type="default">
-        {t("results.standingMinutes")}: {standingText}
-      </ThemedText>
-      <ThemedText type="default">
-        {t("results.seatedMinutes")}:{" "}
-        {t("results.minutesValue", {
-          minutes: Math.round(route.prediction.seatedMinutes),
-        })}
-      </ThemedText>
-      <ThemedText type="default">
-        {t("results.seatProbability")}:{" "}
-        {t("results.percentValue", {
-          percent: Math.round(route.prediction.seatProbability * 100),
-        })}
-      </ThemedText>
-      <ThemedText type="default">
-        {t("results.transferCount")}: {route.transferCount}
-      </ThemedText>
-      <ThemedText type="default">
-        {t("results.comfortScore")}:{" "}
-        {t("results.percentValue", {
-          percent: Math.round(route.prediction.comfortScore * 100),
-        })}
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {t("results.confidence")}:{" "}
-        {t(CONFIDENCE_LABEL_KEYS[route.prediction.confidence])}
-      </ThemedText>
-      {showComfortDiff ? (
-        <ThemedText type="smallBold" testID="comfort-diff">
-          {t("results.comfortDiff", {
-            extra: route.diffFromFastestMinutes,
-            reduced: reducedMinutes,
+        <ThemedText type="default">
+          {t("results.seatProbability")}:{" "}
+          {t("results.percentValue", {
+            percent: Math.round(route.prediction.seatProbability * 100),
           })}
         </ThemedText>
-      ) : null}
-    </ThemedView>
+        <ThemedText type="default">
+          {t("results.transferCount")}: {route.transferCount}
+        </ThemedText>
+        <ThemedText type="default">
+          {t("results.comfortScore")}:{" "}
+          {t("results.percentValue", {
+            percent: Math.round(route.prediction.comfortScore * 100),
+          })}
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t("results.confidence")}:{" "}
+          {t(CONFIDENCE_LABEL_KEYS[route.prediction.confidence])}
+        </ThemedText>
+        {showComfortDiff ? (
+          <ThemedText type="smallBold" testID="comfort-diff">
+            {t("results.comfortDiff", {
+              extra: route.diffFromFastestMinutes,
+              reduced: reducedMinutes,
+            })}
+          </ThemedText>
+        ) : null}
+      </ThemedView>
+    </Pressable>
   );
 }
 
@@ -137,5 +157,8 @@ const styles = StyleSheet.create({
   arrival: {
     fontSize: 32,
     lineHeight: 36,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

@@ -1,5 +1,6 @@
 import {
   type AppError,
+  confidenceForSampleSize,
   createAppError,
   err,
   ok,
@@ -11,7 +12,13 @@ import type {
   CongestionDatasetPayload,
   CorrectionDatasetPayload,
 } from "@/features/dataset/dataset-store";
-import type { PredictionResult, PredictLegQuery } from "./types";
+import type {
+  BoardingAdvice,
+  CarComparison,
+  PredictionResult,
+  PredictLegQuery,
+  RecommendBoardingQuery,
+} from "./types";
 
 // Fixture data (and, pre-launch, real production data -- correction.json
 // ships empty per 2.3's note) has no per-intermediate-station granularity:
@@ -109,5 +116,60 @@ export function predictLeg(
     sampleSizeHint: scored.sampleSizeHint,
     factors: scored.factors,
     comfortScore,
+  });
+}
+
+const BOARDING_REASON_MESSAGE_KEY = "routeDetail.reason.lowestCongestion";
+
+// 6.1/6.3: recommends the car with the lowest average congestion for this
+// leg/time/day, using the same car-level profiles predictLeg() averages
+// away for its leg-level estimate. Car granularity only -- the congestion
+// dataset schema (congestionProfileEntrySchema) has a carNumber field but
+// no door-level field, so there is nothing finer to report even if we
+// wanted to (matches design.md's "号車単位の粒度のみ扱う").
+export function recommendBoarding(
+  congestion: CongestionDatasetPayload,
+  query: RecommendBoardingQuery,
+): Result<BoardingAdvice, AppError> {
+  const matchingProfiles = congestion.profiles.filter(
+    (profile) =>
+      profile.railwayId === query.railwayId &&
+      profile.legKey === query.legKey &&
+      profile.timeBucket === query.timeBucket &&
+      profile.dayType === query.dayType,
+  );
+
+  if (matchingProfiles.length === 0) {
+    return err(
+      createAppError(
+        "insufficient_data",
+        "No congestion profile matches this leg/time/day",
+      ),
+    );
+  }
+
+  const carComparisons: CarComparison[] = matchingProfiles
+    .map((profile) => ({
+      carNumber: profile.carNumber,
+      loadScore: profile.loadScore,
+      seatProbability: clamp01(1 - profile.loadScore),
+    }))
+    .sort((a, b) => a.carNumber - b.carNumber);
+
+  const recommended = carComparisons.reduce((best, car) =>
+    car.loadScore < best.loadScore ? car : best,
+  );
+  const sampleSize = matchingProfiles.reduce(
+    (sum, profile) => sum + profile.sampleSize,
+    0,
+  );
+  const carCount = Math.max(...carComparisons.map((car) => car.carNumber));
+
+  return ok({
+    recommendedCarNumber: recommended.carNumber,
+    carCount,
+    carComparisons,
+    confidence: confidenceForSampleSize(sampleSize),
+    reasonMessageKey: BOARDING_REASON_MESSAGE_KEY,
   });
 }

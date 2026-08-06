@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { scorePrediction } from "../../src/prediction/scoring";
+import {
+  confidenceForSampleSize,
+  scorePrediction,
+} from "../../src/prediction/scoring";
 
 describe("scorePrediction determinism", () => {
   it("should return identical output for identical input across repeated calls", () => {
@@ -153,5 +156,14 @@ describe("scorePrediction factor inclusion", () => {
       contribution: 0,
       messageKey: "prediction.factor.feedbackCorrection",
     });
+  });
+});
+
+describe("confidenceForSampleSize", () => {
+  it("should match scorePrediction's own low/medium/high thresholds exactly", () => {
+    expect(confidenceForSampleSize(4)).toBe("low");
+    expect(confidenceForSampleSize(5)).toBe("medium");
+    expect(confidenceForSampleSize(19)).toBe("medium");
+    expect(confidenceForSampleSize(20)).toBe("high");
   });
 });

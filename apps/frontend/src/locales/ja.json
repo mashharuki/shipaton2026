@@ -57,6 +57,19 @@
     "minutesValue": "{{minutes}} 分",
     "percentValue": "{{percent}}%"
   },
+  "routeDetail": {
+    "title": "ルート詳細",
+    "loading": "計算中…",
+    "trainLabel": "利用列車",
+    "departureLabel": "発車",
+    "direction": "進行方向",
+    "recommendedCar": "推奨号車: {{car}} 号車",
+    "waitingPosition": "ホーム上の待機位置（号車）",
+    "perStationTitle": "駅ごとの着座確率",
+    "reason": {
+      "lowestCongestion": "この号車は同区間の中で最も混雑が少ない見込みです"
+    }
+  },
   "report": {
     "title": "週間レポート",
     "placeholder": "レポートは近日公開予定です"
