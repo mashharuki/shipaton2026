@@ -59,6 +59,7 @@ function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="results" />
           <Stack.Screen name="route-detail" />
+          <Stack.Screen name="paywall" options={{ presentation: "modal" }} />
         </Stack>
       </ThemeProvider>
     </QueryClientProvider>

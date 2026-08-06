@@ -226,7 +226,7 @@
   - _Depends: 1.3, 6.1_
   - _Requirements: 12.1, 12.2, 12.5, 13.3, 13.8_
 
-- [ ] 6.3 Paywall と購入・復元フローを実装する
+- [x] 6.3 Paywall と購入・復元フローを実装する
   - 月額 ¥680 / 年額 ¥5,400（月あたり換算表示付き）と 7 日間無料トライアルを提示する
   - Free/Pro の機能比較と削減できた予想立ち時間などの価値提示を行う
   - 購入完了で Pro を即時解放、「購入を復元」、キャンセル時は非エラーで購入前状態へ復帰、商品取得失敗時は再試行手段を提示する
@@ -977,3 +977,46 @@
   needs a trustworthy `getSearchCountToday()`/`hasReachedDailySearchLimit()` read before
   `initSubscriptionGate()` has had a chance to run should await `ensureUsageLimiterHydrated()` itself
   first, or route through `initSubscriptionGate()`.
+- **6.3 -- MANUAL_VERIFY_REQUIRED, needs human follow-up**: same category as 6.1's disclosure -- the
+  task's completion condition ("dev build 実機で sandbox 購入が完走し Pro 機能が解放される") needs an
+  EAS dev build on a physical device, which this environment still doesn't have (no `eas login`
+  session, no device). RevenueCat dashboard side: `apps/backend`... n/a here, but on the RevenueCat
+  project (`proj507b933c`) both Test Store products (`prodc7cb815a80` monthly, `prodd15bb43c22`
+  annual) now have a 7-day trial offer (`set-product-store-state`, `store: "test_store"`,
+  `offer.trial.duration: "P1W"`) -- confirmed succeeded via `get-product-store-state-operation`. Real
+  App Store/Play Store products do NOT have a trial configured yet (needs the App Store Connect API
+  key upload already flagged as pending in 6.1's note, or manual configuration in each store console)
+  -- a human owes this before real-store purchases show the advertised 7-day trial. A Paywall AI
+  Editor draft was attempted twice (`create-paywall-ai`, offering `ofrnge3f34a5993`) for the dashboard
+  template design.md's flow section relies on (pricing/trial/Free-Pro-comparison content) -- both
+  attempts **failed** (`get-paywall-ai-task`: first "stopped updating before it finished", second a
+  422 "paywall service rejected the request as invalid"), not retried a third time per this task's own
+  MANUAL_VERIFY_REQUIRED scope. No paywall template is attached to offering `ofrnge3f34a5993` as a
+  result. A human owes either retrying `create-paywall-ai` (possibly after checking whether the mixed
+  real-store+test-store products on the same package confused the Paywall Editor's product resolution)
+  or building a template by hand in the RevenueCat dashboard's paywall editor, then attaching it to
+  this offering. Until then, `RevenueCatUI.presentPaywall()` falls back to RevenueCat's generic default
+  layout instead of a
+  SeatSignal-branded one (still functionally correct, just not the intended design).
+- **6.3**: Discovered, via a live booted-simulator check (argent, deep-linking to `/paywall` under
+  Expo Go), that react-native-purchases-ui's Preview API Mode does not behave like
+  `purchases-client.ts`'s core-SDK Preview mode (6.1). It delegates `presentPaywall()` to
+  `@revenuecat/purchases-js-hybrid-mappings` (the RevenueCat *web* SDK) regardless of host platform --
+  this works when a real DOM exists (the web target, confirmed unaffected: Playwright's smoke suite
+  still passes) but the promise never resolves inside Expo Go on a native simulator/device (no DOM,
+  no error, no crash -- a silent, indefinite hang). This does not affect real dev/production builds
+  (native SDK, no Preview mode involved) or web. Mitigated defensively in `use-purchases.ts` with
+  `withTimeout()` (20s) around the `presentPaywall()` call, degrading to `{type: "error"}` (13.7's
+  retry state) instead of hanging the screen forever -- this also generally hardens 13.7 against any
+  future paywall-fetch stall, not just this Expo-Go-specific one. Regression-tested in
+  `use-purchases.test.ts` (`withTimeout` resolves when the underlying promise wins,
+  rejects once the timeout elapses -- via `vi.useFakeTimers()`/`advanceTimersByTimeAsync`). Anyone
+  testing the Paywall screen locally under Expo Go should expect this and prefer a real dev-client
+  build for actual paywall-rendering verification.
+- **6.3**: `paywall.tsx` presents immediately on mount (no separate "open paywall" button) -- reaching
+  this screen at all is itself the user-facing consequence of a `guard()`-blocked action from task 6.4
+  (not yet wired), so an extra confirmation step before presenting would be redundant. `PRIVACY_POLICY_URL`/
+  `TERMS_OF_SERVICE_URL` (`lib/config.ts`) are empty-by-default placeholders (no hosted policy pages
+  exist yet for this project) -- the footer conditionally omits those links when unset rather than
+  opening a blank/invalid URL; a human needs to supply real hosted URLs before store submission
+  (Req 13.9, and Req 18.x's settings-hub links whenever that task lands).

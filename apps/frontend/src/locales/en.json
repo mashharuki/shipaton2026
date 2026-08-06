@@ -81,5 +81,14 @@
     "appearanceLight": "Light",
     "appearanceDark": "Dark",
     "language": "Language"
+  },
+  "paywall": {
+    "loading": "Loading…",
+    "restorePurchases": "Restore purchases",
+    "restoreSuccess": "Your purchase has been restored",
+    "restoreError": "Restore failed. Please try again.",
+    "renewalTerms": "Your subscription renews automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel anytime in your App Store/Google Play account settings.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   }
 }

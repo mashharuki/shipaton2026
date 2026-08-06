@@ -25,3 +25,13 @@ export const REVENUECAT_ANDROID_API_KEY =
 // back to Preview API Mode.
 export const REVENUECAT_TEST_STORE_API_KEY =
   process.env.EXPO_PUBLIC_REVENUECAT_TEST_STORE_API_KEY ?? "";
+
+// 6.3/13.9: no hosted privacy policy / terms of service exists yet for this
+// project -- empty by default (same not-yet-provisioned pattern as the
+// Sentry DSN and RevenueCat keys above). paywall.tsx only renders these
+// links when non-empty; a human needs to supply real hosted URLs before
+// store submission (Req 18.x also needs them from the settings hub).
+export const PRIVACY_POLICY_URL =
+  process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL ?? "";
+export const TERMS_OF_SERVICE_URL =
+  process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL ?? "";

@@ -81,5 +81,14 @@
     "appearanceLight": "ライト",
     "appearanceDark": "ダーク",
     "language": "言語"
+  },
+  "paywall": {
+    "loading": "読み込み中…",
+    "restorePurchases": "購入を復元",
+    "restoreSuccess": "購入を復元しました",
+    "restoreError": "復元に失敗しました。もう一度お試しください。",
+    "renewalTerms": "サブスクリプションは自動更新されます。更新の24時間前までにキャンセルしない限り次の期間分が請求されます。解約はApp Store/Google Playのアカウント設定からいつでも可能です。",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約"
   }
 }

@@ -93,3 +93,18 @@ export function addCustomerInfoListener(
     Purchases.removeCustomerInfoUpdateListener(listener);
   };
 }
+
+// 13.4: explicit "restore purchases" action. A successful restore fires the
+// same CustomerInfo update listener subscription-gate.ts already wired up in
+// 6.2 -- callers don't need to update isPro themselves, just react to
+// success/failure for UI feedback.
+export async function restorePurchases(): Promise<
+  Result<CustomerInfo, AppError>
+> {
+  try {
+    const info = await Purchases.restorePurchases();
+    return ok(info);
+  } catch (cause) {
+    return err(createAppError("unknown", "Failed to restore purchases", cause));
+  }
+}
