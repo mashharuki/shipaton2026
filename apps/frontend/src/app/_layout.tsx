@@ -1,8 +1,7 @@
 import * as Sentry from "@sentry/react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 
-import AppTabs from "@/components/app-tabs";
 import { useDatasetSync } from "@/features/dataset/use-dataset-sync";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import "@/lib/i18n";
@@ -26,6 +25,9 @@ function DatasetSyncBoundary() {
   return null;
 }
 
+// 5.4: a real Stack (not just AppTabs) so non-tab screens (results.tsx) can
+// push on top of the persistent tab bar instead of replacing it -- the 3 tab
+// screens live in the (tabs) group, whose own _layout.tsx renders AppTabs.
 function RootLayout() {
   const colorScheme = useAppColorScheme();
 
@@ -33,7 +35,10 @@ function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <DatasetSyncBoundary />
-        <AppTabs />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="results" />
+        </Stack>
       </ThemeProvider>
     </QueryClientProvider>
   );

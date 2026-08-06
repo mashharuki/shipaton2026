@@ -191,7 +191,7 @@
   - _Depends: 1.3, 4.3_
   - _Requirements: 5.1, 5.6, 5.7, 6.2, 15.3, 16.1_
 
-- [ ] 5.4 3 ルート選定と比較画面を実装する
+- [x] 5.4 3 ルート選定と比較画面を実装する
   - プリファレンスを反映した「最速」「バランス」「最も快適」の 3 案選定を実装する
   - 各案に到着時刻・所要時間・最速との差分・予想立ち時間・予想着座時間・着座確率・乗換回数・快適性スコア・信頼度を表示する
   - 快適ルート選択時に「追加 N 分で予想立ち時間を M 分削減」の差分表示を行う
@@ -840,3 +840,27 @@
   / `err(dataset_missing)` are the two error codes a caller can branch on) -- no screen exists yet to
   perform the actual UI switch; that lands with whichever screen task first consumes these results
   (5.4/5.5).
+- **5.4**: `results.tsx` currently renders `err(insufficient_data)`/`err(dataset_missing)` through the
+  existing 4.2 `ErrorState` component (retry button + localized message), not the literal
+  "timetable-only" fallback view Req 15.3 describes -- that fallback still has no owning task; not
+  fixed here since it's outside 5.4's own Requirements (2.3, 3.5, 4.1-4.4). Flagging for whichever task
+  picks up 15.3's UI (5.5 route detail, or a dedicated follow-up).
+- **5.4**: Routing was restructured from a flat `<AppTabs/>` root render to `app/_layout.tsx` using
+  expo-router's top-level `<Stack>` wrapping a `(tabs)` route group (`app/(tabs)/_layout.tsx` renders
+  `AppTabs`) plus a sibling `results` screen -- needed because the previous root layout had no
+  navigator capable of reaching a non-tab screen. `index.tsx`/`report.tsx`/`settings.tsx` moved into
+  `(tabs)/` via `git mv` to preserve history.
+- **5.4**: Home screen's search trigger is a hardcoded demo query (Shinjuku→Tokyo, 07:30) since no
+  search-form task precedes 5.4 in `tasks.md` (5.4 only depends on 5.1-5.3) -- a real station-picker
+  search form is unscheduled future work; this is the minimal honest way to reach `results.tsx`
+  end-to-end for this task's own completion criteria.
+- **5.4**: With the current single-`legKey` fixture (see 5.3's note above), all route candidates for a
+  given search resolve to identical standing/seated/probability/comfort metrics regardless of
+  departure time -- only arrival time and total duration differ. This is expected given the fixture's
+  data shape, verified live on iOS simulator (3 route cards render correctly with real computed
+  values), not a route-ranker.ts logic bug. `RouteCard`'s "追加 N 分で M 分削減" diff line correctly
+  stays hidden in this case since `diffFromFastestMinutes` is 0.
+- **5.4**: `route-ranker.ts`'s "balanced" pick is chosen only from candidates not already claimed by
+  "fastest"/"comfort" (forced 3-way distinctness across the 3 slots), so it is not necessarily the
+  single globally-best blended-score candidate if that candidate was already assigned elsewhere. This
+  is a deliberate interpretation of "3 distinct picks" per Req 4.1, exercised by a dedicated test.

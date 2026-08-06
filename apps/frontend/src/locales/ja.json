@@ -1,6 +1,7 @@
 {
   "common": {
-    "retry": "再試行"
+    "retry": "再試行",
+    "back": "戻る"
   },
   "errors": {
     "offline": "オフラインです。通信状態を確認してもう一度お試しください。",
@@ -29,7 +30,32 @@
   },
   "home": {
     "title": "SeatSignal",
-    "placeholder": "検索機能は近日公開予定です"
+    "placeholder": "検索機能は近日公開予定です",
+    "demoSearch": "新宿→東京を検索（デモ）"
+  },
+  "results": {
+    "title": "ルート比較",
+    "loading": "計算中…",
+    "fastest": "最速",
+    "balanced": "バランス",
+    "comfort": "最も快適",
+    "arrivalTime": "到着",
+    "duration": "所要時間",
+    "diffFromFastest": "最速との差 +{{minutes}} 分",
+    "standingMinutes": "予想立ち時間",
+    "standingMinutesRange": "{{min}}〜{{max}} 分",
+    "standingMinutesPoint": "{{minutes}} 分",
+    "seatedMinutes": "予想着座時間",
+    "seatProbability": "着座確率",
+    "transferCount": "乗換回数",
+    "comfortScore": "快適性スコア",
+    "confidence": "信頼度",
+    "confidenceLow": "低",
+    "confidenceMedium": "中",
+    "confidenceHigh": "高",
+    "comfortDiff": "追加 {{extra}} 分で予想立ち時間を {{reduced}} 分削減",
+    "minutesValue": "{{minutes}} 分",
+    "percentValue": "{{percent}}%"
   },
   "report": {
     "title": "週間レポート",

@@ -1,0 +1,252 @@
+import {
+  type AppError,
+  createAppError,
+  type DayType,
+  err,
+  ok,
+  type Result,
+} from "shared";
+
+import type {
+  CongestionDatasetPayload,
+  CorrectionDatasetPayload,
+  TimetableDatasetPayload,
+} from "@/features/dataset/dataset-store";
+import { predictLeg } from "@/features/prediction/prediction-engine";
+import type { PredictionResult } from "@/features/prediction/types";
+import type { ComfortPreference } from "@/features/preferences/preference-store";
+import type { RouteCandidate } from "./route-search-engine";
+
+export const RANKED_ROUTE_TYPES = ["fastest", "balanced", "comfort"] as const;
+export type RankedRouteType = (typeof RANKED_ROUTE_TYPES)[number];
+
+export type RankedRoute = {
+  type: RankedRouteType;
+  candidate: RouteCandidate;
+  arrivalTime: string;
+  totalMinutes: number;
+  diffFromFastestMinutes: number;
+  transferCount: number;
+  prediction: PredictionResult;
+};
+
+type EvaluatedCandidate = {
+  candidate: RouteCandidate;
+  totalMinutes: number;
+  prediction: PredictionResult;
+};
+
+const BALANCE_STANDING_WEIGHT = 1;
+
+function minutesOfDay(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+const MINUTES_PER_BUCKET = 15;
+
+// Congestion profiles are keyed by a 15-minute bucket (packages/shared's
+// timeBucketSchema: HH:00/15/30/45), not the exact departure time -- shared's
+// own toTimeBucket() takes a Date, but everything in this feature works on
+// "HH:mm" strings with no date context, so this floors the same way locally.
+function toTimeBucket(time: string): string {
+  const [hours, minutes] = time.split(":").map(Number);
+  const bucketMinutes =
+    Math.floor(minutes / MINUTES_PER_BUCKET) * MINUTES_PER_BUCKET;
+  return `${String(hours).padStart(2, "0")}:${String(bucketMinutes).padStart(2, "0")}`;
+}
+
+function candidateSpan(candidate: RouteCandidate): {
+  fromStationId: string;
+  toStationId: string;
+  departureTime: string;
+  arrivalTime: string;
+} {
+  const first = candidate.legs[0];
+  const last = candidate.legs[candidate.legs.length - 1];
+  return {
+    fromStationId: first.fromStationId,
+    toStationId: last.toStationId,
+    departureTime: first.departureTime,
+    arrivalTime: last.arrivalTime,
+  };
+}
+
+// Approximates "intermediate stations" via station `seq` ordering (same
+// dataset already used for the sync'd network) rather than re-deriving each
+// specific train's stop list -- a reasonable approximation for the current
+// single-railway MVP scope where every train on the line stops everywhere;
+// see route-search-engine.ts's own note on why raw `seq` isn't safe for
+// direction/ordering *between* trains, which doesn't apply here since this
+// is describing physical stations on one already-selected route, not
+// comparing across candidate trains.
+function intermediateStationIds(
+  timetable: TimetableDatasetPayload,
+  fromStationId: string,
+  toStationId: string,
+): string[] {
+  const seqByStation = new Map(
+    timetable.stations.map((station) => [station.id, station.seq]),
+  );
+  const fromSeq = seqByStation.get(fromStationId);
+  const toSeq = seqByStation.get(toStationId);
+  if (fromSeq === undefined || toSeq === undefined) {
+    return [];
+  }
+  const [lower, upper] = fromSeq < toSeq ? [fromSeq, toSeq] : [toSeq, fromSeq];
+  return timetable.stations
+    .filter((station) => station.seq > lower && station.seq < upper)
+    .sort((a, b) => a.seq - b.seq)
+    .map((station) => station.id);
+}
+
+function evaluate(
+  candidate: RouteCandidate,
+  timetable: TimetableDatasetPayload,
+  congestion: CongestionDatasetPayload,
+  correction: CorrectionDatasetPayload,
+  dayType: DayType,
+): EvaluatedCandidate | undefined {
+  const span = candidateSpan(candidate);
+  const totalMinutes =
+    minutesOfDay(span.arrivalTime) - minutesOfDay(span.departureTime);
+  const railwayId =
+    timetable.stations.find((station) => station.id === span.fromStationId)
+      ?.railwayId ?? "";
+
+  const predicted = predictLeg(congestion, correction, {
+    railwayId,
+    legKey: `${span.fromStationId}-${span.toStationId}`,
+    timeBucket: toTimeBucket(span.departureTime),
+    dayType,
+    tripMinutes: totalMinutes,
+    intermediateStationIds: intermediateStationIds(
+      timetable,
+      span.fromStationId,
+      span.toStationId,
+    ),
+  });
+
+  if (!predicted.ok) {
+    return undefined;
+  }
+
+  return { candidate, totalMinutes, prediction: predicted.data };
+}
+
+function blendedScore(
+  evaluated: EvaluatedCandidate,
+  preference: ComfortPreference,
+): number {
+  const standingPoint =
+    "point" in evaluated.prediction.standingMinutes
+      ? evaluated.prediction.standingMinutes.point
+      : (evaluated.prediction.standingMinutes.rangeMin +
+          evaluated.prediction.standingMinutes.rangeMax) /
+        2;
+  const speedWeight =
+    preference.speedComfortBalance === "speed"
+      ? 2
+      : preference.speedComfortBalance === "comfort"
+        ? 0.5
+        : 1;
+  return (
+    speedWeight * evaluated.totalMinutes +
+    BALANCE_STANDING_WEIGHT * standingPoint
+  );
+}
+
+// 2.3/4.1: selects up to 3 distinct routes ("最速"/"バランス"/"最も快適")
+// from RouteSearchEngine's candidates, using PredictionEngine (per
+// candidate, treating the whole boarding-to-alighting span as one
+// congestion lookup -- matching how the dataset itself is keyed) and the
+// user's ComfortPreference. Candidates PredictionEngine can't score
+// (insufficient_data for that specific leg) are dropped rather than
+// failing the whole ranking, unless NONE can be scored.
+export function rankRoutes(
+  candidates: RouteCandidate[],
+  timetable: TimetableDatasetPayload,
+  congestion: CongestionDatasetPayload,
+  correction: CorrectionDatasetPayload,
+  preference: ComfortPreference,
+  dayType: DayType,
+): Result<RankedRoute[], AppError> {
+  if (candidates.length === 0) {
+    return ok([]);
+  }
+
+  const evaluated = candidates
+    .map((candidate) =>
+      evaluate(candidate, timetable, congestion, correction, dayType),
+    )
+    .filter((entry): entry is EvaluatedCandidate => entry !== undefined);
+
+  if (evaluated.length === 0) {
+    return err(
+      createAppError(
+        "insufficient_data",
+        "No candidate route has a matching congestion profile",
+      ),
+    );
+  }
+
+  const fastestTotal = Math.min(...evaluated.map((e) => e.totalMinutes));
+  const assigned = new Map<RouteCandidate, RankedRouteType>();
+
+  function pick(
+    type: RankedRouteType,
+    choose: (pool: EvaluatedCandidate[]) => EvaluatedCandidate | undefined,
+  ): void {
+    const pool = evaluated.filter((e) => !assigned.has(e.candidate));
+    if (pool.length === 0) {
+      return;
+    }
+    const chosen = choose(pool);
+    if (chosen) {
+      assigned.set(chosen.candidate, type);
+    }
+  }
+
+  pick("fastest", (pool) =>
+    pool.reduce((best, e) => (e.totalMinutes < best.totalMinutes ? e : best)),
+  );
+  pick("comfort", (pool) => {
+    const withinBudget = pool.filter(
+      (e) => e.totalMinutes <= fastestTotal + preference.maxExtraMinutes,
+    );
+    const eligible = withinBudget.length > 0 ? withinBudget : pool;
+    return eligible.reduce((best, e) =>
+      e.prediction.comfortScore > best.prediction.comfortScore ? e : best,
+    );
+  });
+  pick("balanced", (pool) =>
+    pool.reduce((best, e) =>
+      blendedScore(e, preference) < blendedScore(best, preference) ? e : best,
+    ),
+  );
+
+  const results: RankedRoute[] = [];
+  for (const [candidate, type] of assigned) {
+    const evaluatedEntry = evaluated.find((e) => e.candidate === candidate);
+    if (!evaluatedEntry) {
+      continue;
+    }
+    const span = candidateSpan(candidate);
+    results.push({
+      type,
+      candidate,
+      arrivalTime: span.arrivalTime,
+      totalMinutes: evaluatedEntry.totalMinutes,
+      diffFromFastestMinutes: evaluatedEntry.totalMinutes - fastestTotal,
+      transferCount: candidate.legs.length - 1,
+      prediction: evaluatedEntry.prediction,
+    });
+  }
+
+  const order: Record<RankedRouteType, number> = {
+    fastest: 0,
+    balanced: 1,
+    comfort: 2,
+  };
+  return ok(results.sort((a, b) => order[a.type] - order[b.type]));
+}
