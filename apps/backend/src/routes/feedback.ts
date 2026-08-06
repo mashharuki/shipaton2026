@@ -29,6 +29,10 @@ const postFeedbackRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "不正なペイロード",
     },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "APIキーが不正または未提供",
+    },
     500: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "サーバエラー",

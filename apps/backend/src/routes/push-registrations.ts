@@ -31,6 +31,10 @@ const putPushRegistrationRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "不正なペイロード",
     },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "APIキーが不正または未提供",
+    },
     500: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "サーバエラー",
@@ -51,6 +55,10 @@ const deletePushRegistrationRoute = createRoute({
     200: {
       content: { "application/json": { schema: okResponseSchema } },
       description: "削除成功",
+    },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "APIキーが不正または未提供",
     },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },

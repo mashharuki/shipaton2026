@@ -26,6 +26,10 @@ const getDatasetRoute = createRoute({
       content: { "application/json": { schema: errorResponseSchema } },
       description: "不正なリクエスト",
     },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "APIキーが不正または未提供",
+    },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "対象データセットが存在しない",
