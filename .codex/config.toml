@@ -234,3 +234,4 @@ approval_mode = "approve"
 
 [mcp_servers.argent.tools.await_user_selection]
 approval_mode = "approve"
+
