@@ -156,7 +156,7 @@
   - _Boundary: AnalyticsClient_
   - _Requirements: 17.1, 17.2, 17.4_
 
-- [ ] 4.6 (P) Playwright E2E 基盤を導入する
+- [x] 4.6 (P) Playwright E2E 基盤を導入する
   - Playwright を導入し、Expo の web ターゲット起動とローカル Workers（またはモック API）を束ねる E2E 実行設定を作成する
   - 主要画面の共通セレクタ方針（testID ベース）を定め、タブ表示までのスモークテストを作成する
   - CI パイプラインに Playwright ジョブを追加する（1.4 のワークフローを拡張）
@@ -164,11 +164,6 @@
   - _Depends: 1.4, 4.1_
   - _Boundary: E2E Infrastructure_
   - _Requirements: 18.6_
-  - _Blocked: CI ジョブ（`.github/workflows/ci.yaml` への Playwright ジョブ追加）が適用できない --
-    この環境の Claude Code 権限設定で `.github/workflows/**` への書き込みが拒否されているため。
-    ローカル E2E 基盤（`playwright.config.ts`・testID 規約・スモークテスト）は完了しグリーン確認済み
-    （後述 Implementation Notes 参照）。貼り付け用の CI ジョブ YAML も用意済み -- 人手での適用と
-    実際の CI グリーン確認が必要。_
 
 - [ ] 5. 中核ループ: 検索・予測・比較・詳細
 - [ ] 5.1 (P) 快適性プリファレンス設定を実装する
@@ -703,13 +698,15 @@
   confirmed via `wrangler d1 execute --local` that both events landed in `analytics_events` with correct
   `props_json` and a shared `session_id` -- then fully reverted the `_layout.tsx` instrumentation
   (confirmed empty `git diff`).
-- **4.6 -- BLOCKED on the CI half, needs human follow-up (see `_Blocked:_` on the task line above)**:
-  first review round rejected this task specifically because the CI bullet wasn't just unverified, it
-  was genuinely unimplemented (no job exists in `ci.yaml` at all) -- unlike 3.8's "manual click on an
-  otherwise-complete artifact" precedent, this doesn't qualify for a softer MANUAL_VERIFY_REQUIRED
-  framing, so the task is left unchecked with a `_Blocked:_` annotation instead. Everything else is
-  done and verified green (`pnpm --filter frontend e2e`, run three times across this task for
-  reproducibility) -- `apps/frontend/
+- **4.6**: first review round rejected this task because the CI bullet wasn't just unverified, it was
+  genuinely unimplemented (no job existed in `ci.yaml` at all -- `.github/workflows/**` is denied by
+  this environment's Claude Code permission settings) -- unlike 3.8's "manual click on an otherwise-
+  complete artifact" precedent, that didn't qualify for a softer MANUAL_VERIFY_REQUIRED framing, so the
+  task was left unchecked with a `_Blocked:_` annotation and a ready-to-paste job drafted below for a
+  human to apply. **Resolved**: the user applied the drafted `e2e:` job to `.github/workflows/ci.yaml`
+  verbatim and confirmed it went green -- `_Blocked:_` removed from the task line, checkbox now `[x]`.
+  Everything else was already done and verified green locally (`pnpm --filter frontend e2e`, run three
+  times across this task for reproducibility) -- `apps/frontend/
   playwright.config.ts` bundles two `webServer` entries (Expo web on :8081, `wrangler dev` on :8787,
   its readiness probe pointed at `/doc` since `/` has no route handler and 404s -- design.md: "ローカル
   Workers（またはモック API）を束ねる"), `apps/frontend/e2e/smoke.spec.ts` loads the app and clicks
