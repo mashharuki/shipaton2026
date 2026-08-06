@@ -72,7 +72,38 @@
     "proGate": {
       "title": "Pro機能",
       "cta": "Proにアップグレードして詳細を見る"
-    }
+    },
+    "startRide": "乗車を開始"
+  },
+  "coach": {
+    "title": "Live Comfort Coach",
+    "loading": "乗車状況を計算中…",
+    "currentStation": "現在",
+    "nextStation": "次の駅",
+    "remainingStops": "残り{{count}}駅",
+    "standingMinutes": "現在の予想立ち時間",
+    "seatProbability": "着座確率",
+    "aheadTitle": "この先の着座確率",
+    "delayNotice": "現在{{minutes}}分の遅延が発生しています",
+    "staleNotice": "運行情報が最新でない可能性がありますが、案内は継続します",
+    "approachingDestination": "目的地が近づいています。降車の準備をしてください",
+    "endRide": "乗車を終了"
+  },
+  "feedback": {
+    "title": "乗車結果",
+    "prompt": "座れましたか？",
+    "seatedFromStart": "最初から座れた",
+    "seatedFromMiddle": "途中から座れた",
+    "stoodWholeTrip": "最後まで立っていた",
+    "selectSeatedStation": "どの駅で座れましたか？",
+    "vsExpectedPrompt": "予測と比べてどうでしたか？（任意）",
+    "lessCrowded": "予測より空いていた",
+    "asExpected": "予測どおり",
+    "moreCrowded": "予測より混んでいた",
+    "improvementNotice": "このフィードバックは今後の予測改善に使われます",
+    "submitted": "送信しました。ご協力ありがとうございます。",
+    "backHome": "ホームへ戻る",
+    "submitError": "送信に失敗しました。もう一度お試しください。"
   },
   "report": {
     "title": "週間レポート",

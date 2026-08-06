@@ -15,6 +15,7 @@ import { CONFIDENCE_LABEL_KEYS } from "@/components/route-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { startCoachSession } from "@/features/coach/coach-store";
 import type { Station } from "@/features/prediction/use-route-detail";
 import { useRouteDetail } from "@/features/prediction/use-route-detail";
 import type { RouteLeg } from "@/features/search/route-search-engine";
@@ -89,6 +90,22 @@ export default function RouteDetailScreen() {
   }, [params.legs]);
 
   const { data: result, isPending, refetch } = useRouteDetail(legs);
+  const paywallGate = usePaywallGate();
+
+  // 7.1: the Pro gate for Coach's entry point lives here, at the one place
+  // a rider can launch it -- guard-then-navigate, same pattern
+  // use-route-search.ts's free-tier check and ProGateTeaser above use.
+  // Blocked callers never reach startCoachSession()/router.push("/coach").
+  function handleStartRide() {
+    if (!legs) {
+      return;
+    }
+    if (!paywallGate({ type: "pro_feature", feature: "coach" })) {
+      return;
+    }
+    startCoachSession(legs);
+    router.push({ pathname: "/coach", params: { legs: JSON.stringify(legs) } });
+  }
 
   return (
     <ThemedView style={styles.container} testID="route-detail-screen">
@@ -104,6 +121,19 @@ export default function RouteDetailScreen() {
           <ThemedText type="title" style={styles.title}>
             {t("routeDetail.title")}
           </ThemedText>
+          {legs !== null ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleStartRide}
+              testID="route-detail-start-ride"
+            >
+              <ThemedView type="backgroundSelected" style={styles.startRide}>
+                <ThemedText type="smallBold">
+                  {t("routeDetail.startRide")}
+                </ThemedText>
+              </ThemedView>
+            </Pressable>
+          ) : null}
         </ThemedView>
 
         {legs === null ? (
@@ -264,6 +294,11 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: Spacing.one,
+  },
+  startRide: {
+    borderRadius: Spacing.three,
+    padding: Spacing.two,
+    alignItems: "center",
   },
   title: {
     textAlign: "left",

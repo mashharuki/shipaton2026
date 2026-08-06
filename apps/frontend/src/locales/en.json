@@ -72,7 +72,38 @@
     "proGate": {
       "title": "Pro feature",
       "cta": "Upgrade to Pro to see details"
-    }
+    },
+    "startRide": "Start ride"
+  },
+  "coach": {
+    "title": "Live Comfort Coach",
+    "loading": "Calculating your ride…",
+    "currentStation": "Current",
+    "nextStation": "Next station",
+    "remainingStops": "{{count}} stops remaining",
+    "standingMinutes": "Current expected standing",
+    "seatProbability": "Seat chance",
+    "aheadTitle": "Seat chance ahead",
+    "delayNotice": "There's currently a {{minutes}} min delay",
+    "staleNotice": "Service info may not be current, but guidance continues",
+    "approachingDestination": "Your destination is coming up. Get ready to get off.",
+    "endRide": "End ride"
+  },
+  "feedback": {
+    "title": "Ride outcome",
+    "prompt": "Did you get a seat?",
+    "seatedFromStart": "Seated from the start",
+    "seatedFromMiddle": "Seated partway through",
+    "stoodWholeTrip": "Stood the whole way",
+    "selectSeatedStation": "Which station did you get a seat at?",
+    "vsExpectedPrompt": "How did it compare to the prediction? (optional)",
+    "lessCrowded": "Less crowded than predicted",
+    "asExpected": "As predicted",
+    "moreCrowded": "More crowded than predicted",
+    "improvementNotice": "This feedback is used to improve future predictions",
+    "submitted": "Sent. Thanks for your help!",
+    "backHome": "Back to home",
+    "submitError": "Failed to send. Please try again."
   },
   "report": {
     "title": "Weekly report",

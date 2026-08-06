@@ -209,7 +209,7 @@
   - _Depends: 5.3_
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 6. サブスクリプション（課金検証レーンを早期確立）
+- [x] 6. サブスクリプション（課金検証レーンを早期確立）
 - [x] 6.1 (P) RevenueCat SDK 導入と開発ビルドを確立する
   - 課金 SDK と Paywall UI SDK を導入し、EAS development build を作成して実機起動する
   - sandbox 環境で商品情報（月額・年額）が取得できることを確認する
@@ -244,8 +244,8 @@
   - _Depends: 5.4, 6.2, 6.3_
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 17.3_
 
-- [ ] 7. 乗車体験: Live Comfort Coach・フィードバック
-- [ ] 7.1 乗車セッションと Live Comfort Coach を実装する
+- [x] 7. 乗車体験: Live Comfort Coach・フィードバック
+- [x] 7.1 乗車セッションと Live Comfort Coach を実装する
   - 乗車開始で現在駅・次の駅・残り駅数・現在の予想立ち時間を表示するセッションを実装する
   - 駅ごとの着座確率と次の着座チャンスの自動更新を実装する
   - 位置情報が取得できない場合は時刻表と経過時間による駅進行推定で案内を継続する
@@ -255,14 +255,14 @@
   - _Depends: 5.3, 6.2_
   - _Requirements: 7.1, 7.2, 7.4, 7.5, 7.6, 12.4_
 
-- [ ] 7.2 遅延・運行情報のコーチへの反映を実装する
+- [x] 7.2 遅延・運行情報のコーチへの反映を実装する
   - 運行情報のポーリングと、遅延・運行変化検知時の予測再計算・表示反映を実装する
   - 運行情報が stale の場合も案内を継続する
   - 完了条件: 運行情報の変化をモックした際に表示中の予測が再計算・更新される
   - _Depends: 3.2, 7.1_
   - _Requirements: 7.3, 7.4_
 
-- [ ] 7.3 乗車履歴とフィードバック送信を実装する
+- [x] 7.3 乗車履歴とフィードバック送信を実装する
   - 乗車セッションの履歴を端末内にのみ保存する
   - 乗車終了時に 3 択（最初から座れた/途中から/最後まで立ち）と着座駅選択、任意の予測差回答を 2 タップ程度で送信できるフローを実装する
   - 送信時にフィードバックが予測改善に使われる旨を表示し、乗車中のみ有効な匿名 Trip ID とのみ関連付けて送信する
@@ -452,13 +452,13 @@
   is the sole signal (it's the purpose-built calibration answer, Req 8.3/8.5), mapped to
   `-0.1 / 0 / +0.1` (rows without it contribute `0` -- "no reported deviation" -- but still count
   toward the cell's sample size); `delta_score` is the per-cell mean of that signal, and
-  `mae_standing_min` reuses the *same* signal (mean of `|value| * STANDING_MINUTES_SCALE`), so it
+  `mae_standing_min` reuses the _same_ signal (mean of `|value| * STANDING_MINUTES_SCALE`), so it
   actually reports "average magnitude of reported crowding-perception deviation, in minutes", not a
   literal measured standing-time error -- revisit once feedback captures a real duration.
   `runAggregateFeedback` (`cron/aggregate-feedback.ts`) is a directly-callable, directly-tested
   function, deliberately **not** wired into `index.ts`'s (nonexistent) `scheduled` export — that gap
   was already flagged as unresolved and needing human sign-off in task 2.2's Implementation Note
-  above, and remains unresolved; this task only implements and proves the aggregation *logic*, which
+  above, and remains unresolved; this task only implements and proves the aggregation _logic_, which
   is all its own completion condition requires. `correction_stats` is fully cleared
   (`deleteAllCorrectionStats`) before each rebuild rather than only upserted, so a cell that drops
   below the n>=5 threshold between runs doesn't leave a stale row -- genuine "全量再計算". Batch order
@@ -466,22 +466,22 @@
   (deletion last, so aggregation never has to reason about soon-to-be-deleted rows). The `metrics.date`
   value uses `now.toISOString().slice(0,10)` (UTC) with no explicit JST conversion; this is only
   correct because the cron fires at 18:00 UTC (= 03:00 JST the next day per `wrangler.jsonc`), so
-  `now`'s UTC calendar date already equals the JST day being summarized for this *specific* schedule
+  `now`'s UTC calendar date already equals the JST day being summarized for this _specific_ schedule
   — if the trigger time ever changes, this needs revisiting. `metrics.railwayId` is taken from an
   arbitrary feedback row rather than tracked per railway, correct only under the single-railway MVP
   scope already baked into `metrics`' schema (PK is `date` alone) — revisit together when a second
   railway is onboarded.
 - **3.5**: `postEventsRequestSchema`'s `events` array is deliberately unbounded (no `.max(20)`) so a
-  >20 batch reaches the route handler instead of failing schema validation with a 400 -- the handler
-  itself checks `events.length` and returns the task-required `413`, not `400`. `analytics_events.
-  created_at` stores the client-supplied `occurredAt` verbatim (schema-validated as `z.iso.datetime()`
-  only, no bounds check), not a server-received timestamp -- reasoning: it's the semantically correct
-  "when it happened" for funnel time-series (17.3/17.4), but a malicious/buggy client could skew that
-  series with a back/future-dated event; revisit if analytics integrity ever needs hardening. The
-  per-event insert loop is not transactional (no transaction helper exists anywhere in `queries.ts`
-  to reuse) -- a mid-batch D1 failure leaves prior events committed and returns 500 with no rollback;
-  acceptable for this task's scope (its completion condition only covers accepted-count/schema-
-  rejection/413, not partial-failure atomicity), but a future task touching this path should know.
+  > 20 batch reaches the route handler instead of failing schema validation with a 400 -- the handler
+  > itself checks `events.length` and returns the task-required `413`, not `400`. `analytics_events.
+created_at` stores the client-supplied `occurredAt` verbatim (schema-validated as `z.iso.datetime()`
+  > only, no bounds check), not a server-received timestamp -- reasoning: it's the semantically correct
+  > "when it happened" for funnel time-series (17.3/17.4), but a malicious/buggy client could skew that
+  > series with a back/future-dated event; revisit if analytics integrity ever needs hardening. The
+  > per-event insert loop is not transactional (no transaction helper exists anywhere in `queries.ts`
+  > to reuse) -- a mid-batch D1 failure leaves prior events committed and returns 500 with no rollback;
+  > acceptable for this task's scope (its completion condition only covers accepted-count/schema-
+  > rejection/413, not partial-failure atomicity), but a future task touching this path should know.
 - **3.6**: `deletePushRegistration` (`db/queries.ts`) now returns `Result<number, AppError>` (the D1
   `meta.changes` count) instead of `Result<void, AppError>`, mirroring the exact pattern already used
   for `deleteExpiredFeedback` in 3.4 -- needed so the DELETE route can tell "row existed and was
@@ -490,7 +490,7 @@
   PUT always resets `last_sent_date` to `null` on every upsert, including no-op resubmissions of an
   identical body -- intentional (a schedule change should let the registration fire again even if
   today's send already happened), but **task 3.7** should know: once its cron sets `last_sent_date`
-  for dedup, a client re-PUTing an *unchanged* registration after today's notification already fired
+  for dedup, a client re-PUTing an _unchanged_ registration after today's notification already fired
   would reset that flag and could cause a same-day duplicate send. Not testable yet since no
   `last_sent_date` producer exists before 3.7.
 - **3.7**: `services/prediction.ts`'s `buildNotificationPrediction` grounds "should notify" and the
@@ -510,7 +510,7 @@
   time (design.md's Batch/Job Contract line naming 時刻表 alongside 混雑プロファイル as inputs appears
   to be imprecise prose rather than a real requirement -- worth a design.md correction if audited).
   Like 3.4, this batch is a directly-callable, directly-tested function (`runNotifyCommuters(db, kv,
-  now)`) deliberately **not** wired into `index.ts`'s (still-nonexistent) `scheduled` export -- same
+now)`) deliberately **not** wired into `index.ts`'s (still-nonexistent) `scheduled` export -- same
   unresolved gap flagged in task 2.2's note, still needing human sign-off. Window matching
   (`isInNotifyWindow`) explicitly shifts timestamps by a whole-hour JST offset and reads UTC getters
   (never `getHours()`/`getDay()`) so the 5-minute window match is identical under the Workers runtime
@@ -611,10 +611,10 @@
   screen (expected: it's `frontend/lib`-adjacent infrastructure per design.md's Components table, not
   a screen-owning task; wiring lands with whichever screen task first needs it, e.g. 5.x).
 - **4.3**: Split the DatasetRepository boundary into two layers so the sync/version/missing-data
-  *decisions* (this task's actual completion condition -- "テストで検証される") stay Vitest-testable
+  _decisions_ (this task's actual completion condition -- "テストで検証される") stay Vitest-testable
   without touching `expo-sqlite`, which -- like `react-native` itself (see 4.2's note) -- has no
   native runtime under this project's Vitest/Vite pipeline. `apps/frontend/src/features/dataset/
-  dataset-repository.ts` (sync loop, `notModified`/failure/schema-version handling, `dataset_missing`
+dataset-repository.ts` (sync loop, `notModified`/failure/schema-version handling, `dataset_missing`
   getters) depends only on a typed `DatasetStore` port (`dataset-store.ts`), never on SQL directly --
   fully covered by 7 tests in `test/features/dataset/dataset-repository.test.ts` against a hand-rolled
   in-memory fake, including the literal "airplane mode" scenario the completion condition names
@@ -701,52 +701,47 @@
 - **4.6**: first review round rejected this task because the CI bullet wasn't just unverified, it was
   genuinely unimplemented (no job existed in `ci.yaml` at all -- `.github/workflows/**` is denied by
   this environment's Claude Code permission settings) -- unlike 3.8's "manual click on an otherwise-
-  complete artifact" precedent, that didn't qualify for a softer MANUAL_VERIFY_REQUIRED framing, so the
-  task was left unchecked with a `_Blocked:_` annotation and a ready-to-paste job drafted below for a
-  human to apply. **Resolved**: the user applied the drafted `e2e:` job to `.github/workflows/ci.yaml`
-  verbatim and confirmed it went green -- `_Blocked:_` removed from the task line, checkbox now `[x]`.
-  Everything else was already done and verified green locally (`pnpm --filter frontend e2e`, run three
-  times across this task for reproducibility) -- `apps/frontend/
-  playwright.config.ts` bundles two `webServer` entries (Expo web on :8081, `wrangler dev` on :8787,
-  its readiness probe pointed at `/doc` since `/` has no route handler and 404s -- design.md: "ローカル
-  Workers（またはモック API）を束ねる"), `apps/frontend/e2e/smoke.spec.ts` loads the app and clicks
-  through all 3 tabs using the testID selector convention this task establishes (`components/
+  complete artifact" precedent, that didn't qualify for a softer MANUAL*VERIFY_REQUIRED framing, so the
+  task was left unchecked with a `\_Blocked:*`annotation and a ready-to-paste job drafted below for a
+human to apply. **Resolved**: the user applied the drafted`e2e:`job to`.github/workflows/ci.yaml`verbatim and confirmed it went green --`_Blocked:_`removed from the task line, checkbox now`[x]`.
+Everything else was already done and verified green locally (`pnpm --filter frontend e2e`, run three
+times across this task for reproducibility) -- `apps/frontend/
+  playwright.config.ts`bundles two`webServer`entries (Expo web on :8081,`wrangler dev`on :8787,
+its readiness probe pointed at`/doc`since`/`has no route handler and 404s -- design.md: "ローカル
+Workers（またはモック API）を束ねる"),`apps/frontend/e2e/smoke.spec.ts` loads the app and clicks
+through all 3 tabs using the testID selector convention this task establishes (`components/
   app-tabs.web.tsx`'s `TabTrigger`s get `testID="tab-{home,report,settings}"`, each screen's root
-  `ThemedView` gets `testID="{home,report,settings}-screen"` -- react-native-web forwards `testID`
-  straight to `data-testid` in the DOM, so `page.getByTestId(...)` works with zero extra plumbing).
-  Discovered and fixed along the way: `expo-sqlite` (added in 4.3) broke Expo web bundling entirely
-  (`GET /` 500'd with "Unable to resolve module ./wa-sqlite/wa-sqlite.wasm") since Metro doesn't treat
-  `.wasm` as a bundleable asset by default -- fixed in `apps/frontend/metro.config.js` per Expo's own
-  documented fix (`config.resolver.assetExts.push("wasm")` + COEP/COOP response headers for
-  `SharedArrayBuffer`), confirmed harmless for native since both additions are dev-server/bundler-only.
-  **The CI job itself could NOT be added** -- `.github/workflows/**` edits are denied by this
-  environment's Claude Code permission settings (same restriction already flagged, still unresolved, in
-  task 2.1's Implementation Note above). The job below is drafted, typo-checked against the existing
-  `test:` job's exact conventions (`pnpm/action-setup@v4`, `node-version: lts/*`, `cache: pnpm`,
-  `pnpm install --frozen-lockfile`), and ready to paste into `.github/workflows/ci.yaml` right after the
-  existing `test:` job -- a human needs to add it and confirm it goes green before this task's
+`ThemedView`gets`testID="{home,report,settings}-screen"`-- react-native-web forwards`testID`straight to`data-testid`in the DOM, so`page.getByTestId(...)`works with zero extra plumbing).
+Discovered and fixed along the way:`expo-sqlite` (added in 4.3) broke Expo web bundling entirely
+(`GET /`500'd with "Unable to resolve module ./wa-sqlite/wa-sqlite.wasm") since Metro doesn't treat`.wasm`as a bundleable asset by default -- fixed in`apps/frontend/metro.config.js` per Expo's own
+documented fix (`config.resolver.assetExts.push("wasm")`+ COEP/COOP response headers for`SharedArrayBuffer`), confirmed harmless for native since both additions are dev-server/bundler-only.
+**The CI job itself could NOT be added** -- `.github/workflows/\*_`edits are denied by this
+environment's Claude Code permission settings (same restriction already flagged, still unresolved, in
+task 2.1's Implementation Note above). The job below is drafted, typo-checked against the existing`test:` job's exact conventions (`pnpm/action-setup@v4`, `node-version: lts/_`, `cache: pnpm`,
+`pnpm install --frozen-lockfile`), and ready to paste into `.github/workflows/ci.yaml`right after the
+existing`test:` job -- a human needs to add it and confirm it goes green before this task's
   completion condition ("ローカルと CI の双方でスモークテストがグリーンになる") is fully satisfied:
   ```yaml
-    e2e:
-      name: Playwright E2E (frontend)
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: pnpm/action-setup@v4
-        - uses: actions/setup-node@v4
-          with:
-            node-version: lts/*
-            cache: pnpm
-        - run: pnpm install --frozen-lockfile
-        - name: Install Playwright browsers
-          working-directory: apps/frontend
-          run: npx playwright install --with-deps chromium
-        - name: Apply local D1 migrations
-          working-directory: apps/backend
-          run: pnpm run db:migrate:local
-        - name: Run E2E smoke tests
-          working-directory: apps/frontend
-          run: pnpm run e2e
+  e2e:
+    name: Playwright E2E (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        working-directory: apps/frontend
+        run: npx playwright install --with-deps chromium
+      - name: Apply local D1 migrations
+        working-directory: apps/backend
+        run: pnpm run db:migrate:local
+      - name: Run E2E smoke tests
+        working-directory: apps/frontend
+        run: pnpm run e2e
   ```
   Also resolved during the same review round: 2.2's Implementation Note had explicitly deferred CORS
   ownership to "whichever of 4.2 or 4.6 first makes it observable/blocking" and 4.3's note already
@@ -771,7 +766,7 @@
   `RouteCandidateMetrics`, `scoreCandidate`, weight tables) rather than relocating it into a premature
   `route-ranker.ts` stub, since task 5.4 wasn't in this session's scope and a half-built RouteRanker
   file risks its own boundary confusion later. `apps/frontend/src/features/preferences/
-  preference-store.ts` now contains only the persisted `ComfortPreference` state
+preference-store.ts` now contains only the persisted `ComfortPreference` state
   (`speedComfortBalance`/`maxExtraMinutes`/`transferTolerance`/`walkingTolerance` -- no physical/body
   field, per Req 2.4) via zustand `persist` backed by `lib/kv-store.ts` (the first real use of
   `expo-sqlite/kv-store` in this codebase; tests mock the module the same way 4.5 mocked `expo-crypto`,
@@ -788,14 +783,14 @@
   close this loop by confirming Req 2.3 end-to-end.
 - **5.2**: `route-search-engine.ts#searchRoutes()` takes an already-loaded `TimetableDatasetPayload` as
   a plain argument rather than fetching it itself (matches design.md's file split: `route-search-
-  engine.ts` = pure graph search, a separate not-yet-built `use-route-search.ts` = "検索実行 hook
+engine.ts` = pure graph search, a separate not-yet-built `use-route-search.ts` = "検索実行 hook
   （無料枠チェック→検索→3案選定）" owns calling DatasetRepository first). Direct-route and transfer
   matching compare each train's stop **index within its own sorted stop list**, not raw station `seq`
   values compared across different trains -- `seq` is only guaranteed comparable for stations that
   share a train's own path; comparing it across two independently-routed trains (a transfer scenario)
   is not reliable in general. The transfer search also skips generating a transfer via a train that
   already reaches the destination directly (redundant with the `direct` candidates), which is a
-  presence-only check (doesn't confirm the destination comes *after* boarding) -- fine for every
+  presence-only check (doesn't confirm the destination comes _after_ boarding) -- fine for every
   current fixture (single-direction trains only) but would need tightening if a loop/bidirectional
   route is ever modeled. Tests use the real committed cross-workspace fixture
   (`apps/backend/fixtures/datasets/timetable.json`, per task 2.3's "開発・テスト・E2E 共用のフィクス
@@ -898,29 +893,29 @@
   `dataset_missing` via the same `ErrorState` component as `results.tsx`, not Req 15.3's literal
   "timetable-only" fallback view -- that fallback still has no owning task.
 - **6.1 -- MANUAL_VERIFY_REQUIRED, needs human follow-up**: RevenueCat dashboard fully provisioned via
-  MCP: project `SeatSignal` (`proj507b933c`), apps `SeatSignal iOS` (app_store, bundle
+  MCP: project `SeatSignal` (`proj507b933c`), apps `SeatSignal iOS` (app*store, bundle
   `com.seatsignal.app`) and `SeatSignal Android` (play_store, package `com.seatsignal.app`), entitlement
   `pro`, offering `default` (current) with `$rc_monthly`/`$rc_annual` packages, each carrying both the
   real-store product (`com.seatsignal.app.pro.{monthly,annual}` / `seatsignal_pro:{monthly,annual}`)
-  and a Test Store product (`seatsignal_pro_{monthly,annual}_test`, priced ¥680/¥5,400 via
-  `create-product-prices` -- that endpoint only works on `test_store` products, real-store products get
-  pricing from App Store Connect/Play Console instead). `app_store_connect_api_key_configured: false` on
-  the iOS app -- a human still needs to upload the App Store Connect In-App Purchase key (or legacy
-  shared secret) in the RevenueCat dashboard, and register the two real product IDs above in App Store
-  Connect / Play Console with matching prices, before real-store purchases can work end-to-end. The
-  task's own completion condition ("dev build 実機で Offering の商品 2 種が取得でき") needs an EAS dev
-  build installed on a physical device -- **not performed**: this environment has no `eas login` session
-  (now installs via `pnpm --filter frontend exec eas`, added as a devDependency) and no physical device
-  attached. What WAS verified: `pnpm --filter frontend run typecheck`/`test`, `pnpm check` (Biome) all
-  clean; the app boots without crashing under Expo Go on a booted iOS simulator (argent, screenshot
-  evidence) with `Purchases.configure()` actually running (not skipped) via `_layout.tsx`. A human owes:
-  `eas login`, `eas build --profile development --platform ios` (and `android`), install on a physical
-  device, then confirm `getOfferings()` on the real-store key surfaces both packages -- task 6.3's
+  and a Test Store product (`seatsignal_pro*{monthly,annual}\_test`, priced ¥680/¥5,400 via
+`create-product-prices`-- that endpoint only works on`test_store`products, real-store products get
+pricing from App Store Connect/Play Console instead).`app_store_connect_api_key_configured: false`on
+the iOS app -- a human still needs to upload the App Store Connect In-App Purchase key (or legacy
+shared secret) in the RevenueCat dashboard, and register the two real product IDs above in App Store
+Connect / Play Console with matching prices, before real-store purchases can work end-to-end. The
+task's own completion condition ("dev build 実機で Offering の商品 2 種が取得でき") needs an EAS dev
+build installed on a physical device -- **not performed**: this environment has no`eas login`session
+(now installs via`pnpm --filter frontend exec eas`, added as a devDependency) and no physical device
+attached. What WAS verified: `pnpm --filter frontend run typecheck`/`test`, `pnpm check`(Biome) all
+clean; the app boots without crashing under Expo Go on a booted iOS simulator (argent, screenshot
+evidence) with`Purchases.configure()`actually running (not skipped) via`\_layout.tsx`. A human owes:
+`eas login`, `eas build --profile development --platform ios`(and`android`), install on a physical
+device, then confirm `getOfferings()` on the real-store key surfaces both packages -- task 6.3's
   Paywall screen is where this becomes visually checkable (same offering, real UI).
 - **6.1**: Discovered react-native-purchases' Expo Go "Preview API Mode" is NOT automatic for every API
   key as its README's prose implies -- it only activates for a RevenueCat **Test Store** key. Configuring
   with the real `appl_…`/`goog_…` key inside Expo Go throws `Invalid API key. The native store is not
-  available when running inside Expo Go...` (confirmed by running the app in Expo Go against a booted
+available when running inside Expo Go...` (confirmed by running the app in Expo Go against a booted
   simulator before this fix). Fixed in `purchases-client.ts`: `Constants.appOwnership === "expo"` (from
   `expo-constants`) picks the Test Store key specifically when running under literal Expo Go, real
   per-platform keys otherwise. Note `Constants.executionEnvironment` -- the API the type declares
@@ -955,7 +950,7 @@
 - **6.2**: `subscription-gate.ts`'s `isPro()`/`guard()`/`onEntitlementChange()` match design.md's
   `SubscriptionGate` service interface verbatim (`PaywallTrigger` union: `search_limit` / `pro_feature`
   / `saved_route_limit`). `guard()`'s `pro_feature`/`saved_route_limit` branches are deliberately
-  unconditional-block-for-free -- the *count* check for those (already-saved-1-route, etc.) is the
+  unconditional-block-for-free -- the _count_ check for those (already-saved-1-route, etc.) is the
   calling feature's own responsibility (owned by tasks 8.1/7.1/8.3, not yet implemented); this task
   only owns the `search_limit` count itself, per design.md naming `UsageLimiter (P0)` as a direct
   `SubscriptionGate` dependency. 12.5 ("初回起動直後にPaywallを表示するトリガーが存在しない") is
@@ -968,11 +963,11 @@
   `hasReachedDailySearchLimit()` read state synchronously -- a cold app start with an already-used-3-
   searches-today user could see the pre-hydration default (`{date: "", count: 0}`) and let a 4th
   search through for free. Fixed: added `ensureUsageLimiterHydrated()` (`await
-  useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` in parallel with
+useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` in parallel with
   `fetchCustomerInfo()` via `Promise.all` -- by the time that promise resolves, synchronous reads are
   trustworthy. Regression-tested in `usage-limiter.test.ts` via a genuine cold-restart simulation:
   record 3 searches on one module instance, flush the persist write, `vi.resetModules()` against the
-  *same* mocked kv-store backing (the test's `memoryStore` Map survives module reset), import fresh,
+  _same_ mocked kv-store backing (the test's `memoryStore` Map survives module reset), import fresh,
   await `ensureUsageLimiterHydrated()`, assert the count is 3 (not silently 0). Any later code that
   needs a trustworthy `getSearchCountToday()`/`hasReachedDailySearchLimit()` read before
   `initSubscriptionGate()` has had a chance to run should await `ensureUsageLimiterHydrated()` itself
@@ -1001,7 +996,7 @@
 - **6.3** (refined by a 6.4 live check, see below): Discovered, via a live booted-simulator check
   (argent), that react-native-purchases-ui's Preview API Mode does not behave like
   `purchases-client.ts`'s core-SDK Preview mode (6.1). It delegates `presentPaywall()` to
-  `@revenuecat/purchases-js-hybrid-mappings` (the RevenueCat *web* SDK) regardless of host platform --
+  `@revenuecat/purchases-js-hybrid-mappings` (the RevenueCat _web_ SDK) regardless of host platform --
   this works when a real DOM exists (the web target, confirmed unaffected: Playwright's smoke suite
   still passes) but fails inside Expo Go on a native simulator/device, which has no DOM. Reached via
   normal in-app navigation (guard() → router.push("/paywall"), the real 6.4 user flow, not a raw deep
@@ -1046,7 +1041,7 @@
 - **6.4**: `usage-limiter.ts` gained a plain `recordSearch()` export (wrapping
   `useUsageLimiterStore.getState().recordSearch()`) for cleaner call sites outside the store itself,
   matching `getSearchCountToday()`/`hasReachedDailySearchLimit()`'s existing shape. `(tabs)/index.tsx`
-  calls `recordSearch()` only *after* `usePaywallGate()` allows the attempt -- a blocked (4th) attempt
+  calls `recordSearch()` only _after_ `usePaywallGate()` allows the attempt -- a blocked (4th) attempt
   never increments, matching design.md's "無料枠チェック→検索" ordering (System Flows,
   検索〜比較〜詳細) and 6.2's existing unit-level guarantee that the count only reflects allowed
   searches.
@@ -1070,3 +1065,91 @@
   route-detail screen -- covered instead by `pnpm --filter frontend run typecheck`/`test`/e2e and code
   review; it uses the exact same `isPro()` already unit-tested in 6.2, at a render-time ternary with no
   new branching logic.)
+- **7.1 -- unresolved scope gap, needs a human decision**: this pass implements Coach with NO
+  device-geolocation dependency at all -- only the location-absent (timetable + elapsed-time
+  estimation) branch exists. **This is a real scope narrowing, not something design.md itself
+  mandates**, caught by task-local review after an earlier draft of this note misattributed the
+  phrase "静的着座予測の再表示" to design.md — it does not appear there; it's from
+  `docs/pm/review-seatsignal-idea-2026-08-04.md` line 56, inside the Pre-mortem's "reflect in
+  requirements.md" suggestion column, i.e. an unincorporated suggestion, not an approved design
+  decision. design.md's own File Structure Plan (line 208) actually labels `coach-session.ts` a state
+  machine for "位置あり/なし推定" (estimation WITH/without location), and this task's own completion
+  condition text ("位置情報オフでも...") presupposes a location-available path exists to be toggled
+  off. What's implemented matches the ONE state machine design.md's Unit Tests list (item 4) names as
+  the tested surface (the location-absent path), and is defensible as an MVP scope cut consistent with
+  the pre-mortem's spirit -- but it was never actually signed off as "location support intentionally
+  dropped," so a human should confirm this narrowing or route a real geolocation-available path back to
+  this task before treating 7.4 as fully done. `coach-session.ts`'s `buildStopSequence()` resolves each
+  leg's real per-station timetable (train_timetables already carries a per-station arrival/departure
+  time, not just the leg's own board/alight times) into one ordered ride-wide stop sequence tagged with
+  a `legIndex`; a transfer's boarding stop deliberately duplicates the previous leg's alighting station
+  id (same stationId, two different scheduled times, two different legIndex) so `deriveCoachProgress()`
+  represents "waiting at the transfer station" as a real elapsed-time state rather than a special case.
+  `use-coach-session.ts` computes each leg's prediction once against its ORIGINAL boarding/alighting
+  station pair (the only pair the congestion dataset is keyed by -- recomputing from an intermediate
+  "current" station would look up a legKey with no matching profile and fail with
+  `insufficient_data`), then re-displays it (not a live per-position rescoring) as the rider's position
+  advances; "この先の着座確率" filters that same leg's `perStationSeatProbability` to stations ahead of
+  the current one by `seq`. The 15s re-render tick is a plain `setState` counter that forces a
+  recompute on an interval; the snapshot itself is computed as a plain function call on every render
+  (not `useMemo`), since it's cheap/idempotent and there's no dependency array worth maintaining for
+  "recompute on a timer". The Pro gate lives at the one call site that can ever start a session
+  (`route-detail.tsx`'s "乗車を開始" button: `usePaywallGate()` guard-then-`startCoachSession()`-then-
+  navigate), not inside `coach.tsx` itself, matching the existing guard-then-navigate precedent (6.4's
+  search-limit check, `ProGateTeaser` taps) rather than adding a second, redundant gate at the
+  destination screen. **Bug caught and fixed by task-local review**: `deriveCoachProgress()`'s
+  `nextStationId` could equal `currentStationId` during a transfer's dwell window (both duplicate stops
+  share a stationId), which would have rendered the same station as both "current" and "next" on
+  screen for any multi-leg/transfer route -- fixed by having both `nextStationId` and `remainingStops`
+  skip past same-station duplicates; a regression test (`coach-session.test.ts`, "should never report
+  the same station as both current and next during a transfer wait") locks this in against real fixture
+  data. Not exercised by the live device verification below since the current single-railway fixture
+  data has no transfer routes -- latent until a transfer-capable dataset exists, not live today.
+- **7.2**: No weather/event dataset exists anywhere in this codebase (same gap 3.7's Implementation Note
+  already flagged for the notification batch), so the only real "delay" signal available to Coach is
+  ODPT's own train-status feed (3.2). `use-train-status.ts` polls `GET /v1/train-status/:railwayId`
+  every 30s while a coach session is active; `coach-session.ts#resolveDelayMinutes(previous, incoming)`
+  is the pure decision this task's completion condition actually needs verified: `incoming === null`
+  (an outright poll failure, not a `stale` response) keeps the previous delay rather than resetting to
+  zero, while a `{ stale: true }` snapshot is accepted as valid input like any other 200 response --
+  staleness is a normal Result success, not a Result error, so "案内を継続する" falls out of the type
+  itself rather than needing a special branch. The resolved delay feeds back into the SAME once-per-leg
+  `predictLeg()` call 7.1 already makes (via its `delayMinutes` field, already part of
+  `PredictLegQuery`/`scorePrediction`'s existing "delay" factor from task 1.3) -- no new scoring logic,
+  only a new input source.
+- **7.3**: `trips(trip_id, route_json, started_at, ended_at, feedback_json)` (design.md's Physical Data
+  Model) is added to `lib/db.ts`'s migration list; `trip-history-repository.ts`'s `saveTrip()` writes
+  the full record (start + end + feedback) in one upsert at feedback-submit time rather than two
+  separate writes, since a trip abandoned mid-ride without ever reaching feedback isn't meaningful
+  history to persist half of. `TripRecord`/`TripFeedbackSummary` are intentionally NOT exported --
+  nothing outside this file needs to name them, and `knip` flags exports nothing imports by name; 8.3/
+  9.2 can re-export if a real cross-file need appears. The "乗車開始" session concept (tripId, legs,
+  startedAt) lives in 7.1's `coach-store.ts` as transient, non-persisted zustand state (same precedent
+  as `theme-store.ts`) -- 7.3 only owns what happens once the ride ENDS. `feedback.tsx`'s 3-outcome flow
+  auto-submits on the outcome tap for `seated_from_start`/`stood_whole_trip` (1 tap) and after a station
+  tap for `seated_from_middle` (2 taps); the optional "予測と比べてどうでしたか" row is tappable
+  BEFORE the outcome tap without blocking submission, so it can never become a mandatory 3rd tap --
+  satisfies "2 タップ程度" as an upper bound, not an exact count. `buildFeedbackPayload()`
+  (`use-feedback.ts`) is the pure, Vitest-tested unit verifying the "no identifier/location field beyond
+  the schema's own shape" and "an omitted optional answer is truly absent, not `undefined`-valued"
+  contracts (16.2, 16.4) without a network call.
+- **7.1/7.2/7.3 -- verified live** (argent, booted iOS simulator `CF242168-...`, real dev-client build
+  reinstalled via `SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --device <udid> --no-bundler` after
+  discovering two stale DerivedData `.app` artifacts both predated the current `com.anonymous.frontend`
+  bundle id -- a pre-existing `ios/` prebuild/`app.json` bundle-id drift, not something introduced or
+  fixed here; noted for whoever next needs a clean native build. Full real backend (`wrangler dev`) +
+  real Metro, no mocks): demo search → 3-route comparison → route-detail showed the new "乗車を開始"
+  button alongside the existing Pro-gate teasers; tapping it as a Free account correctly blocked
+  navigation and attempted the Paywall (which then hit RevenueCat's own "Error 11: credentials issue"
+  native alert -- expected, since no real sandbox API keys are configured in this environment; the gate
+  itself fired correctly, which is what 7.1's completion condition covers). Reached Coach directly via
+  an `open-url` deep link (`frontend:///coach?legs=...`) to verify the screen itself independent of the
+  Paywall's unrelated credentials gap: rendered 新宿 as the current station (correct -- real time was
+  00:xx, hours before the fixture's 07:30 departure, so the rider hasn't "departed" yet), 四ツ谷 as next,
+  "残り4駅", a 13〜24分 standing-time range at 信頼度:低, and an ahead-station list (四ツ谷 44% → 御茶ノ水
+  49% → 神田 54%, correctly increasing). Tapped "乗車を終了" → 御茶ノ水 (2-tap `seated_from_middle`,
+  with "予測どおり" pre-selected first to exercise the optional row) → real `POST /v1/feedback` against
+  the locally running backend succeeded → "送信しました。ご協力ありがとうございます。" confirmation
+  screen rendered, matching the exact flow `feedback.tsx`'s code implements. No JS errors observed
+  throughout (RevenueCat credentials warning aside, which is this environment's pre-existing,
+  unconfigured-sandbox-keys state, not a regression).

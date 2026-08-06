@@ -73,6 +73,16 @@ const MIGRATIONS: readonly string[] = [
     delta_score REAL NOT NULL,
     sample_n INTEGER NOT NULL
   );`,
+  // 7.3/11.x: ride history, stored on-device only (16.5 -- deletion is 9.2's
+  // job, not built here). `feedback_json` is null until the rider actually
+  // submits a feedback answer for this trip.
+  `CREATE TABLE IF NOT EXISTS trips (
+    trip_id TEXT PRIMARY KEY NOT NULL,
+    route_json TEXT NOT NULL,
+    started_at TEXT NOT NULL,
+    ended_at TEXT NOT NULL,
+    feedback_json TEXT
+  );`,
 ];
 
 let dbPromise: Promise<DbPort> | null = null;
