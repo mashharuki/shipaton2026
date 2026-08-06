@@ -1,9 +1,11 @@
 import * as Sentry from "@sentry/react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
+import { useEffect } from "react";
 
 import { useDatasetSync } from "@/features/dataset/use-dataset-sync";
 import { configurePurchases } from "@/features/subscription/purchases-client";
+import { initSubscriptionGate } from "@/features/subscription/subscription-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import "@/lib/i18n";
 import { queryClient } from "@/lib/query-client";
@@ -31,6 +33,17 @@ function DatasetSyncBoundary() {
   return null;
 }
 
+// 6.2: starts SubscriptionGate's CustomerInfo hydration + live-update
+// listener exactly once per app session. Fire-and-forget on purpose --
+// isPro() safely defaults to false until this resolves (12.5: nothing here
+// calls guard(), so no Paywall trigger can fire purely from this mount).
+function SubscriptionGateBoundary() {
+  useEffect(() => {
+    initSubscriptionGate();
+  }, []);
+  return null;
+}
+
 // 5.4: a real Stack (not just AppTabs) so non-tab screens (results.tsx) can
 // push on top of the persistent tab bar instead of replacing it -- the 3 tab
 // screens live in the (tabs) group, whose own _layout.tsx renders AppTabs.
@@ -41,6 +54,7 @@ function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <DatasetSyncBoundary />
+        <SubscriptionGateBoundary />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="results" />

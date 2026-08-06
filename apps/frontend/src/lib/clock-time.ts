@@ -19,3 +19,10 @@ export function floorToTimeBucket(time: string): string {
     Math.floor(minutes / MINUTES_PER_BUCKET) * MINUTES_PER_BUCKET;
   return `${String(hours).padStart(2, "0")}:${String(bucketMinutes).padStart(2, "0")}`;
 }
+
+// 6.2: date-bucket key for usage-limiter's daily search counter -- same
+// `toISOString().slice(0, 10)` convention backend's feedback-aggregator.ts
+// uses for its own date bucketing.
+export function todayDateString(now: Date = new Date()): string {
+  return now.toISOString().slice(0, 10);
+}

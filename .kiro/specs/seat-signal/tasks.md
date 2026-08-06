@@ -218,7 +218,7 @@
   - _Boundary: Subscription_
   - _Requirements: 13.1, 13.7_
 
-- [ ] 6.2 エンタイトルメント判定と無料枠制御を実装する
+- [x] 6.2 エンタイトルメント判定と無料枠制御を実装する
   - Pro 判定の一元化と CustomerInfo 変化の監視（購入・解約・期限切れの反映）を実装する
   - 日次検索カウンタ（日付切替でリセット）と 3 種の Paywall トリガー（検索上限・Pro 機能・保存上限）を実装する
   - 初回起動直後に Paywall を表示するトリガーが存在しないことを保証する
@@ -952,3 +952,28 @@
   RevenueCat SDK call added outside `purchases-client.ts` should route through this file rather than
   importing `react-native-purchases` directly, both for the design.md boundary and to inherit this
   web-safety guard.
+- **6.2**: `subscription-gate.ts`'s `isPro()`/`guard()`/`onEntitlementChange()` match design.md's
+  `SubscriptionGate` service interface verbatim (`PaywallTrigger` union: `search_limit` / `pro_feature`
+  / `saved_route_limit`). `guard()`'s `pro_feature`/`saved_route_limit` branches are deliberately
+  unconditional-block-for-free -- the *count* check for those (already-saved-1-route, etc.) is the
+  calling feature's own responsibility (owned by tasks 8.1/7.1/8.3, not yet implemented); this task
+  only owns the `search_limit` count itself, per design.md naming `UsageLimiter (P0)` as a direct
+  `SubscriptionGate` dependency. 12.5 ("初回起動直後にPaywallを表示するトリガーが存在しない") is
+  satisfied by construction: neither `initSubscriptionGate()` nor the new `SubscriptionGateBoundary`
+  in `_layout.tsx` ever calls `guard()` -- confirmed by independent review's repo-wide read of the
+  diff, not just a unit test, since this is an absence-of-a-call invariant.
+- **6.2**: Independent review caught a real hydration-race bug (distinct from design.md's already-
+  disclosed low-tamper-resistance risk for the kv-store `date + count` counter): `usage-limiter.ts`'s
+  zustand `persist` middleware rehydrates from kv-store asynchronously, but `getSearchCountToday()`/
+  `hasReachedDailySearchLimit()` read state synchronously -- a cold app start with an already-used-3-
+  searches-today user could see the pre-hydration default (`{date: "", count: 0}`) and let a 4th
+  search through for free. Fixed: added `ensureUsageLimiterHydrated()` (`await
+  useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` in parallel with
+  `fetchCustomerInfo()` via `Promise.all` -- by the time that promise resolves, synchronous reads are
+  trustworthy. Regression-tested in `usage-limiter.test.ts` via a genuine cold-restart simulation:
+  record 3 searches on one module instance, flush the persist write, `vi.resetModules()` against the
+  *same* mocked kv-store backing (the test's `memoryStore` Map survives module reset), import fresh,
+  await `ensureUsageLimiterHydrated()`, assert the count is 3 (not silently 0). Any later code that
+  needs a trustworthy `getSearchCountToday()`/`hasReachedDailySearchLimit()` read before
+  `initSubscriptionGate()` has had a chance to run should await `ensureUsageLimiterHydrated()` itself
+  first, or route through `initSubscriptionGate()`.
