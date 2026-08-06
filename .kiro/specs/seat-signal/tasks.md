@@ -100,7 +100,7 @@
   - _Boundary: PushRegistrations API_
   - _Requirements: 10.1, 10.5_
 
-- [ ] 3.7 通知配信バッチを実装する
+- [x] 3.7 通知配信バッチを実装する
   - 通知時刻の 15〜30 分前ウィンドウに該当する登録を抽出する
   - KV のデータセット payload（時刻表・混雑プロファイル）と D1 の補正統計を入力に、共有スコアリング関数で配信時点の予測を計算する
   - 通常より混雑が予測される場合は代替候補と削減できる予想立ち時間、変化理由（雨・イベント等）を含む通知を生成し、Expo Push で送信する
@@ -488,3 +488,35 @@
   for dedup, a client re-PUTing an *unchanged* registration after today's notification already fired
   would reset that flag and could cause a same-day duplicate send. Not testable yet since no
   `last_sent_date` producer exists before 3.7.
+- **3.7**: `services/prediction.ts`'s `buildNotificationPrediction` grounds "should notify" and the
+  delivered reason entirely in `correction_stats.deltaScore > 0` (feedback indicates more crowding
+  than the base profile predicted) -- the only real "vs. normal" signal available. No weather/event
+  dataset exists anywhere in this codebase, so Requirement 10.3's "雨・イベント等" reason text cannot
+  be produced from real data; `cron/notify-commuters.ts`'s `REASON_COPY` phrases the feedback-based
+  reason for users instead (ja/en), and both the push `body` and `data.reasonFactor` carry it (an
+  earlier draft computed but silently dropped this field before delivery -- caught by task-local
+  review, fixed, and covered by `test/cron/notify-commuters.test.ts`'s payload-content assertion).
+  "Alternative candidate" (10.2) is a different time bucket for the same leg from the congestion
+  dataset, not a different route/train -- full route search is client-owned per design.md's
+  architecture (backend is limited to data delivery/collection/notification), and the congestion
+  schema only supports a bucket-level comparison. `dataset:timetable` is deliberately not read by
+  this batch: `push_registrations` already stores the specific fromStationId/toStationId/notifyAt the
+  user chose, so no route/timetable lookup is structurally needed to score that already-known leg+
+  time (design.md's Batch/Job Contract line naming 時刻表 alongside 混雑プロファイル as inputs appears
+  to be imprecise prose rather than a real requirement -- worth a design.md correction if audited).
+  Like 3.4, this batch is a directly-callable, directly-tested function (`runNotifyCommuters(db, kv,
+  now)`) deliberately **not** wired into `index.ts`'s (still-nonexistent) `scheduled` export -- same
+  unresolved gap flagged in task 2.2's note, still needing human sign-off. Window matching
+  (`isInNotifyWindow`) explicitly shifts timestamps by a whole-hour JST offset and reads UTC getters
+  (never `getHours()`/`getDay()`) so the 5-minute window match is identical under the Workers runtime
+  and a local-timezone-dependent Node test runner; this is stricter than 3.3/3.4's coarser JST-agnostic
+  day-boundary logic because a wrong window would mean sending (or missing) notifications at the wrong
+  clock time, not just mis-dating a batch record. Two accepted, non-blocking follow-ups from review:
+  (a) `sendExpoPushNotifications` is called once for the whole matched batch, then `last_sent_date` is
+  marked in a sequential loop that returns on the first D1 error -- a registration after a mid-loop
+  failure was already sent a real push but won't have its dedup flag set, which only matters if this
+  batch is ever retried within the same 5-minute window (no such retry policy exists yet); (b) task
+  3.6's `listPushRegistrationsForWindow` (exact `notify_at =` match) is now unused in production code
+  since per-registration `leadMinutes` can't be expressed as a single SQL match -- left in place with
+  its existing 3.6 test rather than deleted, since removing another task's tested code is outside this
+  task's boundary.
