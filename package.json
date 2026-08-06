@@ -6,7 +6,10 @@
   "scripts": {
     "format": "pnpm exec biome format --write .",
     "check": "pnpm exec biome check .",
-    "knip": "knip"
+    "knip": "knip",
+    "backend": "pnpm --filter backend",
+    "frontend": "pnpm --filter frontend",
+    "shared": "pnpm --filter shared"
   },
   "keywords": [],
   "author": "",
