@@ -68,6 +68,10 @@
     "perStationTitle": "駅ごとの着座確率",
     "reason": {
       "lowestCongestion": "この号車は同区間の中で最も混雑が少ない見込みです"
+    },
+    "proGate": {
+      "title": "Pro機能",
+      "cta": "Proにアップグレードして詳細を見る"
     }
   },
   "report": {

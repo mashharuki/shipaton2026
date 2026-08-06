@@ -41,6 +41,14 @@ export const useUsageLimiterStore = create<UsageLimiterStore>()(
   ),
 );
 
+// 6.4: plain-function call site for screens that don't need the store
+// itself, matching getSearchCountToday()/hasReachedDailySearchLimit()'s
+// shape. Only call this after a guard({type: "search_limit"}) check has
+// already allowed the attempt -- it unconditionally increments.
+export function recordSearch(): void {
+  useUsageLimiterStore.getState().recordSearch();
+}
+
 export function getSearchCountToday(): number {
   const state = useUsageLimiterStore.getState();
   return state.date === todayDateString() ? state.count : 0;

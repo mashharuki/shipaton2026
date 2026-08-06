@@ -6,6 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { recordSearch } from "@/features/subscription/usage-limiter";
+import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 
 // 07:30 lands inside the only two populated congestion windows in the
 // current single-railway fixture (07:00-08:00 / 18:00-19:00) -- a full
@@ -21,6 +23,19 @@ const DEMO_QUERY = {
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const paywallGate = usePaywallGate();
+
+  // 12.1/12.2: design.md's "無料枠チェック→検索→3案選定" flow -- guard()
+  // first (Free's 4th attempt never reaches the search), recordSearch()
+  // only on an actually-allowed attempt so a blocked attempt doesn't itself
+  // count against tomorrow's/today's limit.
+  const handleSearch = () => {
+    if (!paywallGate({ type: "search_limit" })) {
+      return;
+    }
+    recordSearch();
+    router.push({ pathname: "/results", params: DEMO_QUERY });
+  };
 
   return (
     <ThemedView style={styles.container} testID="home-screen">
@@ -34,9 +49,7 @@ export default function HomeScreen() {
         <Pressable
           accessibilityRole="button"
           testID="home-demo-search"
-          onPress={() =>
-            router.push({ pathname: "/results", params: DEMO_QUERY })
-          }
+          onPress={handleSearch}
           style={({ pressed }) => pressed && styles.pressed}
         >
           <ThemedView type="backgroundSelected" style={styles.demoButton}>

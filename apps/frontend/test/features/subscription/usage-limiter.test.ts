@@ -51,6 +51,17 @@ describe("usage-limiter", () => {
     expect(hasReachedDailySearchLimit()).toBe(true);
   });
 
+  it("should increment via the plain recordSearch() export the same way as the store action", async () => {
+    const { recordSearch, getSearchCountToday } = await import(
+      "@/features/subscription/usage-limiter"
+    );
+
+    recordSearch();
+    recordSearch();
+
+    expect(getSearchCountToday()).toBe(2);
+  });
+
   it("should reset the counter when the date changes", async () => {
     const { useUsageLimiterStore, getSearchCountToday } = await import(
       "@/features/subscription/usage-limiter"

@@ -68,6 +68,10 @@
     "perStationTitle": "Seat chance by station",
     "reason": {
       "lowestCongestion": "This car is expected to be the least crowded on this leg"
+    },
+    "proGate": {
+      "title": "Pro feature",
+      "cta": "Upgrade to Pro to see details"
     }
   },
   "report": {

@@ -78,3 +78,8 @@ export function createAnalyticsClient() {
 
   return { track, flush, setCommonProps };
 }
+
+// 6.4: app-wide singleton (one sessionId per app session), same module-
+// singleton pattern as query-client.ts's `queryClient`. First real consumer
+// is 6.4's paywall_shown tracking (17.3); 4.5 only built the client itself.
+export const analyticsClient = createAnalyticsClient();

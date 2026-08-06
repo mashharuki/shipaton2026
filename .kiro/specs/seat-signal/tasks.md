@@ -235,7 +235,7 @@
   - _Depends: 6.1, 6.2_
   - _Requirements: 12.6, 13.1, 13.2, 13.3, 13.4, 13.6, 13.7, 13.9, 13.10_
 
-- [ ] 6.4 無料プラン制限を検索・比較・詳細画面へ統合する
+- [x] 6.4 無料プラン制限を検索・比較・詳細画面へ統合する
   - 無料プランの 4 回目検索で Paywall を表示する
   - 比較・詳細画面の Pro 専用要素（詳細な号車・乗車位置案内、駅ごと着座予測の全区間表示）をゲートする — コーチのゲートは 7.1 が、詳細レポートのゲートは 8.3 が同じ判定機構を用いて各自所有する
   - Free で利用可能な範囲（3 ルート比較・基本予測・基本着座確率・フィードバック送信）を維持する
@@ -998,21 +998,30 @@
   this offering. Until then, `RevenueCatUI.presentPaywall()` falls back to RevenueCat's generic default
   layout instead of a
   SeatSignal-branded one (still functionally correct, just not the intended design).
-- **6.3**: Discovered, via a live booted-simulator check (argent, deep-linking to `/paywall` under
-  Expo Go), that react-native-purchases-ui's Preview API Mode does not behave like
+- **6.3** (refined by a 6.4 live check, see below): Discovered, via a live booted-simulator check
+  (argent), that react-native-purchases-ui's Preview API Mode does not behave like
   `purchases-client.ts`'s core-SDK Preview mode (6.1). It delegates `presentPaywall()` to
   `@revenuecat/purchases-js-hybrid-mappings` (the RevenueCat *web* SDK) regardless of host platform --
   this works when a real DOM exists (the web target, confirmed unaffected: Playwright's smoke suite
-  still passes) but the promise never resolves inside Expo Go on a native simulator/device (no DOM,
-  no error, no crash -- a silent, indefinite hang). This does not affect real dev/production builds
-  (native SDK, no Preview mode involved) or web. Mitigated defensively in `use-purchases.ts` with
-  `withTimeout()` (20s) around the `presentPaywall()` call, degrading to `{type: "error"}` (13.7's
-  retry state) instead of hanging the screen forever -- this also generally hardens 13.7 against any
-  future paywall-fetch stall, not just this Expo-Go-specific one. Regression-tested in
-  `use-purchases.test.ts` (`withTimeout` resolves when the underlying promise wins,
-  rejects once the timeout elapses -- via `vi.useFakeTimers()`/`advanceTimersByTimeAsync`). Anyone
-  testing the Paywall screen locally under Expo Go should expect this and prefer a real dev-client
-  build for actual paywall-rendering verification.
+  still passes) but fails inside Expo Go on a native simulator/device, which has no DOM. Reached via
+  normal in-app navigation (guard() → router.push("/paywall"), the real 6.4 user flow, not a raw deep
+  link) it fails **fast with a catchable error** -- exact native message: "Error presenting paywall:
+  document is not available. This SDK requires a browser environment for this operation." -- correctly
+  caught by `usePaywallPresentation()`'s try/catch, surfacing the ErrorState+retry UI (13.7) as
+  designed. A separate deep-link-only repro (`open-url` directly to `/paywall` while Expo Go was
+  already running) instead produced a silent, indefinite hang with no error at all -- most likely the
+  same stale-JS-context artifact already seen twice elsewhere in this session ("Cannot find native
+  module 'ExpoAsset'" after a CDP reload / re-opening an already-running Expo Go instance), not a
+  property of `presentPaywall()` itself, but not conclusively ruled out either. Either way,
+  `withTimeout()` (20s) around the `presentPaywall()` call in `use-purchases.ts` covers both failure
+  shapes (an immediate throw is caught by the existing try/catch regardless; a hang is caught by the
+  timeout), degrading to `{type: "error"}` (13.7's retry state) rather than a stuck screen -- this also
+  generally hardens 13.7 against any future paywall-fetch stall, not just this Expo-Go-specific one.
+  Regression-tested in `use-purchases.test.ts` (`withTimeout` resolves when the underlying promise
+  wins, rejects once the timeout elapses -- via `vi.useFakeTimers()`/`advanceTimersByTimeAsync`).
+  Real dev-client builds are unaffected (native SDK, no Preview mode involved); anyone testing the
+  Paywall screen locally under Expo Go should expect this and prefer a real dev-client build for
+  actual paywall-rendering verification.
 - **6.3**: `paywall.tsx` presents immediately on mount (no separate "open paywall" button) -- reaching
   this screen at all is itself the user-facing consequence of a `guard()`-blocked action from task 6.4
   (not yet wired), so an extra confirmation step before presenting would be redundant. `PRIVACY_POLICY_URL`/
@@ -1020,3 +1029,44 @@
   exist yet for this project) -- the footer conditionally omits those links when unset rather than
   opening a blank/invalid URL; a human needs to supply real hosted URLs before store submission
   (Req 13.9, and Req 18.x's settings-hub links whenever that task lands).
+- **6.4**: Added `features/subscription/use-paywall-gate.ts` as the one shared call site turning a
+  blocked `guard()` result into both the `paywall_shown` analytics event (17.3, `paywallTrigger` set to
+  the trigger's `type`, matching `analyticsEventPropsSchema`'s single enum field -- there is no
+  per-`feature` breakdown for `pro_feature` triggers in the shared schema, only the trigger type, so
+  that's all that's recorded) and `router.push("/paywall")`. Both new gated call sites
+  (`(tabs)/index.tsx`'s demo search button, `route-detail.tsx`'s two Pro-only sections) go through it
+  rather than hand-rolling the same three lines, so 7.1/8.3's future gates have a ready-made pattern to
+  follow (or extend) instead of re-deriving it.
+- **6.4**: `lib/analytics.ts` gained its first real consumer and app-wide singleton
+  (`export const analyticsClient = createAnalyticsClient()`, same module-singleton pattern as
+  `query-client.ts`'s `queryClient`) -- task 4.5 only built the client itself, nothing in the app
+  called `track()` before this task. No flush-on-background/app-close lifecycle wiring was added
+  (out of this task's scope); events still only flush automatically at the 20-event batch size or
+  whenever a later task adds an explicit `flush()` call site.
+- **6.4**: `usage-limiter.ts` gained a plain `recordSearch()` export (wrapping
+  `useUsageLimiterStore.getState().recordSearch()`) for cleaner call sites outside the store itself,
+  matching `getSearchCountToday()`/`hasReachedDailySearchLimit()`'s existing shape. `(tabs)/index.tsx`
+  calls `recordSearch()` only *after* `usePaywallGate()` allows the attempt -- a blocked (4th) attempt
+  never increments, matching design.md's "無料枠チェック→検索" ordering (System Flows,
+  検索〜比較〜詳細) and 6.2's existing unit-level guarantee that the count only reflects allowed
+  searches.
+- **6.4**: `route-detail.tsx`'s two Pro-only sections (詳細な号車・乗車位置案内 = recommended car +
+  reason + confidence + the waiting-position car diagram; 駅ごと着座予測の全区間表示 =
+  `perStationProbabilities`) are each replaced with a local `ProGateTeaser` (feature literal
+  `"boarding_detail"` / `"full_station_prediction"`) for a Free user, gated on `isPro()` read directly
+  (not through `usePaywallGate()`, which is reserved for the teaser's own tap handler) -- `results.tsx`
+  itself is untouched, keeping the Free baseline (3-route comparison, basic prediction, basic seat
+  probability, feedback submission -- 12.3) intact. `ProGateTeaser` is kept local to this screen file
+  rather than promoted to `components/`, since design.md explicitly leaves 7.1 (coach gate) and 8.3
+  (detailed-report gate) to own their own presentation even though they share the same `guard()`
+  mechanism -- premature extraction would guess at a shared shape before either of those tasks exists.
+- **6.4 -- verified live** (argent, booted iOS simulator, Expo Go, real backend dev server +
+  locally-pushed datasets): tapped the home screen's demo search button 3 times (each navigated
+  straight to `results.tsx`, confirming `guard()` allows attempts 1-3), then a 4th time -- confirmed
+  navigation to `/paywall` instead of `results.tsx`, i.e. the search-limit gate fires exactly on the
+  4th attempt as the completion condition requires. (`route-detail.tsx`'s Pro-gate teaser was not
+  additionally re-verified live in this same pass, after the usage-limiter's daily count was already
+  exhausted by the search-gate check above and re-triggering it would only re-hit the paywall, not the
+  route-detail screen -- covered instead by `pnpm --filter frontend run typecheck`/`test`/e2e and code
+  review; it uses the exact same `isPro()` already unit-tested in 6.2, at a render-time ternary with no
+  new branching logic.)

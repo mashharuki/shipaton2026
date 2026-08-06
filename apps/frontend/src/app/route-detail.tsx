@@ -18,12 +18,50 @@ import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import type { Station } from "@/features/prediction/use-route-detail";
 import { useRouteDetail } from "@/features/prediction/use-route-detail";
 import type { RouteLeg } from "@/features/search/route-search-engine";
+import { isPro } from "@/features/subscription/subscription-gate";
+import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 import type { SupportedLocale } from "@/lib/i18n";
 
 function stationName(station: Station, language: string): string {
   return (language as SupportedLocale) === "ja"
     ? station.nameJa
     : station.nameEn;
+}
+
+type ProGateFeature = "boarding_detail" | "full_station_prediction";
+
+// 12.4: locked teaser shown instead of the two Pro-only sections
+// (detailed car/boarding-position guidance, full-route per-station seat
+// probability) for a Free user. Kept local to this screen rather than a
+// shared component -- 7.1/8.3 gate different Pro features behind the same
+// guard() mechanism but design.md leaves each task owning its own
+// presentation.
+function ProGateTeaser({
+  feature,
+  testID,
+}: {
+  feature: ProGateFeature;
+  testID: string;
+}) {
+  const { t } = useTranslation();
+  const paywallGate = usePaywallGate();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => paywallGate({ type: "pro_feature", feature })}
+      testID={testID}
+    >
+      <ThemedView type="backgroundSelected" style={styles.proGate}>
+        <ThemedText type="smallBold">
+          {t("routeDetail.proGate.title")}
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary">
+          {t("routeDetail.proGate.cta")}
+        </ThemedText>
+      </ThemedView>
+    </Pressable>
+  );
 }
 
 // 6.1-6.4: the route-detail/boarding-position screen reached by tapping a
@@ -116,55 +154,69 @@ export default function RouteDetailScreen() {
                   {stationName(detail.toStation, i18n.language)}
                 </ThemedText>
 
-                <ThemedText
-                  type="default"
-                  testID="route-detail-recommended-car"
-                >
-                  {t("routeDetail.recommendedCar", {
-                    car: detail.boardingAdvice.recommendedCarNumber,
-                  })}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t(detail.boardingAdvice.reasonMessageKey)}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {t("results.confidence")}:{" "}
-                  {t(CONFIDENCE_LABEL_KEYS[detail.boardingAdvice.confidence])}
-                </ThemedText>
+                {isPro() ? (
+                  <>
+                    <ThemedText
+                      type="default"
+                      testID="route-detail-recommended-car"
+                    >
+                      {t("routeDetail.recommendedCar", {
+                        car: detail.boardingAdvice.recommendedCarNumber,
+                      })}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {t(detail.boardingAdvice.reasonMessageKey)}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {t("results.confidence")}:{" "}
+                      {t(
+                        CONFIDENCE_LABEL_KEYS[detail.boardingAdvice.confidence],
+                      )}
+                    </ThemedText>
 
-                <ThemedText type="small" style={styles.sectionLabel}>
-                  {t("routeDetail.waitingPosition")}
-                </ThemedText>
-                <ThemedView
-                  style={styles.carRow}
-                  testID="route-detail-car-diagram"
-                >
-                  {Array.from(
-                    { length: detail.boardingAdvice.carCount },
-                    (_, carIndex) => carIndex + 1,
-                  ).map((carNumber) => {
-                    const isRecommended =
-                      carNumber === detail.boardingAdvice.recommendedCarNumber;
-                    return (
-                      <ThemedView
-                        key={carNumber}
-                        type={
-                          isRecommended ? "backgroundSelected" : "background"
-                        }
-                        style={styles.carBox}
-                        testID={`route-detail-car-${carNumber}`}
-                      >
-                        <ThemedText
-                          type={isRecommended ? "smallBold" : "small"}
-                        >
-                          {carNumber}
-                        </ThemedText>
-                      </ThemedView>
-                    );
-                  })}
-                </ThemedView>
+                    <ThemedText type="small" style={styles.sectionLabel}>
+                      {t("routeDetail.waitingPosition")}
+                    </ThemedText>
+                    <ThemedView
+                      style={styles.carRow}
+                      testID="route-detail-car-diagram"
+                    >
+                      {Array.from(
+                        { length: detail.boardingAdvice.carCount },
+                        (_, carIndex) => carIndex + 1,
+                      ).map((carNumber) => {
+                        const isRecommended =
+                          carNumber ===
+                          detail.boardingAdvice.recommendedCarNumber;
+                        return (
+                          <ThemedView
+                            key={carNumber}
+                            type={
+                              isRecommended
+                                ? "backgroundSelected"
+                                : "background"
+                            }
+                            style={styles.carBox}
+                            testID={`route-detail-car-${carNumber}`}
+                          >
+                            <ThemedText
+                              type={isRecommended ? "smallBold" : "small"}
+                            >
+                              {carNumber}
+                            </ThemedText>
+                          </ThemedView>
+                        );
+                      })}
+                    </ThemedView>
+                  </>
+                ) : (
+                  <ProGateTeaser
+                    feature="boarding_detail"
+                    testID="route-detail-boarding-gate"
+                  />
+                )}
 
-                {detail.perStationProbabilities.length > 0 ? (
+                {detail.perStationProbabilities.length > 0 && isPro() ? (
                   <>
                     <ThemedText type="small" style={styles.sectionLabel}>
                       {t("routeDetail.perStationTitle")}
@@ -180,6 +232,12 @@ export default function RouteDetailScreen() {
                       ),
                     )}
                   </>
+                ) : null}
+                {detail.perStationProbabilities.length > 0 && !isPro() ? (
+                  <ProGateTeaser
+                    feature="full_station_prediction"
+                    testID="route-detail-per-station-gate"
+                  />
                 ) : null}
               </ThemedView>
             ))}
@@ -238,5 +296,11 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.one,
     alignItems: "center",
     justifyContent: "center",
+  },
+  proGate: {
+    gap: Spacing.one,
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+    marginTop: Spacing.two,
   },
 });
