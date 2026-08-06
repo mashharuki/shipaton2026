@@ -166,7 +166,7 @@
   - _Requirements: 18.6_
 
 - [ ] 5. 中核ループ: 検索・予測・比較・詳細
-- [ ] 5.1 (P) 快適性プリファレンス設定を実装する
+- [x] 5.1 (P) 快適性プリファレンス設定を実装する
   - 速さ重視/バランス重視/快適さ重視の優先度と許容追加移動時間の設定を実装する
   - 立ち時間・乗換・歩行の許容度として設定を受け付け、身体的事情の直接入力を求めない
   - 設定を永続化し、次回以降の検索結果の順位付けに反映されるよう公開する
@@ -174,7 +174,7 @@
   - _Boundary: PreferenceStore_
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 5.2 (P) ルート検索エンジンを実装する
+- [x] 5.2 (P) ルート検索エンジンを実装する
   - 保存済み時刻表からの経路候補列挙（対象区間内・乗換含む）を端末内で実装する
   - 対象区間外の指定には区間外であることを示すエラーを返す
   - 最近使った検索条件の保存と再利用を実装する
@@ -761,3 +761,51 @@
   environment (staging, a real web deployment) this task doesn't yet know the URL of. Covered by 2 new
   tests in the existing `apps/backend/test/index.test.ts` (preflight `OPTIONS` returns 204 with the
   header pre-auth, and an authenticated GET still carries it) -- full backend suite now 62/62.
+- **5.1 -- task's own completion condition structurally depends on task 5.4, which doesn't exist
+  yet**: first review round rejected an initial version that bundled a preference-driven route-ranking
+  function into `preference-store.ts` -- design.md's Components table assigns "3 案選定・プリファレンス
+  反映" to **RouteRanker** (task 5.4, line 354), not PreferenceStore, and the Requirements Traceability
+  row for 2.1-2.4 is literally `ComfortPreference` 型 → RouteRanker (line 329): PreferenceStore's job
+  ends at exposing the typed, persisted value; RouteRanker is what's supposed to consume it and
+  actually change route ordering. Removed the ranking logic entirely (`rankRoutesByPreference`,
+  `RouteCandidateMetrics`, `scoreCandidate`, weight tables) rather than relocating it into a premature
+  `route-ranker.ts` stub, since task 5.4 wasn't in this session's scope and a half-built RouteRanker
+  file risks its own boundary confusion later. `apps/frontend/src/features/preferences/
+  preference-store.ts` now contains only the persisted `ComfortPreference` state
+  (`speedComfortBalance`/`maxExtraMinutes`/`transferTolerance`/`walkingTolerance` -- no physical/body
+  field, per Req 2.4) via zustand `persist` backed by `lib/kv-store.ts` (the first real use of
+  `expo-sqlite/kv-store` in this codebase; tests mock the module the same way 4.5 mocked `expo-crypto`,
+  since it transitively imports `react-native` and hits the same Flow-parse wall under Vitest).
+  **This means task 5.1's own literal completion condition** ("設定変更後の検索で 3 案の選定・順位が
+  変わることがテストで検証される") **is not satisfied by this task alone** -- it's deferred to task
+  5.4 (depends on 5.3's PredictionEngine too, neither built yet). What IS verified: persisted get/set
+  works correctly (3 tests: default shape + no physical fields, merge-not-replace semantics,
+  independent per-field updates), and -- beyond the unit tests -- live-verified on a real iOS 26.5
+  simulator via argent's `debugger-evaluate`: set a preference, read the raw `expo-sqlite/kv-store`
+  value back (confirmed real persisted JSON), then did a full app **restart** (not just a JS reload)
+  and confirmed the rehydrated state matched what was set beforehand -- genuine cross-restart
+  persistence proof, not just a passing mock. When task 5.4 lands, its own Implementation Notes should
+  close this loop by confirming Req 2.3 end-to-end.
+- **5.2**: `route-search-engine.ts#searchRoutes()` takes an already-loaded `TimetableDatasetPayload` as
+  a plain argument rather than fetching it itself (matches design.md's file split: `route-search-
+  engine.ts` = pure graph search, a separate not-yet-built `use-route-search.ts` = "検索実行 hook
+  （無料枠チェック→検索→3案選定）" owns calling DatasetRepository first). Direct-route and transfer
+  matching compare each train's stop **index within its own sorted stop list**, not raw station `seq`
+  values compared across different trains -- `seq` is only guaranteed comparable for stations that
+  share a train's own path; comparing it across two independently-routed trains (a transfer scenario)
+  is not reliable in general. The transfer search also skips generating a transfer via a train that
+  already reaches the destination directly (redundant with the `direct` candidates), which is a
+  presence-only check (doesn't confirm the destination comes *after* boarding) -- fine for every
+  current fixture (single-direction trains only) but would need tightening if a loop/bidirectional
+  route is ever modeled. Tests use the real committed cross-workspace fixture
+  (`apps/backend/fixtures/datasets/timetable.json`, per task 2.3's "開発・テスト・E2E 共用のフィクス
+  チャ" intent) for direct-route/out_of_area coverage, plus a small synthetic 2-line fixture (inline in
+  the test) to prove 1-transfer logic, since the real fixture is a single railway line with no actual
+  transfer scenario to exercise. Added `out_of_area` to `packages/shared`'s `ERROR_CODES`/
+  `ERROR_MESSAGE_KEYS` (+ locale strings) -- named explicitly in design.md's System Flow section as the
+  code RouteSearchEngine should return for an out-of-network station, same pattern as 4.3's
+  `dataset_missing` addition -- which required regenerating `apps/backend/openapi.yaml` again (drift
+  check would otherwise fail; regeneration confirmed purely mechanical, just the new enum entry).
+  `recent-searches.ts` reuses the same `lib/kv-store.ts` from 5.1, capped at 5 entries, dedup-and-move-
+  to-front on a repeat search -- also live-verified via `debugger-evaluate` alongside 5.1's persistence
+  check.

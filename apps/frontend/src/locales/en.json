@@ -8,6 +8,7 @@
     "httpError": "Something went wrong on our end. Please try again.",
     "validation": "We received an unexpected response. Please try again.",
     "datasetMissing": "Data for this line isn't downloaded yet. You can still view the timetable.",
+    "outOfArea": "This route isn't supported yet. Try a station within our covered area.",
     "unknown": "Something went wrong. Please try again."
   },
   "tabs": {

@@ -4,6 +4,7 @@ export const ERROR_CODES = [
   "http_error",
   "validation_error",
   "dataset_missing",
+  "out_of_area",
   "unknown",
 ] as const;
 

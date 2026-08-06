@@ -6,6 +6,7 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, string> = {
   http_error: "errors.httpError",
   validation_error: "errors.validation",
   dataset_missing: "errors.datasetMissing",
+  out_of_area: "errors.outOfArea",
   unknown: "errors.unknown",
 };
 
