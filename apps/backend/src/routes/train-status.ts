@@ -23,6 +23,10 @@ const getTrainStatusRoute = createRoute({
       description:
         "運行情報。ODPT 障害時はキャッシュ済み値を stale: true で返す",
     },
+    401: {
+      content: { "application/json": { schema: errorResponseSchema } },
+      description: "APIキーが不正または未提供",
+    },
     404: {
       content: { "application/json": { schema: errorResponseSchema } },
       description: "対象路線が存在しない",

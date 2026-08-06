@@ -109,7 +109,7 @@
   - _Depends: 2.3, 3.6_
   - _Requirements: 10.1, 10.2, 10.3_
 
-- [ ] 3.8 OpenAPI 仕様書の生成とドリフト検証を実装する
+- [x] 3.8 OpenAPI 仕様書の生成とドリフト検証を実装する
   - ルート定義から OpenAPI 3.0 の yaml を生成するスクリプトを実装し、生成物をコミットする
   - 全ルートの operationId・summary・tags、全スキーマの example、共有 ErrorResponse、securityScheme、servers 2 件（ローカル・本番）を含める
   - ルート定義から再生成したドキュメントとコミット済み yaml の一致を検証するテストを追加する
@@ -520,3 +520,26 @@
   since per-registration `leadMinutes` can't be expressed as a single SQL match -- left in place with
   its existing 3.6 test rather than deleted, since removing another task's tested code is outside this
   task's boundary.
+- **3.8 -- MANUAL_VERIFY_REQUIRED, needs human follow-up**: the task's own completion condition
+  ("生成した yaml を Postman にインポートし、全エンドポイントがサンプルペイロード付きで実行可能で
+  あることを確認する") is a manual click-through in an external tool this environment has no access
+  to -- **not performed**. What was verified instead, automatically and repeatably via
+  `apps/backend/test/openapi-drift.test.ts`: `openapi.yaml` is byte-for-byte reproducible from the
+  live route definitions (`app.getOpenAPIDocument(openApiConfig)`, deep-equal against the parsed
+  committed file -- confirmed this actually fails on a hand-edited drift, not just scaffolding),
+  every operation has `operationId`/`tags`/`summary`, and every 4xx/5xx response `$ref`s the shared
+  `ErrorResponse` component. A human still owes the literal Postman import before this is fully
+  signed off. `index.ts` was touched (extracted `openApiConfig` as a named export reused by
+  `scripts/generate-openapi.ts`; registered the `ApiKeyAuth` securityScheme + default `security`) --
+  judged in-boundary because 3.8 is not itself a route-owning "API タスク" under task 2.2's assembly-
+  file freeze, and design.md has no other home for document-level `securityScheme`/`security`/
+  `servers` metadata. `packages/shared/src/schemas/api.schema.ts` also gained `id: "ErrorResponse"`/
+  `id: "OkResponse"` (zod4 `.meta({id})`, documented by `@asteasolutions/zod-to-openapi` v8 as
+  equivalent to `.openapi(id)`) so the generator emits real `$ref`s instead of inlining the same
+  schema at every usage site, plus `example` on `getTrainStatusParamsSchema.railwayId` and
+  `pushRegistrationParamsSchema.id` (design.md's OpenAPI checklist names these two path params
+  explicitly) -- metadata-only additions, no shape/validation change, no regression in either
+  package's existing test suite. `info.version` in `openapi.yaml` ("0.1.0") is independent of
+  `apps/backend/package.json`'s `"version"` ("1.0.0") -- design.md never names which is the source of
+  truth for "API バージョンと同期"; left as the pre-existing API-version convention rather than
+  guessing.

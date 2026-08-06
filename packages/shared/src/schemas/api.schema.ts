@@ -16,13 +16,16 @@ export const errorResponseSchema = z
     }),
   })
   .meta({
+    id: "ErrorResponse",
     description: "共通エラーレスポンス",
     example: { error: { code: "validation_error" } },
   });
 
-export const okResponseSchema = z
-  .strictObject({ ok: z.literal(true) })
-  .meta({ description: "処理成功を示す共通レスポンス", example: { ok: true } });
+export const okResponseSchema = z.strictObject({ ok: z.literal(true) }).meta({
+  id: "OkResponse",
+  description: "処理成功を示す共通レスポンス",
+  example: { ok: true },
+});
 
 export const getDatasetParamsSchema = z
   .strictObject({ name: datasetNameSchema })
@@ -48,7 +51,9 @@ export const getDatasetResponseSchema = z
   });
 
 export const getTrainStatusParamsSchema = z
-  .strictObject({ railwayId: z.string().min(1) })
+  .strictObject({
+    railwayId: z.string().min(1).meta({ example: "RAIL_CHUO" }),
+  })
   .meta({ description: "GET /v1/train-status/:railwayId のパスパラメータ" });
 
 export const TRAIN_STATUSES = ["normal", "delayed", "suspended"] as const;
@@ -123,7 +128,9 @@ export const feedbackPayloadSchema = z
   });
 
 export const pushRegistrationParamsSchema = z
-  .strictObject({ id: z.string().min(1) })
+  .strictObject({
+    id: z.string().min(1).meta({ example: "push-reg-001" }),
+  })
   .meta({
     description: "PUT/DELETE /v1/push-registrations/:id のパスパラメータ",
   });

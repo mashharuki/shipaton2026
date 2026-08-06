@@ -19,7 +19,21 @@ app.route("/", feedbackRoute);
 app.route("/", eventsRoute);
 app.route("/", pushRegistrationsRoute);
 
-app.doc("/doc", {
+// design.md: "components.securitySchemes に apiKey（header x-api-key）を
+// 定義し全ルートへ適用" -- registered once on the assembled app (not
+// per-route) and applied via openApiConfig's top-level `security`, which
+// OpenAPI treats as the default requirement for every operation that
+// doesn't declare its own `security` (none of our routes do).
+app.openAPIRegistry.registerComponent("securitySchemes", "ApiKeyAuth", {
+  type: "apiKey",
+  in: "header",
+  name: "x-api-key",
+});
+
+// Single source of truth for the document's top-level metadata -- reused
+// verbatim by scripts/generate-openapi.ts (task 3.8) so the committed
+// openapi.yaml and this dev-server /doc endpoint can never drift apart.
+export const openApiConfig = {
   openapi: "3.0.0",
   info: {
     title: "SeatSignal API",
@@ -29,6 +43,9 @@ app.doc("/doc", {
     { url: "http://localhost:8787", description: "wrangler dev" },
     { url: "https://seatsignal-backend.workers.dev", description: "本番" },
   ],
-});
+  security: [{ ApiKeyAuth: [] }],
+};
+
+app.doc("/doc", openApiConfig);
 
 export default app;

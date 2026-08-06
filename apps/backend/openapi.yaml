@@ -1,0 +1,912 @@
+openapi: 3.0.0
+info:
+  title: SeatSignal API
+  version: 0.1.0
+servers:
+  - url: http://localhost:8787
+    description: wrangler dev
+  - url: https://seatsignal-backend.workers.dev
+    description: 本番
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - offline
+                - timeout
+                - http_error
+                - validation_error
+                - unknown
+          required:
+            - code
+          additionalProperties: false
+      required:
+        - error
+      additionalProperties: false
+      description: 共通エラーレスポンス
+      example:
+        error:
+          code: validation_error
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          enum:
+            - true
+      required:
+        - ok
+      additionalProperties: false
+      description: 処理成功を示す共通レスポンス
+      example:
+        ok: true
+  parameters: {}
+paths:
+  /v1/datasets/{name}:
+    get:
+      tags:
+        - datasets
+      operationId: getDataset
+      summary: バージョン付きデータセットの取得
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - timetable
+              - congestion
+              - correction
+            description: データセット種別
+            example: timetable
+          required: true
+          description: データセット種別
+          name: name
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+          required: false
+          name: since
+          in: query
+      responses:
+        "200":
+          description: 版一致時は notModified、更新時は payload を返す
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        minLength: 1
+                      notModified:
+                        type: boolean
+                        enum:
+                          - true
+                    required:
+                      - version
+                      - notModified
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        minLength: 1
+                      payload:
+                        type: object
+                        properties:
+                          schemaVersion:
+                            type: integer
+                            minimum: 0
+                            exclusiveMinimum: true
+                          stations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  minLength: 1
+                                railwayId:
+                                  type: string
+                                  minLength: 1
+                                nameJa:
+                                  type: string
+                                  minLength: 1
+                                nameEn:
+                                  type: string
+                                  minLength: 1
+                                seq:
+                                  type: integer
+                                  minimum: 0
+                              required:
+                                - id
+                                - railwayId
+                                - nameJa
+                                - nameEn
+                                - seq
+                              additionalProperties: false
+                              description: 駅
+                              example:
+                                id: STA_SHINJUKU
+                                railwayId: RAIL_CHUO
+                                nameJa: 新宿
+                                nameEn: Shinjuku
+                                seq: 3
+                          trainTimetables:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                trainId:
+                                  type: string
+                                  minLength: 1
+                                stationId:
+                                  type: string
+                                  minLength: 1
+                                departureTime:
+                                  type: string
+                                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                                  description: 時刻（HH:mm）
+                                  example: 07:32
+                                arrivalTime:
+                                  type: string
+                                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                                  description: 時刻（HH:mm）
+                                  example: 07:32
+                                carCount:
+                                  type: integer
+                                  minimum: 0
+                                  exclusiveMinimum: true
+                                dayType:
+                                  type: string
+                                  enum:
+                                    - weekday
+                                    - weekend
+                                  description: 曜日種別
+                                  example: weekday
+                              required:
+                                - trainId
+                                - stationId
+                                - departureTime
+                                - arrivalTime
+                                - carCount
+                                - dayType
+                              additionalProperties: false
+                              description: 列車の駅ごとの発着時刻
+                              example:
+                                trainId: TRAIN_0732
+                                stationId: STA_SHINJUKU
+                                departureTime: 07:32
+                                arrivalTime: 07:31
+                                carCount: 10
+                                dayType: weekday
+                        required:
+                          - schemaVersion
+                          - stations
+                          - trainTimetables
+                        additionalProperties: false
+                        description: 時刻表データセット
+                    required:
+                      - version
+                      - payload
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        minLength: 1
+                      notModified:
+                        type: boolean
+                        enum:
+                          - true
+                    required:
+                      - version
+                      - notModified
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        minLength: 1
+                      payload:
+                        type: object
+                        properties:
+                          schemaVersion:
+                            type: integer
+                            minimum: 0
+                            exclusiveMinimum: true
+                          profiles:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                railwayId:
+                                  type: string
+                                  minLength: 1
+                                legKey:
+                                  type: string
+                                  minLength: 1
+                                timeBucket:
+                                  type: string
+                                  pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                                  description: 15 分粒度の時間帯バケット（HH:mm）
+                                  example: 07:30
+                                dayType:
+                                  type: string
+                                  enum:
+                                    - weekday
+                                    - weekend
+                                  description: 曜日種別
+                                  example: weekday
+                                carNumber:
+                                  type: integer
+                                  minimum: 0
+                                  exclusiveMinimum: true
+                                loadScore:
+                                  type: number
+                                  minimum: 0
+                                  maximum: 1
+                                sampleSize:
+                                  type: integer
+                                  minimum: 0
+                              required:
+                                - railwayId
+                                - legKey
+                                - timeBucket
+                                - dayType
+                                - carNumber
+                                - loadScore
+                                - sampleSize
+                              additionalProperties: false
+                              description: 混雑プロファイル（号車単位）
+                              example:
+                                railwayId: RAIL_CHUO
+                                legKey: STA_SHINJUKU-STA_TOKYO
+                                timeBucket: 07:30
+                                dayType: weekday
+                                carNumber: 3
+                                loadScore: 0.62
+                                sampleSize: 48
+                        required:
+                          - schemaVersion
+                          - profiles
+                        additionalProperties: false
+                        description: 混雑プロファイルデータセット
+                    required:
+                      - version
+                      - payload
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        minLength: 1
+                      notModified:
+                        type: boolean
+                        enum:
+                          - true
+                    required:
+                      - version
+                      - notModified
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      version:
+                        type: string
+                        minLength: 1
+                      payload:
+                        type: object
+                        properties:
+                          schemaVersion:
+                            type: integer
+                            minimum: 0
+                            exclusiveMinimum: true
+                          stats:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                railwayId:
+                                  type: string
+                                  minLength: 1
+                                legKey:
+                                  type: string
+                                  minLength: 1
+                                timeBucket:
+                                  type: string
+                                  pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                                  description: 15 分粒度の時間帯バケット（HH:mm）
+                                  example: 07:30
+                                dayType:
+                                  type: string
+                                  enum:
+                                    - weekday
+                                    - weekend
+                                  description: 曜日種別
+                                  example: weekday
+                                deltaScore:
+                                  type: number
+                                sampleSize:
+                                  type: integer
+                                  minimum: 0
+                              required:
+                                - railwayId
+                                - legKey
+                                - timeBucket
+                                - dayType
+                                - deltaScore
+                                - sampleSize
+                              additionalProperties: false
+                              description: フィードバックに基づく補正統計（サンプル数不足のセルは配信しない）
+                              example:
+                                railwayId: RAIL_CHUO
+                                legKey: STA_SHINJUKU-STA_TOKYO
+                                timeBucket: 07:30
+                                dayType: weekday
+                                deltaScore: -0.05
+                                sampleSize: 12
+                        required:
+                          - schemaVersion
+                          - stats
+                        additionalProperties: false
+                        description: 補正統計データセット
+                    required:
+                      - version
+                      - payload
+                    additionalProperties: false
+                description: データセット配信レスポンス（版一致時は notModified、更新時は payload を返す）
+                example:
+                  version: "4"
+                  notModified: true
+        "400":
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: APIキーが不正または未提供
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 対象データセットが存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/train-status/{railwayId}:
+    get:
+      tags:
+        - status
+      operationId: getTrainStatus
+      summary: 運行情報の取得（ODPT プロキシ + KV キャッシュ）
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            example: RAIL_CHUO
+          required: true
+          name: railwayId
+          in: path
+      responses:
+        "200":
+          description: "運行情報。ODPT 障害時はキャッシュ済み値を stale: true で返す"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - normal
+                      - delayed
+                      - suspended
+                  delayMinutes:
+                    type: integer
+                    minimum: 0
+                  fetchedAt:
+                    type: string
+                    format: date-time
+                  stale:
+                    type: boolean
+                required:
+                  - status
+                  - delayMinutes
+                  - fetchedAt
+                additionalProperties: false
+                description: "運行情報レスポンス（ODPT 障害時はキャッシュ済み値を stale: true で返す）"
+                example:
+                  status: delayed
+                  delayMinutes: 5
+                  fetchedAt: 2026-08-04T07:00:00.000Z
+                  stale: false
+        "401":
+          description: APIキーが不正または未提供
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 対象路線が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: ODPT 障害かつキャッシュなし
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/feedback:
+    post:
+      tags:
+        - feedback
+      operationId: postFeedback
+      summary: 乗車結果フィードバックの送信
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  properties:
+                    seatedOutcome:
+                      type: string
+                      enum:
+                        - seated_from_start
+                    tripId:
+                      type: string
+                      format: uuid
+                    railwayId:
+                      type: string
+                      minLength: 1
+                    legKey:
+                      type: string
+                      minLength: 1
+                    boardedAt:
+                      type: string
+                      pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                      description: 15 分粒度の時間帯バケット（HH:mm）
+                      example: 07:30
+                    vsExpected:
+                      type: string
+                      enum:
+                        - less_crowded_than_expected
+                        - as_expected
+                        - more_crowded_than_expected
+                    predictedStandingMin:
+                      type: number
+                      minimum: 0
+                  required:
+                    - seatedOutcome
+                    - tripId
+                    - railwayId
+                    - legKey
+                    - boardedAt
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    seatedOutcome:
+                      type: string
+                      enum:
+                        - seated_from_middle
+                    seatedStationId:
+                      type: string
+                      minLength: 1
+                    tripId:
+                      type: string
+                      format: uuid
+                    railwayId:
+                      type: string
+                      minLength: 1
+                    legKey:
+                      type: string
+                      minLength: 1
+                    boardedAt:
+                      type: string
+                      pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                      description: 15 分粒度の時間帯バケット（HH:mm）
+                      example: 07:30
+                    vsExpected:
+                      type: string
+                      enum:
+                        - less_crowded_than_expected
+                        - as_expected
+                        - more_crowded_than_expected
+                    predictedStandingMin:
+                      type: number
+                      minimum: 0
+                  required:
+                    - seatedOutcome
+                    - seatedStationId
+                    - tripId
+                    - railwayId
+                    - legKey
+                    - boardedAt
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    seatedOutcome:
+                      type: string
+                      enum:
+                        - stood_whole_trip
+                    tripId:
+                      type: string
+                      format: uuid
+                    railwayId:
+                      type: string
+                      minLength: 1
+                    legKey:
+                      type: string
+                      minLength: 1
+                    boardedAt:
+                      type: string
+                      pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                      description: 15 分粒度の時間帯バケット（HH:mm）
+                      example: 07:30
+                    vsExpected:
+                      type: string
+                      enum:
+                        - less_crowded_than_expected
+                        - as_expected
+                        - more_crowded_than_expected
+                    predictedStandingMin:
+                      type: number
+                      minimum: 0
+                  required:
+                    - seatedOutcome
+                    - tripId
+                    - railwayId
+                    - legKey
+                    - boardedAt
+                  additionalProperties: false
+              description: 乗車結果フィードバック（乗車中のみ有効な匿名 Trip ID とのみ関連付ける）
+              example:
+                seatedOutcome: seated_from_middle
+                seatedStationId: STA_YOTSUYA
+                tripId: 6f9a2b3e-4b7a-4a4b-8b2b-9b6b1e2e3f4a
+                railwayId: RAIL_CHUO
+                legKey: STA_SHINJUKU-STA_TOKYO
+                boardedAt: 07:30
+                vsExpected: as_expected
+                predictedStandingMin: 6
+      responses:
+        "200":
+          description: 受理
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "400":
+          description: 不正なペイロード
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: APIキーが不正または未提供
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/events:
+    post:
+      tags:
+        - events
+      operationId: postEvents
+      summary: 分析イベントのバッチ送信（最大 20 件）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        enum:
+                          - onboarding_completed
+                          - search_started
+                          - search_completed
+                          - route_selected
+                          - trip_started
+                          - feedback_submitted
+                          - paywall_shown
+                          - trial_started
+                          - purchase_completed
+                          - purchase_restored
+                          - purchase_failed
+                        description: 計測ファネルを構成するイベント名
+                        example: route_selected
+                      props:
+                        type: object
+                        properties:
+                          railwayId:
+                            type: string
+                            minLength: 1
+                          timeBucket:
+                            type: string
+                            pattern: ^([01]\d|2[0-3]):(00|15|30|45)$
+                            description: 15 分粒度の時間帯バケット（HH:mm）
+                            example: 07:30
+                          routeType:
+                            type: string
+                            enum:
+                              - fastest
+                              - balanced
+                              - comfort
+                          diffFromFastestMinutes:
+                            type: number
+                          reducedStandingMinutes:
+                            type: number
+                          planType:
+                            type: string
+                            enum:
+                              - free
+                              - pro
+                          confidence:
+                            type: string
+                            enum:
+                              - low
+                              - medium
+                              - high
+                          paywallTrigger:
+                            type: string
+                            enum:
+                              - search_limit
+                              - pro_feature
+                              - saved_route_limit
+                        additionalProperties: false
+                        description: イベントに付与する最小限のプロパティ（正確な位置情報・自宅/勤務先は含まない）
+                        example:
+                          railwayId: RAIL_CHUO
+                          timeBucket: 07:30
+                          routeType: comfort
+                          planType: free
+                      sessionId:
+                        type: string
+                        minLength: 1
+                      occurredAt:
+                        type: string
+                        format: date-time
+                    required:
+                      - name
+                      - props
+                      - sessionId
+                      - occurredAt
+                    additionalProperties: false
+                    description: 分析イベント
+                    example:
+                      name: route_selected
+                      props:
+                        railwayId: RAIL_CHUO
+                        timeBucket: 07:30
+                        routeType: comfort
+                        diffFromFastestMinutes: 4
+                      sessionId: 1b6e1c7a-6e6a-4a9a-9a1a-2e6a7a8b9c0d
+                      occurredAt: 2026-08-04T07:30:00.000Z
+              required:
+                - events
+              additionalProperties: false
+              description: 分析イベントのバッチ送信（最大 20 件）
+      responses:
+        "200":
+          description: 受理したイベント件数
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: integer
+                    minimum: 0
+                required:
+                  - accepted
+                additionalProperties: false
+                description: 受理したイベント件数
+                example:
+                  accepted: 3
+        "400":
+          description: 不正なペイロード
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: APIキーが不正または未提供
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: 20 件超のバッチ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/push-registrations/{id}:
+    put:
+      tags:
+        - push
+      operationId: putPushRegistration
+      summary: 通知登録の作成・更新
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            example: push-reg-001
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expoPushToken:
+                  type: string
+                  minLength: 1
+                fromStationId:
+                  type: string
+                  minLength: 1
+                toStationId:
+                  type: string
+                  minLength: 1
+                weekdays:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - mon
+                      - tue
+                      - wed
+                      - thu
+                      - fri
+                      - sat
+                      - sun
+                  minItems: 1
+                notifyAt:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                leadMinutes:
+                  type: integer
+                  minimum: 15
+                  maximum: 30
+                locale:
+                  type: string
+                  enum:
+                    - ja
+                    - en
+              required:
+                - expoPushToken
+                - fromStationId
+                - toStationId
+                - weekdays
+                - notifyAt
+                - leadMinutes
+                - locale
+              additionalProperties: false
+              description: 通知登録の作成・更新
+              example:
+                expoPushToken: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+                fromStationId: STA_SHINJUKU
+                toStationId: STA_TOKYO
+                weekdays:
+                  - mon
+                  - tue
+                  - wed
+                  - thu
+                  - fri
+                notifyAt: 07:45
+                leadMinutes: 20
+                locale: ja
+      responses:
+        "200":
+          description: 登録・更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "400":
+          description: 不正なペイロード
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: APIキーが不正または未提供
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - push
+      operationId: deletePushRegistration
+      summary: 通知登録の削除
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            example: push-reg-001
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "401":
+          description: APIキーが不正または未提供
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 対象の登録が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

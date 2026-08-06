@@ -11,7 +11,8 @@
     "test": "vitest run",
     "db:migrate:local": "wrangler d1 migrations apply seatsignal-db --local",
     "generate:datasets": "tsx scripts/generate-datasets.ts",
-    "push:datasets": "tsx scripts/push-datasets-to-kv.ts"
+    "push:datasets": "tsx scripts/push-datasets-to-kv.ts",
+    "openapi": "tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "1.5.1",
@@ -23,6 +24,7 @@
     "@cloudflare/vitest-pool-workers": "0.20.1",
     "tsx": "4.23.5",
     "vitest": "4.1.10",
-    "wrangler": "^4.110.0"
+    "wrangler": "^4.110.0",
+    "yaml": "2.9.0"
   }
 }
