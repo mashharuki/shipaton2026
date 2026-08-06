@@ -148,7 +148,7 @@
   - _Boundary: i18n_
   - _Requirements: 14.1, 14.3_
 
-- [ ] 4.5 (P) 分析イベントクライアントを実装する
+- [x] 4.5 (P) 分析イベントクライアントを実装する
   - イベントのバッファリングと最大 20 件のバッチ送信・失敗時再送を実装する
   - 対象路線・時間帯・ルート種別・差分時間・プラン種別・予測信頼度などの共通プロパティ付与を実装する
   - 完了条件: 発火したイベントがバッチ送信され、収集 API 経由で D1 に記録されることが確認できる
@@ -673,3 +673,27 @@
   argent, confirmed via `describe` that every visible string changed instantly including the tab bar
   (not part of `settings.tsx` itself) and the Home tab's placeholder text after navigating away and
   back -- all without a restart -- with 0 JS errors logged throughout.
+- **4.5**: `apps/frontend/src/lib/analytics.ts#createAnalyticsClient()` reserves its batch
+  synchronously (`buffer.splice(0, MAX_BATCH_SIZE)`) before the first `await` so a `track()`-triggered
+  auto-flush and a manual `flush()` call can never grab the same events -- no lock needed, each
+  `flush()` call just owns whatever was in the buffer at its own synchronous entry point. On failure
+  the batch goes back via `buffer.unshift(...batch)` ("失敗時再送"); this can duplicate-send events
+  whose batch partially landed before a mid-batch D1 failure, since 3.5's Implementation Note already
+  disclosed the backend's per-event insert loop isn't transactional -- a pre-existing, disclosed
+  limitation this task doesn't attempt to fix (would need server-side dedup, outside `AnalyticsClient`'s
+  frontend-only boundary). Common-property attachment (17.2's 対象路線・時間帯・ルート種別 etc.) is
+  built as a `setCommonProps()` extension point merged into every `track()` call (event-specific props
+  win on conflict) -- the actual state (plan type from 6.2's SubscriptionGate, confidence from 5.3's
+  PredictionEngine) doesn't exist yet at this task's boundary, so wiring real values in is left to
+  those future tasks. `randomUUID()` (session ID) comes from `expo-crypto`, which -- like `react-native`
+  and `expo-sqlite` before it -- can't be parsed under this project's Vitest/Vite pipeline (Flow
+  syntax). Unlike 4.3's DB port/adapter split, this task used `vi.mock("expo-crypto", ...)` in the test
+  file instead of constructor-injecting the ID generator -- simpler and sufficient here since
+  `randomUUID()` is a leaf call with no branching logic worth testing in isolation, `vi.mock` hoists
+  before the real module ever loads so the Flow-syntax file is never parsed either way. Completion
+  condition's "収集 API 経由で D1 に記録されることが確認できる" was verified live (not just unit
+  tests): temporarily exposed a `createAnalyticsClient()` instance on `globalThis` from `_layout.tsx`,
+  drove `track()`/`flush()` via argent's `debugger-evaluate` against a real `wrangler dev` backend, then
+  confirmed via `wrangler d1 execute --local` that both events landed in `analytics_events` with correct
+  `props_json` and a shared `session_id` -- then fully reverted the `_layout.tsx` instrumentation
+  (confirmed empty `git diff`).
