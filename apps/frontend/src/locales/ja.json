@@ -115,7 +115,21 @@
   },
   "report": {
     "title": "週間レポート",
-    "placeholder": "レポートは近日公開予定です"
+    "loading": "集計中…",
+    "previousWeek": "前の週",
+    "nextWeek": "次の週",
+    "totalStandingMinutes": "合計立ち時間",
+    "reducedStandingMinutes": "削減できた予想立ち時間",
+    "comfortRouteCount": "快適ルート選択回数",
+    "predictionAccuracy": "予測精度",
+    "minutesUnit": "分",
+    "noData": "データなし",
+    "dailyTrend": "日別の予想立ち時間",
+    "vsLastWeek": "前週との比較",
+    "proGate": {
+      "title": "Pro機能",
+      "cta": "Proにアップグレードして日別推移と前週比較を見る"
+    }
   },
   "settings": {
     "title": "設定",

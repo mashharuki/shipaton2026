@@ -115,7 +115,21 @@
   },
   "report": {
     "title": "Weekly report",
-    "placeholder": "Reports are coming soon"
+    "loading": "Calculating…",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "totalStandingMinutes": "Total standing time",
+    "reducedStandingMinutes": "Standing time saved",
+    "comfortRouteCount": "Comfort routes chosen",
+    "predictionAccuracy": "Prediction accuracy",
+    "minutesUnit": "min",
+    "noData": "No data",
+    "dailyTrend": "Expected standing time by day",
+    "vsLastWeek": "Vs. last week",
+    "proGate": {
+      "title": "Pro feature",
+      "cta": "Upgrade to Pro to see the daily trend and week-over-week comparison"
+    }
   },
   "settings": {
     "title": "Settings",

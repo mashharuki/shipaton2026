@@ -40,7 +40,7 @@ function stationName(
 export default function CoachScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const params = useLocalSearchParams<{ legs?: string }>();
+  const params = useLocalSearchParams<{ legs?: string; routeType?: string }>();
 
   const legs = useMemo<RouteLeg[] | null>(() => {
     if (!params.legs) {
@@ -225,6 +225,9 @@ export default function CoachScreen() {
                         ),
                       ),
                     ),
+                    ...(params.routeType
+                      ? { routeType: params.routeType }
+                      : {}),
                   },
                 });
               }}

@@ -92,7 +92,10 @@ export default function ResultsScreen() {
                 onPress={() =>
                   router.push({
                     pathname: "/route-detail",
-                    params: { legs: JSON.stringify(route.candidate.legs) },
+                    params: {
+                      legs: JSON.stringify(route.candidate.legs),
+                      routeType: route.type,
+                    },
                   })
                 }
               />

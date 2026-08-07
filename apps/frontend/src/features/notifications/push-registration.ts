@@ -234,13 +234,27 @@ export function addNotificationTapListener(
 // getLastNotificationResponseAsync() for exactly this case (the same reason
 // its own useLastNotificationResponse() hook checks this before relying on
 // the live listener). Clears it after reading so a later remount/Fast
-// Refresh doesn't re-navigate on the same stale response.
+// Refresh doesn't re-navigate on the same stale response. Wrapped in
+// try/catch: confirmed live in a browser that getLastNotificationResponseAsync
+// throws ("...is not available on web") rather than resolving null on the
+// Expo web target, which would otherwise crash the whole app at every
+// startup via _layout.tsx's PushNotificationBoundary.
 export async function consumeLastNotificationDeepLink(): Promise<DeepLinkParams | null> {
-  const response = await Notifications.getLastNotificationResponseAsync();
+  let response: Awaited<
+    ReturnType<typeof Notifications.getLastNotificationResponseAsync>
+  >;
+  try {
+    response = await Notifications.getLastNotificationResponseAsync();
+  } catch (cause) {
+    console.warn("getLastNotificationResponseAsync unavailable", cause);
+    return null;
+  }
   if (!response) {
     return null;
   }
-  await Notifications.clearLastNotificationResponseAsync();
+  await Notifications.clearLastNotificationResponseAsync().catch((cause) => {
+    console.warn("Failed to clear last notification response", cause);
+  });
   const data = response.notification.request.content.data as
     | Record<string, unknown>
     | undefined;

@@ -270,7 +270,7 @@
   - _Depends: 3.3, 7.1_
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 16.1, 16.2_
 
-- [ ] 8. 保存ルート・通知・レポート
+- [x] 8. 保存ルート・通知・レポート
 - [x] 8.1 (P) 通勤ルート保存を実装する
   - 出発駅・到着駅・曜日・出発時刻・快適性優先度を含む保存と一覧を実装する
   - Free は 1 件制限とし、2 件目の保存試行で Paywall トリガーを発火、Pro は複数保存を許可する
@@ -290,7 +290,7 @@
   - _Boundary: PushRegistration_
   - _Requirements: 1.3, 10.1, 10.4, 10.5_
 
-- [ ] 8.3 (P) 週間レポートを実装する
+- [x] 8.3 (P) 週間レポートを実装する
   - 週単位の合計立ち時間・削減できた予想立ち時間・快適ルート選択回数・予測精度の表示を実装する
   - 日別の予想立ち時間推移の可視化と、週切替時の前週比較を実装する
   - Free ではレポート詳細部分を Pro 案内付きで制限する（詳細レポートのゲートを本タスクが所有）
@@ -1166,3 +1166,28 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   mid-rehydration on a screen's first render -- seeding local form state from it via a `useState`
   initializer only (no resync `useEffect`) silently locks the form onto defaults; resync via a
   `useEffect` keyed on the store value instead.
+- **8.3 -- verified live** (Expo web after fixing 8.2's notification crash below; real iOS Simulator
+  `CF242168-...` after a clean reinstall): `trip-history-repository.ts` (7.3) stored no numeric
+  standing-time or route-type data, even though both were already flowing through the app's own
+  navigation params (results -> route-detail -> coach -> feedback) unused -- this task threaded
+  `routeType`/`predictedStandingMinutes` additively through those 4 screens' existing `router.push`
+  calls and added the two columns to `trips`. Metric definitions (total/reduced standing minutes,
+  comfort-route count, prediction accuracy) are locally-derived interpretations of requirements.md's
+  4 named metrics, not literally specified -- see `use-weekly-report.ts`'s own comments;
+  `seated_from_middle`'s actual-standing-minutes estimate is a documented `duration / 2`
+  approximation (no per-intermediate-station timetable lookup wired in). Two pre-existing bugs (not
+  introduced by this task) were found and fixed along the way: (1) `push-registration.ts`'s
+  `consumeLastNotificationDeepLink()` (8.2, already committed) called
+  `Notifications.getLastNotificationResponseAsync()` with no error handling, which throws on Expo
+  web and crashed the whole app at every startup via `_layout.tsx`'s `PushNotificationBoundary` --
+  confirmed via `git stash` isolation that this predates 8.3; fixed with try/catch +
+  `console.warn` (empty catches are against `.claude/rules/code-style.md`, caught in review). (2) A
+  `trips` schema change via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` throws
+  `NoModificationAllowedError` on expo-sqlite's web (OPFS-backed) implementation, silently stalling
+  every SQLite-dependent screen -- fixed by adding the new columns directly to the `CREATE TABLE`
+  statement instead (matches every other table's existing no-migration-versioning convention;
+  no real users exist yet to preserve an old on-device schema for). A third, unrelated, wider bug
+  (`lib/db.ts`'s `migrate()` uses `withExclusiveTransactionAsync`, which `expo-sqlite`'s own source
+  explicitly documents/throws as unsupported on web -- broken since task 4.3, blocks task 10.2's
+  Playwright E2E from ever exercising search/feedback/report on the web target) was deliberately
+  NOT fixed here (out of `WeeklyReport`'s boundary) and was flagged separately for its own task.

@@ -75,12 +75,23 @@ const MIGRATIONS: readonly string[] = [
   );`,
   // 7.3/11.x: ride history, stored on-device only (16.5 -- deletion is 9.2's
   // job, not built here). `feedback_json` is null until the rider actually
-  // submits a feedback answer for this trip.
+  // submits a feedback answer for this trip. `route_type`/
+  // `predicted_standing_minutes` (8.3, weekly-report inputs) were added
+  // directly to this CREATE TABLE rather than via a later `ALTER TABLE ADD
+  // COLUMN` -- confirmed live in a browser that `ALTER TABLE ... ADD COLUMN
+  // IF NOT EXISTS` throws `NoModificationAllowedError` against expo-sqlite's
+  // web (IndexedDB-backed) implementation and silently stalls every
+  // downstream migration/screen. No shipped users exist yet to preserve an
+  // old on-device schema for, so a plain `CREATE TABLE IF NOT EXISTS` (the
+  // one pattern already proven to work on both native and web everywhere
+  // else in this file) is the correct fix, not just the simpler one.
   `CREATE TABLE IF NOT EXISTS trips (
     trip_id TEXT PRIMARY KEY NOT NULL,
     route_json TEXT NOT NULL,
     started_at TEXT NOT NULL,
     ended_at TEXT NOT NULL,
+    route_type TEXT,
+    predicted_standing_minutes REAL,
     feedback_json TEXT
   );`,
   // 9.1-9.6: commuter routes saved for one-tap re-search. `weekdays_json` is a

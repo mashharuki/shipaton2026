@@ -75,7 +75,7 @@ function ProGateTeaser({
 export default function RouteDetailScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const params = useLocalSearchParams<{ legs?: string }>();
+  const params = useLocalSearchParams<{ legs?: string; routeType?: string }>();
 
   const legs = useMemo<RouteLeg[] | null>(() => {
     if (!params.legs) {
@@ -104,7 +104,13 @@ export default function RouteDetailScreen() {
       return;
     }
     startCoachSession(legs);
-    router.push({ pathname: "/coach", params: { legs: JSON.stringify(legs) } });
+    router.push({
+      pathname: "/coach",
+      params: {
+        legs: JSON.stringify(legs),
+        ...(params.routeType ? { routeType: params.routeType } : {}),
+      },
+    });
   }
 
   return (

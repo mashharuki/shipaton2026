@@ -28,8 +28,11 @@ vi.mock("expo-sqlite/kv-store", () => ({
   },
 }));
 
+import * as Notifications from "expo-notifications";
+
 import {
   buildPushRegistrationRequestBody,
+  consumeLastNotificationDeepLink,
   type PushRegistrationSettings,
   resolveDeepLinkParams,
 } from "@/features/notifications/push-registration";
@@ -99,5 +102,17 @@ describe("resolveDeepLinkParams", () => {
         null,
       ),
     ).toBeNull();
+  });
+});
+
+describe("consumeLastNotificationDeepLink", () => {
+  it("should resolve to null instead of throwing when the native call is unavailable (e.g. on web)", async () => {
+    vi.mocked(
+      Notifications.getLastNotificationResponseAsync,
+    ).mockRejectedValueOnce(
+      new Error("getLastNotificationResponseAsync is not available on web"),
+    );
+
+    await expect(consumeLastNotificationDeepLink()).resolves.toBeNull();
   });
 });

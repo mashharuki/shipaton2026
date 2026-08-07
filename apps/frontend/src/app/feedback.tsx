@@ -20,6 +20,7 @@ import {
   buildFeedbackPayload,
   useFeedback,
 } from "@/features/feedback/use-feedback";
+import { RANKED_ROUTE_TYPES } from "@/features/search/route-ranker";
 import type { RouteLeg } from "@/features/search/route-search-engine";
 import { createSqliteTripHistoryStore } from "@/features/trip-history/trip-history-repository";
 import { analyticsClient } from "@/lib/analytics";
@@ -56,6 +57,7 @@ export default function FeedbackScreen() {
     legKey?: string;
     boardedAt?: string;
     predictedStandingMin?: string;
+    routeType?: string;
   }>();
 
   const legs = useMemo<RouteLeg[]>(() => {
@@ -142,11 +144,18 @@ export default function FeedbackScreen() {
     const now = new Date().toISOString();
     const db = await getDb();
     const tripHistory = createSqliteTripHistoryStore(db);
+    const routeType = RANKED_ROUTE_TYPES.find(
+      (type) => type === params.routeType,
+    );
     await tripHistory.saveTrip({
       tripId: params.tripId,
       legs,
       startedAt: params.startedAt || now,
       endedAt: now,
+      ...(routeType ? { routeType } : {}),
+      ...(params.predictedStandingMin
+        ? { predictedStandingMinutes: Number(params.predictedStandingMin) }
+        : {}),
       feedback: { ...selection, ...(vsExpected ? { vsExpected } : {}) },
     });
 
