@@ -6,6 +6,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { usePreferenceStore } from "@/features/preferences/preference-store";
+import type { Weekday } from "@/features/saved-routes/saved-routes-store";
+import { useSavedRoutes } from "@/features/saved-routes/use-saved-routes";
 import { recordSearch } from "@/features/subscription/usage-limiter";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 
@@ -20,10 +23,26 @@ const DEMO_QUERY = {
   departureTime: "07:30",
 };
 
+// 9.1: no station-picker/day-of-week form exists yet (same gap DEMO_QUERY
+// already documents for search) -- saving reuses the one demo commute as its
+// route, weekdays default to the standard 5-day commute.
+const DEMO_WEEKDAYS: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
+
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const paywallGate = usePaywallGate();
+  const comfortPriority = usePreferenceStore(
+    (state) => state.preference.speedComfortBalance,
+  );
+  const {
+    routes,
+    pendingRemovalIds,
+    saveRoute,
+    removeRoute,
+    undoRemove,
+    selectRoute,
+  } = useSavedRoutes();
 
   // 12.1/12.2: design.md's "無料枠チェック→検索→3案選定" flow -- guard()
   // first (Free's 4th attempt never reaches the search), recordSearch()
@@ -35,6 +54,14 @@ export default function HomeScreen() {
     }
     recordSearch();
     router.push({ pathname: "/results", params: DEMO_QUERY });
+  };
+
+  const handleSaveRoute = () => {
+    saveRoute({
+      ...DEMO_QUERY,
+      weekdays: DEMO_WEEKDAYS,
+      comfortPriority,
+    });
   };
 
   return (
@@ -56,6 +83,74 @@ export default function HomeScreen() {
             <ThemedText type="smallBold">{t("home.demoSearch")}</ThemedText>
           </ThemedView>
         </Pressable>
+
+        <ThemedView
+          style={styles.savedRoutesSection}
+          testID="saved-routes-section"
+        >
+          <ThemedText type="smallBold">{t("savedRoutes.title")}</ThemedText>
+          {routes.length === 0 ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t("savedRoutes.empty")}
+            </ThemedText>
+          ) : null}
+          {routes.map((route) => (
+            <ThemedView
+              key={route.id}
+              type="backgroundElement"
+              style={styles.savedRouteRow}
+              testID={`saved-route-${route.id}`}
+            >
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => selectRoute(route)}
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <ThemedText type="default">
+                  {route.fromStationId} → {route.toStationId} (
+                  {route.departureTime})
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                testID={`saved-route-delete-${route.id}`}
+                onPress={() => removeRoute(route.id)}
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <ThemedText type="small" themeColor="textSecondary">
+                  {t("savedRoutes.delete")}
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          ))}
+          {[...pendingRemovalIds].map((id) => (
+            <ThemedView
+              key={id}
+              type="backgroundSelected"
+              style={styles.savedRouteRow}
+              testID={`saved-route-undo-${id}`}
+            >
+              <ThemedText type="small">{t("savedRoutes.deleted")}</ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => undoRemove(id)}
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <ThemedText type="smallBold">
+                  {t("savedRoutes.undo")}
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          ))}
+          <Pressable
+            accessibilityRole="button"
+            testID="save-route-button"
+            onPress={handleSaveRoute}
+            style={({ pressed }) => pressed && styles.pressed}
+          >
+            <ThemedText type="link">{t("savedRoutes.save")}</ThemedText>
+          </Pressable>
+        </ThemedView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -84,6 +179,18 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
     borderRadius: Spacing.three,
+  },
+  savedRoutesSection: {
+    marginTop: Spacing.four,
+    gap: Spacing.two,
+    width: "100%",
+  },
+  savedRouteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: Spacing.three,
+    padding: Spacing.two,
   },
   pressed: {
     opacity: 0.7,

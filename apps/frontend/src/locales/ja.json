@@ -33,6 +33,14 @@
     "placeholder": "検索機能は近日公開予定です",
     "demoSearch": "新宿→東京を検索（デモ）"
   },
+  "savedRoutes": {
+    "title": "保存したルート",
+    "empty": "保存したルートはありません",
+    "save": "このルートを保存",
+    "delete": "削除",
+    "undo": "元に戻す",
+    "deleted": "削除しました"
+  },
   "results": {
     "title": "ルート比較",
     "loading": "計算中…",
@@ -115,7 +123,35 @@
     "appearanceSystem": "システムに合わせる",
     "appearanceLight": "ライト",
     "appearanceDark": "ダーク",
-    "language": "言語"
+    "language": "言語",
+    "notifications": "通知設定"
+  },
+  "notificationsSettings": {
+    "title": "通知設定",
+    "enabled": "通知が有効です",
+    "disabled": "通知は無効です",
+    "weekdays": "通知する曜日",
+    "weekdayShort": {
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土",
+      "sun": "日"
+    },
+    "notifyAt": "通勤時刻",
+    "leadMinutes": "何分前に通知するか",
+    "minutesValue": "{{minutes}} 分前",
+    "explanationTitle": "通知を送ってもよいですか？",
+    "explanationBody": "いつもの通勤ルートの混雑変化を、出発前にお知らせします。",
+    "explanationCancel": "あとで",
+    "explanationConfirm": "許可する",
+    "enableAction": "通知を有効にする",
+    "disableAction": "通知を無効にする",
+    "updateAction": "設定を保存",
+    "permissionDenied": "通知が許可されていません。他の機能は引き続きご利用いただけます。",
+    "saveError": "保存に失敗しました。もう一度お試しください。"
   },
   "paywall": {
     "loading": "読み込み中…",

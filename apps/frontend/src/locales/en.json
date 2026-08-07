@@ -33,6 +33,14 @@
     "placeholder": "Search is coming soon",
     "demoSearch": "Search Shinjuku → Tokyo (demo)"
   },
+  "savedRoutes": {
+    "title": "Saved routes",
+    "empty": "No saved routes yet",
+    "save": "Save this route",
+    "delete": "Delete",
+    "undo": "Undo",
+    "deleted": "Deleted"
+  },
   "results": {
     "title": "Compare routes",
     "loading": "Calculating your options…",
@@ -115,7 +123,35 @@
     "appearanceSystem": "Match system",
     "appearanceLight": "Light",
     "appearanceDark": "Dark",
-    "language": "Language"
+    "language": "Language",
+    "notifications": "Notification settings"
+  },
+  "notificationsSettings": {
+    "title": "Notification settings",
+    "enabled": "Notifications are on",
+    "disabled": "Notifications are off",
+    "weekdays": "Days to notify",
+    "weekdayShort": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "notifyAt": "Commute time",
+    "leadMinutes": "How long before to notify",
+    "minutesValue": "{{minutes}} min before",
+    "explanationTitle": "Send you notifications?",
+    "explanationBody": "We'll let you know about crowding changes on your usual commute before you leave.",
+    "explanationCancel": "Not now",
+    "explanationConfirm": "Allow",
+    "enableAction": "Enable notifications",
+    "disableAction": "Disable notifications",
+    "updateAction": "Save settings",
+    "permissionDenied": "Notifications aren't permitted. Everything else still works.",
+    "saveError": "Failed to save. Please try again."
   },
   "paywall": {
     "loading": "Loading…",

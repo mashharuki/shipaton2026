@@ -271,7 +271,7 @@
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 16.1, 16.2_
 
 - [ ] 8. 保存ルート・通知・レポート
-- [ ] 8.1 (P) 通勤ルート保存を実装する
+- [x] 8.1 (P) 通勤ルート保存を実装する
   - 出発駅・到着駅・曜日・出発時刻・快適性優先度を含む保存と一覧を実装する
   - Free は 1 件制限とし、2 件目の保存試行で Paywall トリガーを発火、Pro は複数保存を許可する
   - 保存済みルートのタップで保存条件による即時検索を実行する
@@ -281,7 +281,7 @@
   - _Boundary: SavedRoutesStore_
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
-- [ ] 8.2 (P) スマート通知クライアントを実装する
+- [x] 8.2 (P) スマート通知クライアントを実装する
   - 利用目的の事前説明付きで通知許可を要求し、拒否されても他機能を維持する
   - push トークンの取得と通知登録の作成/削除、頻度・時間帯設定画面を実装する
   - 通知タップで該当ルートの比較画面へディープリンク遷移する
@@ -1153,3 +1153,16 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   screen rendered, matching the exact flow `feedback.tsx`'s code implements. No JS errors observed
   throughout (RevenueCat credentials warning aside, which is this environment's pre-existing,
   unconfigured-sandbox-keys state, not a regression).
+- **8.1**: `use-route-search.ts`'s search has no per-request comfort-priority override -- it always
+  reads the global `usePreferenceStore`. A saved route's `comfortPriority` is only actually applied
+  when tapped by calling `usePreferenceStore.getState().setPreference(...)` synchronously before
+  `router.push`, in `use-saved-routes.ts`'s `selectRoute`. If a future task adds per-request
+  preference overrides, revisit whether this global-store mutation is still the right approach.
+- **8.2**: a tapped push notification that launched the app from a killed state is invisible to
+  `Notifications.addNotificationResponseReceivedListener` (captured natively before the JS listener
+  subscribes) -- needs the separate `Notifications.getLastNotificationResponseAsync()` check on
+  mount (`consumeLastNotificationDeepLink()` in `push-registration.ts`, wired in `_layout.tsx`'s
+  `PushNotificationBoundary`). Also: a zustand store persisted via async `kv-store` can still be
+  mid-rehydration on a screen's first render -- seeding local form state from it via a `useState`
+  initializer only (no resync `useEffect`) silently locks the form onto defaults; resync via a
+  `useEffect` keyed on the store value instead.

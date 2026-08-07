@@ -37,6 +37,7 @@
       ],
       "expo-sqlite",
       "expo-localization",
+      "expo-notifications",
       "@sentry/react-native"
     ],
     "experiments": {

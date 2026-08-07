@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,6 +33,7 @@ const LOCALE_LABELS: Record<SupportedLocale, string> = {
 // トグルのみを持つ骨格。
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
 
@@ -105,6 +107,19 @@ export default function SettingsScreen() {
             ))}
           </ThemedView>
         </ThemedView>
+
+        <Pressable
+          accessibilityRole="button"
+          testID="settings-notifications-link"
+          onPress={() => router.push("/settings/notifications")}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <ThemedView type="backgroundElement" style={styles.section}>
+            <ThemedText type="smallBold">
+              {t("settings.notifications")}
+            </ThemedText>
+          </ThemedView>
+        </Pressable>
       </SafeAreaView>
     </ThemedView>
   );

@@ -83,6 +83,19 @@ const MIGRATIONS: readonly string[] = [
     ended_at TEXT NOT NULL,
     feedback_json TEXT
   );`,
+  // 9.1-9.6: commuter routes saved for one-tap re-search. `weekdays_json` is a
+  // JSON array (mirrors shared's WEEKDAYS enum) rather than a join table --
+  // this is a small, always-fully-replaced list, same simplification as
+  // congestion_profile's full-replace sync.
+  `CREATE TABLE IF NOT EXISTS saved_routes (
+    id TEXT PRIMARY KEY NOT NULL,
+    from_station_id TEXT NOT NULL,
+    to_station_id TEXT NOT NULL,
+    weekdays_json TEXT NOT NULL,
+    departure_time TEXT NOT NULL,
+    comfort_priority TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );`,
 ];
 
 let dbPromise: Promise<DbPort> | null = null;
