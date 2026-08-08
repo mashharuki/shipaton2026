@@ -39,8 +39,14 @@ prediction types (`packages/shared/src/prediction/scoring.ts`), zod schemas
   that the RevenueCat public API key or bundle ID is wrong.
 - Local products are defined in `ios/frontend/SeatSignal.storekit`. For local StoreKit testing,
   select `SeatSignal.storekit` in **Scheme → Edit Scheme → Run → Options → StoreKit
-  Configuration**, then launch using Xcode's **Run** action. A QR/deep-link launch of an already
-  installed development client does not apply the Run-scheme StoreKit environment.
+  Configuration**, then launch using Xcode's **Run** action. Select the file through the Xcode UI;
+  don't hand-edit its scheme path because Xcode rewrites it in its own reference format. A
+  QR/deep-link launch of an already installed development client does not apply the Run-scheme
+  StoreKit environment.
+- Keep `SeatSignal.storekit` registered as a `frontend` target resource. Do not create an
+  `SKTestSession` from the production app delegate: it is a test-control API and can assert on a
+  physical app launch. If the direct product diagnostic returns an empty list, investigate StoreKit
+  configuration before changing RevenueCat keys or offerings.
 - For testing against App Store Connect instead, remove the StoreKit configuration from the Run
   scheme and ensure the products are created and available in App Store Connect with the same IDs.
 - Preserve `SENTRY_DISABLE_AUTO_UPLOAD=true` in the local Xcode development environment. It keeps
