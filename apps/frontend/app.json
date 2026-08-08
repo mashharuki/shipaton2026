@@ -16,7 +16,7 @@
     "android": {
       "package": "com.seatsignal.app",
       "adaptiveIcon": {
-        "backgroundColor": "#051224",
+        "backgroundColor": "#1A1C1E",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -31,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#051224",
+          "backgroundColor": "#1A1C1E",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
