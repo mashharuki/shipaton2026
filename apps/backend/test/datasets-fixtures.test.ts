@@ -18,21 +18,21 @@ import timetableFixture from "../fixtures/datasets/timetable.json";
  */
 describe("dataset fixtures match the contract schema", () => {
   it("timetable.json: payload conforms to timetableDatasetPayloadSchema", () => {
-    expect(timetableFixture.version).toBe("1");
+    expect(timetableFixture.version).toBe("2");
     expect(() =>
       timetableDatasetPayloadSchema.parse(timetableFixture.payload),
     ).not.toThrow();
   });
 
   it("congestion.json: payload conforms to congestionDatasetPayloadSchema", () => {
-    expect(congestionFixture.version).toBe("1");
+    expect(congestionFixture.version).toBe("2");
     expect(() =>
       congestionDatasetPayloadSchema.parse(congestionFixture.payload),
     ).not.toThrow();
   });
 
   it("correction.json: payload conforms to correctionDatasetPayloadSchema (empty seed)", () => {
-    expect(correctionFixture.version).toBe("1");
+    expect(correctionFixture.version).toBe("2");
     const parsed = correctionDatasetPayloadSchema.parse(
       correctionFixture.payload,
     );

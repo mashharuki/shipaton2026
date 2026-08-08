@@ -1,5 +1,5 @@
 {
-  "version": "1",
+  "version": "2",
   "payload": {
     "schemaVersion": 1,
     "profiles": [
@@ -18,7 +18,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -27,7 +27,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -36,7 +36,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -45,7 +45,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -54,7 +54,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -63,7 +63,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -72,7 +72,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -81,7 +81,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -90,7 +90,7 @@
         "timeBucket": "07:00",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -108,7 +108,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -117,7 +117,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -126,7 +126,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -135,7 +135,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -144,7 +144,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -153,7 +153,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -162,7 +162,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -171,7 +171,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -180,7 +180,7 @@
         "timeBucket": "07:15",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -189,7 +189,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 1,
-        "loadScore": 0.3,
+        "loadScore": 0.7,
         "sampleSize": 0
       },
       {
@@ -198,7 +198,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.73,
         "sampleSize": 0
       },
       {
@@ -207,7 +207,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.76,
         "sampleSize": 0
       },
       {
@@ -216,7 +216,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.7899999999999999,
         "sampleSize": 0
       },
       {
@@ -225,7 +225,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.82,
         "sampleSize": 0
       },
       {
@@ -234,7 +234,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.85,
         "sampleSize": 0
       },
       {
@@ -243,7 +243,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.8799999999999999,
         "sampleSize": 0
       },
       {
@@ -252,7 +252,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.9099999999999999,
         "sampleSize": 0
       },
       {
@@ -261,7 +261,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.94,
         "sampleSize": 0
       },
       {
@@ -270,7 +270,7 @@
         "timeBucket": "07:30",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.97,
         "sampleSize": 0
       },
       {
@@ -279,7 +279,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 1,
-        "loadScore": 0.3,
+        "loadScore": 0.45,
         "sampleSize": 0
       },
       {
@@ -288,7 +288,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -297,15 +297,6 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
-        "sampleSize": 0
-      },
-      {
-        "railwayId": "RAIL_CHUO",
-        "legKey": "STA_SHINJUKU-STA_TOKYO",
-        "timeBucket": "07:45",
-        "dayType": "weekday",
-        "carNumber": 4,
         "loadScore": 0.51,
         "sampleSize": 0
       },
@@ -314,8 +305,17 @@
         "legKey": "STA_SHINJUKU-STA_TOKYO",
         "timeBucket": "07:45",
         "dayType": "weekday",
+        "carNumber": 4,
+        "loadScore": 0.54,
+        "sampleSize": 0
+      },
+      {
+        "railwayId": "RAIL_CHUO",
+        "legKey": "STA_SHINJUKU-STA_TOKYO",
+        "timeBucket": "07:45",
+        "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -324,7 +324,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.6,
         "sampleSize": 0
       },
       {
@@ -333,7 +333,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.63,
         "sampleSize": 0
       },
       {
@@ -342,7 +342,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.66,
         "sampleSize": 0
       },
       {
@@ -351,7 +351,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.69,
         "sampleSize": 0
       },
       {
@@ -360,7 +360,7 @@
         "timeBucket": "07:45",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.72,
         "sampleSize": 0
       },
       {
@@ -369,7 +369,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 1,
-        "loadScore": 0.3,
+        "loadScore": 0.2,
         "sampleSize": 0
       },
       {
@@ -378,7 +378,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.23,
         "sampleSize": 0
       },
       {
@@ -387,7 +387,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.26,
         "sampleSize": 0
       },
       {
@@ -396,7 +396,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.29000000000000004,
         "sampleSize": 0
       },
       {
@@ -405,7 +405,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.32,
         "sampleSize": 0
       },
       {
@@ -414,7 +414,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.35,
         "sampleSize": 0
       },
       {
@@ -423,7 +423,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.38,
         "sampleSize": 0
       },
       {
@@ -432,7 +432,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.41000000000000003,
         "sampleSize": 0
       },
       {
@@ -441,7 +441,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.44,
         "sampleSize": 0
       },
       {
@@ -450,7 +450,7 @@
         "timeBucket": "08:00",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.47000000000000003,
         "sampleSize": 0
       },
       {
@@ -468,7 +468,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -477,7 +477,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -486,7 +486,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -495,7 +495,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -504,7 +504,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -513,7 +513,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -522,7 +522,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -531,7 +531,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -540,7 +540,7 @@
         "timeBucket": "18:00",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -558,7 +558,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -567,7 +567,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -576,7 +576,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -585,7 +585,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -594,7 +594,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -603,7 +603,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -612,7 +612,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -621,7 +621,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -630,7 +630,7 @@
         "timeBucket": "18:15",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -648,7 +648,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -657,7 +657,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -666,7 +666,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -675,7 +675,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -684,7 +684,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -693,7 +693,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -702,7 +702,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -711,7 +711,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -720,7 +720,7 @@
         "timeBucket": "18:30",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -738,7 +738,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -747,7 +747,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -756,7 +756,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -765,7 +765,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -774,7 +774,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -783,7 +783,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -792,7 +792,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -801,7 +801,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -810,7 +810,7 @@
         "timeBucket": "18:45",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       },
       {
@@ -828,7 +828,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 2,
-        "loadScore": 0.37,
+        "loadScore": 0.32999999999999996,
         "sampleSize": 0
       },
       {
@@ -837,7 +837,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 3,
-        "loadScore": 0.44,
+        "loadScore": 0.36,
         "sampleSize": 0
       },
       {
@@ -846,7 +846,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 4,
-        "loadScore": 0.51,
+        "loadScore": 0.39,
         "sampleSize": 0
       },
       {
@@ -855,7 +855,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 5,
-        "loadScore": 0.5800000000000001,
+        "loadScore": 0.42,
         "sampleSize": 0
       },
       {
@@ -864,7 +864,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 6,
-        "loadScore": 0.65,
+        "loadScore": 0.44999999999999996,
         "sampleSize": 0
       },
       {
@@ -873,7 +873,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 7,
-        "loadScore": 0.72,
+        "loadScore": 0.48,
         "sampleSize": 0
       },
       {
@@ -882,7 +882,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 8,
-        "loadScore": 0.79,
+        "loadScore": 0.51,
         "sampleSize": 0
       },
       {
@@ -891,7 +891,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 9,
-        "loadScore": 0.8600000000000001,
+        "loadScore": 0.54,
         "sampleSize": 0
       },
       {
@@ -900,7 +900,7 @@
         "timeBucket": "19:00",
         "dayType": "weekday",
         "carNumber": 10,
-        "loadScore": 0.9300000000000002,
+        "loadScore": 0.5700000000000001,
         "sampleSize": 0
       }
     ]

@@ -15,6 +15,11 @@ import {
   scheduleUndoableRemoval,
 } from "./saved-routes-store";
 
+// Until the station/date picker is available, every route exposed by this
+// MVP is the bundled Shinjuku-to-Tokyo demonstration. Use its populated
+// weekday timetable for saved-route re-searches too.
+const DEMO_SERVICE_DATE = "2026-08-04";
+
 // 9.1-9.6: the React-facing half of saved routes -- thin glue over
 // saved-routes-store.ts's testable decision functions, matching
 // use-paywall-gate.ts/use-feedback.ts's precedent of leaving hooks untested
@@ -114,6 +119,7 @@ export function useSavedRoutes() {
           fromStationId: route.fromStationId,
           toStationId: route.toStationId,
           departureTime: route.departureTime,
+          serviceDate: DEMO_SERVICE_DATE,
         },
       });
     },

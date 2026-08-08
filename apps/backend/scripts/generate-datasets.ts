@@ -29,7 +29,9 @@ type CongestionProfileEntry = z.infer<typeof congestionProfileEntrySchema>;
 
 const RAILWAY_ID = "RAIL_CHUO";
 const SCHEMA_VERSION = 1;
-const DATASET_VERSION = "1";
+// Bump whenever a committed fixture changes so already-installed clients
+// replace their SQLite copy on the next sync.
+const DATASET_VERSION = "2";
 
 // Real JR Chuo Rapid stops between Shinjuku and Tokyo -- fixture station
 // identifiers, not live operational data.
@@ -65,6 +67,21 @@ const WEEKDAY_EVENING_DEPARTURES = [
   "18:45",
   "19:00",
 ];
+
+// Deliberately varied synthetic demo options: the first train is quickest
+// but crowded, while later departures take longer and become roomier. This
+// makes the three-way comparison understandable in a live demonstration.
+const DEMO_TRIP_MINUTES_BY_DEPARTURE: Record<string, number> = {
+  "07:30": 16,
+  "07:45": 19,
+  "08:00": 24,
+};
+
+const DEMO_BASE_LOAD_BY_DEPARTURE: Record<string, number> = {
+  "07:30": 0.7,
+  "07:45": 0.45,
+  "08:00": 0.2,
+};
 // MVP scope is weekday rush only (red-team scope guardrail, requirements.md
 // 5.8 "全提供時間帯" -- congestion coverage below must match every departure
 // window offered here; no weekend departures are seeded since weekend is out
@@ -90,14 +107,21 @@ function buildTimetable(): TrainTimetableEntry[] {
 
   for (const { departures, dayType } of departureSets) {
     for (const departure of departures) {
+      const tripMinutes = DEMO_TRIP_MINUTES_BY_DEPARTURE[departure] ?? 16;
       const trainId = `TRAIN_${dayType.toUpperCase()}_${departure.replace(":", "")}`;
       for (let i = 0; i < STATIONS.length; i++) {
         const { arr, dep } = LEG_OFFSETS_MIN[i];
         entries.push({
           trainId,
           stationId: STATIONS[i].id,
-          arrivalTime: addMinutes(departure, arr),
-          departureTime: addMinutes(departure, dep),
+          arrivalTime: addMinutes(
+            departure,
+            Math.round((arr * tripMinutes) / 16),
+          ),
+          departureTime: addMinutes(
+            departure,
+            Math.round((dep * tripMinutes) / 16),
+          ),
           carCount: CAR_COUNT,
           dayType,
         });
@@ -109,10 +133,10 @@ function buildTimetable(): TrainTimetableEntry[] {
 
 /**
  * Synthetic placeholder load curve (front cars least crowded) -- NOT real
- * measurements. sampleSize is 0 throughout: this is a pre-launch seed with
- * no observed data yet, so confidence must read as low (scorePrediction
- * treats sampleSize < CONFIDENCE_SAMPLE_THRESHOLDS.low as "low"), never a
- * false point estimate.
+ * measurements. The demo morning departures intentionally vary their base
+ * load so users can see a speed/comfort trade-off. sampleSize is 0
+ * throughout: this is a pre-launch seed with no observed data yet, so
+ * confidence must read as low, never as a false point estimate.
  *
  * Covers every weekday departure window the timetable dataset offers
  * (morning + evening) -- requirements.md 5.8 requires profile-based
@@ -133,7 +157,11 @@ function buildCongestionProfiles(): CongestionProfileEntry[] {
         timeBucket,
         dayType: "weekday",
         carNumber,
-        loadScore: Math.min(1, 0.3 + (carNumber - 1) * 0.07),
+        loadScore: Math.min(
+          1,
+          (DEMO_BASE_LOAD_BY_DEPARTURE[timeBucket] ?? 0.3) +
+            (carNumber - 1) * 0.03,
+        ),
         sampleSize: 0,
       });
     }

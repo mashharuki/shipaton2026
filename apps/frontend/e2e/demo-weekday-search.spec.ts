@@ -15,3 +15,21 @@ test("uses the fixed weekday timetable for the home demo on weekends", async ({
   ).toBeVisible();
   await waitForSearchResults(page);
 });
+
+test("uses the fixed weekday timetable when reopening a saved demo route", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-08-08T07:00:00"));
+  await page.goto("/");
+  await completeOnboarding(page);
+
+  await page.getByTestId("save-route-button").click();
+  const savedRoute = page.getByText("STA_SHINJUKU → STA_TOKYO (07:30)");
+  await expect(savedRoute).toBeVisible();
+  await savedRoute.click();
+
+  await expect(
+    page.getByText("デモ用ダイヤ：2026-08-04（平日）"),
+  ).toBeVisible();
+  await waitForSearchResults(page);
+});
