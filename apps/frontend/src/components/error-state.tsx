@@ -21,7 +21,11 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
   const content = getErrorDisplayContent(error);
 
   return (
-    <ThemedView type="backgroundElement" style={styles.container}>
+    <ThemedView
+      type="backgroundElement"
+      style={styles.container}
+      testID="error-state"
+    >
       <ThemedText type="small" themeColor="textSecondary">
         {t(content.messageKey)}
       </ThemedText>
@@ -29,6 +33,7 @@ export function ErrorState({ error, onRetry }: ErrorStateProps) {
         <Pressable
           accessibilityRole="button"
           onPress={onRetry}
+          testID="error-state-retry"
           style={({ pressed }) => pressed && styles.pressed}
         >
           <ThemedView type="backgroundSelected" style={styles.retryButton}>

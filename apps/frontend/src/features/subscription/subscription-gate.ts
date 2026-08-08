@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import type { CustomerInfo } from "react-native-purchases";
 import { PRO_ENTITLEMENT_ID } from "shared";
 import { create } from "zustand";
@@ -76,7 +77,37 @@ export async function initSubscriptionGate(): Promise<void> {
   }
 }
 
+// 10.2/design.md: "課金は SubscriptionGate のモック（Preview API Mode 相当）
+// で Free / Pro 両状態を切り替えて検証する" -- the Playwright suite runs
+// against the real web target, where purchases-client.ts's
+// configurePurchases() no-ops (Platform.OS === "web") and no real
+// entitlement ever exists to hydrate from. A test sets this via
+// `page.addInitScript()` writing localStorage before the page loads, so
+// isPro() reflects it from the very first check. `Platform.OS !== "web"`
+// makes this a complete no-op on iOS/Android -- real purchases there always
+// go through fetchCustomerInfo()/RevenueCat, never this override.
+function e2eProOverride(): boolean | null {
+  if (Platform.OS !== "web") {
+    return null;
+  }
+  const globalWithStorage = globalThis as {
+    localStorage?: { getItem(key: string): string | null };
+  };
+  const value = globalWithStorage.localStorage?.getItem("e2e_pro_override");
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  return null;
+}
+
 export function isPro(): boolean {
+  const override = e2eProOverride();
+  if (override !== null) {
+    return override;
+  }
   return useSubscriptionGateStore.getState().isPro;
 }
 

@@ -1,5 +1,7 @@
 import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
 
+import { serializeSqliteOpen } from "./sqlite-open-gate";
+
 const DATABASE_NAME = "seatsignal.db";
 
 export type DbBindValue = string | number | null;
@@ -17,6 +19,35 @@ export type DbPort = {
   withExclusiveTransactionAsync(task: () => Promise<void>): Promise<void>;
 };
 
+// expo-sqlite: `withExclusiveTransactionAsync` "is not supported on web" --
+// it throws that exact message immediately (before running `task`) rather
+// than returning a platform-specific implementation. Confirmed live in a
+// browser. Reacting to the real error instead of branching on Platform.OS
+// keeps this file free of a react-native import -- lib/db.ts is pulled in
+// by many test files that mock only `expo-sqlite` (not `react-native`),
+// per push-registration.test.ts's own precedent. Plain BEGIN/COMMIT/
+// ROLLBACK via execAsync works on web (only the wrapper method doesn't);
+// this app's own module-level singletons (getDb()'s `dbPromise`,
+// dataset-store.ts's own callers) already ensure only one caller ever
+// touches the connection at a time on web's single JS thread, so the extra
+// OS-level exclusivity the native wrapper adds isn't needed to replicate.
+const WEB_UNSUPPORTED_MESSAGE =
+  "withExclusiveTransactionAsync is not supported on web";
+
+async function withPortableExclusiveTransaction(
+  db: SQLiteDatabase,
+  task: () => Promise<void>,
+): Promise<void> {
+  await db.execAsync("BEGIN;");
+  try {
+    await task();
+    await db.execAsync("COMMIT;");
+  } catch (cause) {
+    await db.execAsync("ROLLBACK;");
+    throw cause;
+  }
+}
+
 function toDbPort(db: SQLiteDatabase): DbPort {
   return {
     execAsync: (source) => db.execAsync(source),
@@ -25,8 +56,19 @@ function toDbPort(db: SQLiteDatabase): DbPort {
     },
     getFirstAsync: (source, params = []) => db.getFirstAsync(source, params),
     getAllAsync: (source, params = []) => db.getAllAsync(source, params),
-    withExclusiveTransactionAsync: (task) =>
-      db.withExclusiveTransactionAsync(task),
+    withExclusiveTransactionAsync: async (task) => {
+      try {
+        await db.withExclusiveTransactionAsync(task);
+      } catch (cause) {
+        if (
+          !(cause instanceof Error) ||
+          cause.message !== WEB_UNSUPPORTED_MESSAGE
+        ) {
+          throw cause;
+        }
+        await withPortableExclusiveTransaction(db, task);
+      }
+    },
   };
 }
 
@@ -125,7 +167,9 @@ export function getDb(): Promise<DbPort> {
   if (dbPromise) {
     return dbPromise;
   }
-  const promise = openDatabaseAsync(DATABASE_NAME).then(async (db) => {
+  const promise = serializeSqliteOpen(() =>
+    openDatabaseAsync(DATABASE_NAME),
+  ).then(async (db) => {
     const port = toDbPort(db);
     await migrate(port);
     return port;

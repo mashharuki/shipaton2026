@@ -86,6 +86,7 @@ export default function SettingsScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: i18n.language === locale }}
                 onPress={() => i18n.changeLanguage(locale)}
+                testID={`settings-language-${locale}`}
                 style={({ pressed }) => pressed && styles.pressed}
               >
                 <ThemedView
