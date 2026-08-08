@@ -28,6 +28,22 @@
     "report": "レポート",
     "settings": "設定"
   },
+  "onboarding": {
+    "step1Title": "快適なルートを提案",
+    "step1Body": "SeatSignalは、最速だけでなく「立ち時間」や「着座しやすさ」まで考えた通勤ルートを提案します。",
+    "step2Title": "予想立ち時間を先に知る",
+    "step2Body": "出発前に、区間ごとの予想立ち時間と着座確率を確認できます。",
+    "notASeatReservation": "座席を予約・確保するサービスではありません。あくまで予測情報です。",
+    "step3Title": "プライバシーを守ります",
+    "step3Body": "計算はできるだけ端末内で行い、移動履歴を恒久的にサーバーへ保存しません。設定からいつでもデータを削除できます。",
+    "notificationCta": "通知について確認する",
+    "notificationExplanationTitle": "通知を送ってもよいですか？",
+    "notificationExplanationBody": "いつもの通勤ルートの混雑変化を、出発前にお知らせします。あとから設定でいつでも変更できます。",
+    "notificationSkip": "あとで",
+    "notificationAllow": "許可する",
+    "next": "次へ",
+    "start": "はじめる"
+  },
   "home": {
     "title": "SeatSignal",
     "placeholder": "検索機能は近日公開予定です",
@@ -138,7 +154,43 @@
     "appearanceLight": "ライト",
     "appearanceDark": "ダーク",
     "language": "言語",
-    "notifications": "通知設定"
+    "notifications": "通知設定",
+    "privacy": "プライバシー・データ管理",
+    "subscriptionManagement": "サブスクリプション管理",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約",
+    "licenses": "帰属表示・サポート"
+  },
+  "privacySettings": {
+    "title": "プライバシー・データ管理",
+    "dataSharing": "データ共有範囲",
+    "dataSharingBody": "分析目的で共有するデータの範囲を選べます。",
+    "dataSharingScope": {
+      "standard": "標準（利用状況の分析に協力する）",
+      "minimal": "最小限（必須データのみ）"
+    },
+    "location": "位置情報",
+    "locationBody": "SeatSignalは位置情報を利用しません。端末の設定アプリで権限を確認・変更できます。",
+    "historyDeletion": "移動履歴の削除",
+    "historyDeletionBody": "端末内に保存された乗車履歴・フィードバックをすべて削除します。この操作は取り消せません。",
+    "historyDeletionAction": "履歴を削除する",
+    "historyDeletionConfirmTitle": "移動履歴を削除しますか？",
+    "historyDeletionConfirmBody": "この操作は取り消せません。端末内の乗車履歴がすべて削除されます。",
+    "historyDeletionConfirmCancel": "キャンセル",
+    "historyDeletionConfirmDelete": "削除する",
+    "historyDeletionSuccess": "移動履歴を削除しました",
+    "historyDeletionError": "削除に失敗しました。もう一度お試しください。"
+  },
+  "licenses": {
+    "title": "帰属表示・サポート",
+    "odptTitle": "データ提供元",
+    "odptBody": "本アプリは、公共交通オープンデータセンター（ODPT）が提供する公共交通データを利用しています。",
+    "odptLinkLabel": "ODPT の利用規約を見る",
+    "supportTitle": "サポート",
+    "supportBody": "アプリの不具合やご要望は下記からお問い合わせください。",
+    "supportAction": "サポートに問い合わせる",
+    "supportEmailSubject": "SeatSignal サポート",
+    "supportUnavailable": "現在サポート窓口の準備中です。"
   },
   "notificationsSettings": {
     "title": "通知設定",

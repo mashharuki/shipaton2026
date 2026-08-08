@@ -7,13 +7,14 @@ import {
   ThemeProvider,
   useRouter,
 } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useDatasetSync } from "@/features/dataset/use-dataset-sync";
 import {
   addNotificationTapListener,
   consumeLastNotificationDeepLink,
 } from "@/features/notifications/push-registration";
+import { hasCompletedOnboarding } from "@/features/onboarding/onboarding-store";
 import { configurePurchases } from "@/features/subscription/purchases-client";
 import { initSubscriptionGate } from "@/features/subscription/subscription-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
@@ -81,6 +82,31 @@ function PushNotificationBoundary() {
   return null;
 }
 
+// 1.5: onboarding is shown once. The (tabs) group is the Stack's default/
+// first screen, so a completed-onboarding user reaches home with no extra
+// step; this boundary only has to redirect the opposite case (not yet
+// completed) away from it on cold start. A one-shot ref (not state) avoids
+// re-checking on every re-render, and avoids racing a same-session
+// completeOnboarding() call from onboarding.tsx itself with a stale re-check.
+function OnboardingGateBoundary() {
+  const router = useRouter();
+  const checkedRef = useRef(false);
+
+  useEffect(() => {
+    if (checkedRef.current) {
+      return;
+    }
+    checkedRef.current = true;
+    hasCompletedOnboarding().then((completed) => {
+      if (!completed) {
+        router.replace("/onboarding");
+      }
+    });
+  }, [router]);
+
+  return null;
+}
+
 // 5.4: a real Stack (not just AppTabs) so non-tab screens (results.tsx) can
 // push on top of the persistent tab bar instead of replacing it -- the 3 tab
 // screens live in the (tabs) group, whose own _layout.tsx renders AppTabs.
@@ -93,13 +119,17 @@ function RootLayout() {
         <DatasetSyncBoundary />
         <SubscriptionGateBoundary />
         <PushNotificationBoundary />
+        <OnboardingGateBoundary />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="onboarding" />
           <Stack.Screen name="results" />
           <Stack.Screen name="route-detail" />
           <Stack.Screen name="coach" />
           <Stack.Screen name="feedback" />
           <Stack.Screen name="settings/notifications" />
+          <Stack.Screen name="settings/privacy" />
+          <Stack.Screen name="settings/licenses" />
           <Stack.Screen name="paywall" options={{ presentation: "modal" }} />
         </Stack>
       </ThemeProvider>

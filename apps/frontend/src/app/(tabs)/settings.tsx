@@ -1,11 +1,13 @@
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet } from "react-native";
+import { Linking, Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { openSubscriptionManagement } from "@/features/subscription/purchases-client";
+import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/lib/config";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/i18n";
 import {
   THEME_PREFERENCES,
@@ -27,10 +29,10 @@ const LOCALE_LABELS: Record<SupportedLocale, string> = {
   en: "English",
 };
 
-// 16.6 の設定ハブ本体は task 9.2 の担当（通知・位置情報・データ共有・
-// 履歴削除・サブスクリプション管理・プライバシーポリシー・利用規約への導線）。
-// このスクリーンは 4.1（外観切替）と 4.4（言語切替）の完了条件が要求する
-// トグルのみを持つ骨格。
+// 16.6 の設定ハブ本体（通知・位置情報・データ共有・履歴削除・サブスクリプ
+// ション管理・プライバシーポリシー・利用規約への導線）は task 9.2 で実装。
+// 位置情報・データ共有・履歴削除は settings/privacy.tsx に集約し、このハブ
+// からはそこへの導線のみを持つ。
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -120,6 +122,66 @@ export default function SettingsScreen() {
             </ThemedText>
           </ThemedView>
         </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          testID="settings-privacy-link"
+          onPress={() => router.push("/settings/privacy")}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <ThemedView type="backgroundElement" style={styles.section}>
+            <ThemedText type="smallBold">{t("settings.privacy")}</ThemedText>
+          </ThemedView>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          testID="settings-subscription-management-link"
+          onPress={() => openSubscriptionManagement()}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <ThemedView type="backgroundElement" style={styles.section}>
+            <ThemedText type="smallBold">
+              {t("settings.subscriptionManagement")}
+            </ThemedText>
+          </ThemedView>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          testID="settings-licenses-link"
+          onPress={() => router.push("/settings/licenses")}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <ThemedView type="backgroundElement" style={styles.section}>
+            <ThemedText type="smallBold">{t("settings.licenses")}</ThemedText>
+          </ThemedView>
+        </Pressable>
+
+        <ThemedView style={styles.linkRow}>
+          {PRIVACY_POLICY_URL ? (
+            <Pressable
+              accessibilityRole="link"
+              testID="settings-privacy-policy-link"
+              onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+              style={({ pressed }) => pressed && styles.pressed}
+            >
+              <ThemedText type="link">{t("settings.privacyPolicy")}</ThemedText>
+            </Pressable>
+          ) : null}
+          {TERMS_OF_SERVICE_URL ? (
+            <Pressable
+              accessibilityRole="link"
+              testID="settings-terms-link"
+              onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL)}
+              style={({ pressed }) => pressed && styles.pressed}
+            >
+              <ThemedText type="link">
+                {t("settings.termsOfService")}
+              </ThemedText>
+            </Pressable>
+          ) : null}
+        </ThemedView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -157,6 +219,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+  },
+  linkRow: {
+    flexDirection: "row",
+    gap: Spacing.three,
   },
   pressed: {
     opacity: 0.7,

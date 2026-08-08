@@ -35,3 +35,8 @@ export const PRIVACY_POLICY_URL =
   process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL ?? "";
 export const TERMS_OF_SERVICE_URL =
   process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL ?? "";
+
+// 9.3/18.2: support contact address shown in settings/licenses.tsx. Same
+// not-yet-provisioned empty-by-default pattern as the URLs above -- a human
+// needs to supply a real support inbox before store submission.
+export const SUPPORT_EMAIL = process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? "";

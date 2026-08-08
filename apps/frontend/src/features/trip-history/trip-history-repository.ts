@@ -33,6 +33,7 @@ export type TripRecord = {
 export type TripHistoryStore = {
   saveTrip(record: TripRecord): Promise<void>;
   listTrips(): Promise<TripRecord[]>;
+  deleteAllTrips(): Promise<void>;
 };
 
 type TripRow = {
@@ -90,6 +91,14 @@ export function createSqliteTripHistoryStore(db: DbPort): TripHistoryStore {
          FROM trips ORDER BY started_at DESC;`,
       );
       return rows.map(rowToRecord);
+    },
+
+    // 9.2/16.5: "移動履歴の削除" -- irreversible, whole-history delete. The
+    // confirm-before-destroying UX lives in the caller (settings/privacy.tsx),
+    // matching this file's existing precedent of keeping decision/UI logic out
+    // of the SQLite adapter.
+    async deleteAllTrips() {
+      await db.runAsync("DELETE FROM trips;");
     },
   };
 }

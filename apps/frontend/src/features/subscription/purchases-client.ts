@@ -1,5 +1,5 @@
 import Constants, { AppOwnership } from "expo-constants";
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 import Purchases, {
   type CustomerInfo,
   type CustomerInfoUpdateListener,
@@ -92,6 +92,34 @@ export function addCustomerInfoListener(
   return () => {
     Purchases.removeCustomerInfoUpdateListener(listener);
   };
+}
+
+// 9.2/16.6: "サブスクリプション管理" entry point's URL fallback -- pure and
+// Vitest-testable independent of Platform/Linking wiring, same precedent as
+// push-registration.ts's resolveDeepLinkParams.
+export function getSubscriptionManagementUrl(platform: string): string {
+  return platform === "ios"
+    ? "https://apps.apple.com/account/subscriptions"
+    : "https://play.google.com/store/account/subscriptions";
+}
+
+// 9.2/16.6: iOS 13+ can present the native App Store subscription-management
+// sheet in-app (Purchases.showManageSubscriptions) -- RevenueCat has no
+// Android SDK equivalent, so Android (and any iOS failure, e.g. iOS < 13)
+// falls back to opening the store's own web management page.
+export async function openSubscriptionManagement(): Promise<void> {
+  if (Platform.OS === "ios") {
+    try {
+      await Purchases.showManageSubscriptions();
+      return;
+    } catch (cause) {
+      console.warn(
+        "showManageSubscriptions failed, falling back to URL",
+        cause,
+      );
+    }
+  }
+  await Linking.openURL(getSubscriptionManagementUrl(Platform.OS));
 }
 
 // 13.4: explicit "restore purchases" action. A successful restore fires the

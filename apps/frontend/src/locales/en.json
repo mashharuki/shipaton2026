@@ -28,6 +28,22 @@
     "report": "Report",
     "settings": "Settings"
   },
+  "onboarding": {
+    "step1Title": "Comfortable routes, not just fast ones",
+    "step1Body": "SeatSignal suggests commute routes based on standing time and seat comfort, not just speed.",
+    "step2Title": "Know your standing time up front",
+    "step2Body": "See the expected standing time and seat chance for each leg before you leave.",
+    "notASeatReservation": "This isn't a service that reserves or holds a seat for you -- it's a prediction.",
+    "step3Title": "Your privacy, protected",
+    "step3Body": "Calculations run on your device whenever possible, and your trip history isn't stored on our servers permanently. You can delete your data anytime from Settings.",
+    "notificationCta": "Learn about notifications",
+    "notificationExplanationTitle": "Send you notifications?",
+    "notificationExplanationBody": "We'll let you know about crowding changes on your usual commute before you leave. You can change this anytime in Settings.",
+    "notificationSkip": "Not now",
+    "notificationAllow": "Allow",
+    "next": "Next",
+    "start": "Get started"
+  },
   "home": {
     "title": "SeatSignal",
     "placeholder": "Search is coming soon",
@@ -138,7 +154,43 @@
     "appearanceLight": "Light",
     "appearanceDark": "Dark",
     "language": "Language",
-    "notifications": "Notification settings"
+    "notifications": "Notification settings",
+    "privacy": "Privacy & data management",
+    "subscriptionManagement": "Manage subscription",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "licenses": "Attribution & support"
+  },
+  "privacySettings": {
+    "title": "Privacy & data management",
+    "dataSharing": "Data sharing scope",
+    "dataSharingBody": "Choose how much data you share for analytics.",
+    "dataSharingScope": {
+      "standard": "Standard (help improve the product)",
+      "minimal": "Minimal (required data only)"
+    },
+    "location": "Location",
+    "locationBody": "SeatSignal doesn't use your location. Manage this permission in your device's Settings app.",
+    "historyDeletion": "Delete trip history",
+    "historyDeletionBody": "Delete all ride history and feedback stored on this device. This can't be undone.",
+    "historyDeletionAction": "Delete history",
+    "historyDeletionConfirmTitle": "Delete your trip history?",
+    "historyDeletionConfirmBody": "This can't be undone. All on-device ride history will be deleted.",
+    "historyDeletionConfirmCancel": "Cancel",
+    "historyDeletionConfirmDelete": "Delete",
+    "historyDeletionSuccess": "Trip history deleted",
+    "historyDeletionError": "Failed to delete. Please try again."
+  },
+  "licenses": {
+    "title": "Attribution & support",
+    "odptTitle": "Data providers",
+    "odptBody": "This app uses public transportation data provided by ODPT (Public Transportation Open Data Center).",
+    "odptLinkLabel": "View ODPT's terms of use",
+    "supportTitle": "Support",
+    "supportBody": "For bug reports or feature requests, please contact us below.",
+    "supportAction": "Contact support",
+    "supportEmailSubject": "SeatSignal Support",
+    "supportUnavailable": "Support contact isn't set up yet."
   },
   "notificationsSettings": {
     "title": "Notification settings",

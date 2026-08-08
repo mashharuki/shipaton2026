@@ -5,11 +5,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // documented for expo-sqlite/kv-store elsewhere) -- mock them so only
 // purchases-client.ts's own branching logic is under test.
 const configureSpy = vi.fn();
+const showManageSubscriptionsSpy = vi.fn();
+const openURLSpy = vi.fn();
 const mockPlatform = { OS: "ios" as string };
 const mockConstants = { appOwnership: null as string | null };
 
 vi.mock("react-native", () => ({
   Platform: mockPlatform,
+  Linking: { openURL: openURLSpy },
 }));
 
 vi.mock("expo-constants", () => ({
@@ -25,6 +28,7 @@ vi.mock("react-native-purchases", () => ({
     getCustomerInfo: vi.fn(),
     addCustomerInfoUpdateListener: vi.fn(),
     removeCustomerInfoUpdateListener: vi.fn(),
+    showManageSubscriptions: showManageSubscriptionsSpy,
   },
   LOG_LEVEL: { DEBUG: "debug" },
 }));
@@ -38,6 +42,8 @@ vi.mock("@/lib/config", () => ({
 beforeEach(() => {
   vi.resetModules();
   configureSpy.mockClear();
+  showManageSubscriptionsSpy.mockReset();
+  openURLSpy.mockReset();
   mockPlatform.OS = "ios";
   mockConstants.appOwnership = null;
 });
@@ -88,5 +94,65 @@ describe("configurePurchases", () => {
     configurePurchases();
     configurePurchases();
     expect(configureSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("getSubscriptionManagementUrl", () => {
+  it("should return the App Store subscriptions page for ios", async () => {
+    const { getSubscriptionManagementUrl } = await import(
+      "@/features/subscription/purchases-client"
+    );
+    expect(getSubscriptionManagementUrl("ios")).toBe(
+      "https://apps.apple.com/account/subscriptions",
+    );
+  });
+
+  it("should return the Play Store subscriptions page for any non-ios platform", async () => {
+    const { getSubscriptionManagementUrl } = await import(
+      "@/features/subscription/purchases-client"
+    );
+    expect(getSubscriptionManagementUrl("android")).toBe(
+      "https://play.google.com/store/account/subscriptions",
+    );
+    expect(getSubscriptionManagementUrl("web")).toBe(
+      "https://play.google.com/store/account/subscriptions",
+    );
+  });
+});
+
+describe("openSubscriptionManagement", () => {
+  it("should present the native iOS management sheet without opening a URL", async () => {
+    mockPlatform.OS = "ios";
+    showManageSubscriptionsSpy.mockResolvedValueOnce(undefined);
+    const { openSubscriptionManagement } = await import(
+      "@/features/subscription/purchases-client"
+    );
+    await openSubscriptionManagement();
+    expect(showManageSubscriptionsSpy).toHaveBeenCalledTimes(1);
+    expect(openURLSpy).not.toHaveBeenCalled();
+  });
+
+  it("should fall back to the App Store URL when the native iOS sheet fails", async () => {
+    mockPlatform.OS = "ios";
+    showManageSubscriptionsSpy.mockRejectedValueOnce(new Error("unsupported"));
+    const { openSubscriptionManagement } = await import(
+      "@/features/subscription/purchases-client"
+    );
+    await openSubscriptionManagement();
+    expect(openURLSpy).toHaveBeenCalledWith(
+      "https://apps.apple.com/account/subscriptions",
+    );
+  });
+
+  it("should open the Play Store URL directly on android", async () => {
+    mockPlatform.OS = "android";
+    const { openSubscriptionManagement } = await import(
+      "@/features/subscription/purchases-client"
+    );
+    await openSubscriptionManagement();
+    expect(showManageSubscriptionsSpy).not.toHaveBeenCalled();
+    expect(openURLSpy).toHaveBeenCalledWith(
+      "https://play.google.com/store/account/subscriptions",
+    );
   });
 });

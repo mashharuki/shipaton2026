@@ -299,8 +299,8 @@
   - _Boundary: WeeklyReport_
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 12.4_
 
-- [ ] 9. オンボーディング・設定・公開品質
-- [ ] 9.1 (P) オンボーディングを実装する
+- [x] 9. オンボーディング・設定・公開品質
+- [x] 9.1 (P) オンボーディングを実装する
   - 3 画面以内で価値（快適ルート・予想立ち時間・プライバシー保護)を説明するフローを実装する
   - 「席を予約・確保するサービスではない」ことを明示する
   - 位置情報・通知の許可要求前に利用目的を表示し、拒否されても基本のルート検索を利用可能に保つ
@@ -309,7 +309,7 @@
   - _Boundary: Onboarding_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 9.2 (P) 設定ハブとプライバシー管理を実装する
+- [x] 9.2 (P) 設定ハブとプライバシー管理を実装する
   - 言語・通知・位置情報・データ共有・履歴削除・サブスクリプション管理・プライバシーポリシー・利用規約への導線を設定画面に集約する
   - データ共有範囲の選択と、移動履歴の削除実行・完了表示を実装する（アカウントレスにおけるデータ削除導線）
   - 降車予定駅・身体情報に相当するデータを他ユーザーへ公開する経路が存在しないことを確認する
@@ -318,7 +318,7 @@
   - _Boundary: Settings_
   - _Requirements: 16.4, 16.5, 16.6, 16.7, 18.1, 18.2_
 
-- [ ] 9.3 (P) 帰属表示とサポート導線を実装する
+- [x] 9.3 (P) 帰属表示とサポート導線を実装する
   - 外部データ提供元（ODPT 等）の利用条件に基づく帰属（クレジット）表示画面を実装する
   - サポート連絡先への導線を備える
   - 完了条件: 設定からクレジット表示とサポート導線へ遷移できる
@@ -1191,3 +1191,34 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   explicitly documents/throws as unsupported on web -- broken since task 4.3, blocks task 10.2's
   Playwright E2E from ever exercising search/feedback/report on the web target) was deliberately
   NOT fixed here (out of `WeeklyReport`'s boundary) and was flagged separately for its own task.
+- **9.1 -- verified live** (Expo web): `onboarding.tsx`'s `finish()` originally `await`ed
+  `completeOnboarding()` (the kv-store flag write) with no error handling before calling
+  `router.replace("/(tabs)")` -- a write failure (reproduced live via 8.3's already-documented
+  `NoModificationAllowedError` OPFS flakiness above) silently aborted `finish()` before the
+  navigation line ran, permanently trapping the user on onboarding with no way forward. Fixed with
+  try/catch so navigation always proceeds regardless of persistence outcome (worst case on a write
+  failure: onboarding reappears next cold start, which is strictly better than "app is stuck").
+  Requirement 1.3's "位置情報または通知の許可要求前に利用目的を表示する" only covers notifications
+  here -- this codebase has no location feature or `expo-location` dependency anywhere (confirmed
+  via repo-wide grep), consistent with task 7.1's already-approved "location-absent only" design; a
+  location permission step would have nothing real to gate.
+- **9.2**: `privacy-settings-store.ts`'s data-sharing scope (16.7) is persisted and user-selectable
+  but intentionally not wired into `lib/analytics.ts`'s send path -- that module is 4.5's already-
+  shipped, separately-tested boundary, and 16.7's text only requires the scope be *selectable*, not
+  enforced; revisit together if analytics minimization ever needs real enforcement. The "位置情報"
+  settings row is a pass-through to the OS Settings app (`Linking.openSettings()`), not an in-app
+  toggle, for the same no-location-feature reason as 9.1 above. `trip-history-repository.ts` gained
+  `deleteAllTrips()` (`DELETE FROM trips;`), untested by the same established SQL-adapter precedent
+  as its sibling `saveTrip`/`listTrips`. The history-deletion confirm dialog uses `Alert.alert`,
+  which does not produce a native browser dialog under `react-native-web` -- this could only be
+  click-verified up to the confirm step on the Expo web target (same pre-existing, whole-app
+  limitation already true of 8.2's `settings/notifications.tsx` Alert flow); native-only, matches
+  design.md's Testing Strategy already scoping Alert-gated flows out of Playwright/web E2E.
+- **9.3 -- MANUAL_VERIFY_REQUIRED for the ODPT attribution wording, needs human follow-up**: same
+  disclosed-gap precedent as 3.8/4.1 -- this environment cannot verify ODPT's current live terms-of-
+  use wording, so `settings/licenses.tsx`'s ODPT credit text is implemented and flagged in-code as
+  needing a human check against ODPT's actual terms before store submission, rather than presented as
+  definitively correct. Verified live end-to-end otherwise: settings hub -> `/settings/licenses` ->
+  both the ODPT attribution section and the support-contact section render correctly, including the
+  correct empty-state fallback copy when `SUPPORT_EMAIL` (new, empty-by-default env var, same pattern
+  as `PRIVACY_POLICY_URL`) is unset.
