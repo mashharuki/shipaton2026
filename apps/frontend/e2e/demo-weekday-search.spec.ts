@@ -1,0 +1,17 @@
+import { expect, test } from "@playwright/test";
+import { completeOnboarding, waitForSearchResults } from "./helpers";
+
+test("uses the fixed weekday timetable for the home demo on weekends", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-08-08T07:00:00"));
+  await page.goto("/");
+  await completeOnboarding(page);
+
+  await page.getByTestId("home-demo-search").click();
+
+  await expect(
+    page.getByText("デモ用ダイヤ：2026-08-04（平日）"),
+  ).toBeVisible();
+  await waitForSearchResults(page);
+});

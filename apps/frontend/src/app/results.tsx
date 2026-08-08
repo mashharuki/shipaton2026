@@ -30,6 +30,7 @@ export default function ResultsScreen() {
     fromStationId?: string;
     toStationId?: string;
     departureTime?: string;
+    serviceDate?: string;
   }>();
 
   const query =
@@ -38,6 +39,7 @@ export default function ResultsScreen() {
           fromStationId: params.fromStationId,
           toStationId: params.toStationId,
           departureTime: params.departureTime,
+          serviceDate: params.serviceDate,
         }
       : null;
 
@@ -67,6 +69,11 @@ export default function ResultsScreen() {
           <ThemedText type="title" style={styles.title}>
             {t("results.title")}
           </ThemedText>
+          {query?.serviceDate ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {t("results.demoSchedule", { date: query.serviceDate })}
+            </ThemedText>
+          ) : null}
         </ThemedView>
 
         {!query ? (

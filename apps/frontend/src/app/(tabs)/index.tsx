@@ -21,6 +21,9 @@ const DEMO_QUERY = {
   fromStationId: "STA_SHINJUKU",
   toStationId: "STA_TOKYO",
   departureTime: "07:30",
+  // The bundled dataset currently contains weekday timetables only. Keep the
+  // demonstration available on weekends by explicitly searching this Tuesday.
+  serviceDate: "2026-08-04",
 };
 
 // 9.1: no station-picker/day-of-week form exists yet (same gap DEMO_QUERY
@@ -58,7 +61,9 @@ export default function HomeScreen() {
 
   const handleSaveRoute = () => {
     saveRoute({
-      ...DEMO_QUERY,
+      fromStationId: DEMO_QUERY.fromStationId,
+      toStationId: DEMO_QUERY.toStationId,
+      departureTime: DEMO_QUERY.departureTime,
       weekdays: DEMO_WEEKDAYS,
       comfortPriority,
     });

@@ -63,6 +63,7 @@
     "missingQuery": "We couldn't read your search. Please try again from Home.",
     "noRoutes": "No routes are available for this time and trip.",
     "backToHome": "Back to Home",
+    "demoSchedule": "Demo timetable: {{date}} (weekday)",
     "fastest": "Fastest",
     "balanced": "Balanced",
     "comfort": "Most comfortable",

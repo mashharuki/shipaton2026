@@ -20,7 +20,21 @@ export type RouteSearchQuery = {
   fromStationId: string;
   toStationId: string;
   departureTime: string;
+  serviceDate?: string;
 };
+
+function resolveDayType(serviceDate: string | undefined) {
+  if (!serviceDate) {
+    return toDayType(new Date());
+  }
+
+  // Use midday in the local timezone so a YYYY-MM-DD query does not shift to
+  // the previous date on devices west of UTC.
+  const parsed = new Date(`${serviceDate}T12:00:00`);
+  return Number.isNaN(parsed.valueOf())
+    ? toDayType(new Date())
+    : toDayType(parsed);
+}
 
 // 検索実行 hook（design.md: "無料枠チェック→検索→3案選定"）-- the free-tier
 // check is deliberately NOT here yet: it's task 6.4's explicit job
@@ -46,7 +60,7 @@ export function useRouteSearch(query: RouteSearchQuery | null) {
 
       const db = await getDb();
       const store = createSqliteDatasetStore(db);
-      const dayType = toDayType(new Date());
+      const dayType = resolveDayType(query.serviceDate);
 
       const [timetableResult, congestionResult, correctionResult] =
         await Promise.all([
