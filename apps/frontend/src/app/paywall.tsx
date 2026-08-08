@@ -99,6 +99,7 @@ export default function PaywallScreen() {
   // couldn't be fetched) both need a retry affordance.
   const showRetry =
     outcome?.type === "error" || outcome?.type === "not_presented";
+  const isNativePaywallUnavailable = outcome?.type === "unavailable";
 
   return (
     <ThemedView style={styles.container} testID="paywall-screen">
@@ -126,11 +127,22 @@ export default function PaywallScreen() {
           />
         ) : null}
 
+        {isNativePaywallUnavailable ? (
+          <ThemedView
+            style={styles.center}
+            testID="paywall-development-build-required"
+          >
+            <ThemedText type="default" themeColor="textSecondary">
+              {t("paywall.developmentBuildRequired")}
+            </ThemedText>
+          </ThemedView>
+        ) : null}
+
         <ThemedView style={styles.footer}>
           <Pressable
             accessibilityRole="button"
             onPress={handleRestore}
-            disabled={isRestoring}
+            disabled={isRestoring || isNativePaywallUnavailable}
             testID="paywall-restore"
           >
             <ThemedText type="link">{t("paywall.restorePurchases")}</ThemedText>

@@ -3,7 +3,10 @@ import type { CustomerInfo } from "react-native-purchases";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import { PRO_ENTITLEMENT_ID } from "shared";
 
-import { restorePurchases } from "@/features/subscription/purchases-client";
+import {
+  isRevenueCatNativeUiAvailable,
+  restorePurchases,
+} from "@/features/subscription/purchases-client";
 import type { AnalyticsEventName } from "@/lib/analytics";
 
 // design.md: purchases go through RevenueCatUI.presentPaywall() (the
@@ -16,7 +19,8 @@ export type PaywallOutcome =
   | { type: "restored" }
   | { type: "cancelled" } // 13.6: not an error
   | { type: "error" } // 13.7: caller should offer a retry
-  | { type: "not_presented" };
+  | { type: "not_presented" }
+  | { type: "unavailable" };
 
 // Exported (rather than private) so its mapping can be Vitest-tested
 // directly -- react-native-purchases-ui can't be exercised end-to-end in
@@ -107,6 +111,9 @@ export function usePaywallPresentation() {
   const [isPresenting, setIsPresenting] = useState(false);
 
   const present = useCallback(async (): Promise<PaywallOutcome> => {
+    if (!isRevenueCatNativeUiAvailable()) {
+      return { type: "unavailable" };
+    }
     setIsPresenting(true);
     try {
       const result = await withTimeout(

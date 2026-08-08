@@ -32,6 +32,13 @@ function isRunningInExpoGo(): boolean {
   return Constants.appOwnership === AppOwnership.Expo;
 }
 
+// RevenueCatUI is a native view. Expo Go does not include that native module;
+// invoking it falls back to RevenueCat's web mapping and throws because React
+// Native has no browser document. A custom development build is required.
+export function isRevenueCatNativeUiAvailable(): boolean {
+  return Platform.OS !== "web" && !isRunningInExpoGo();
+}
+
 // design.md scopes react-native-purchases to iOS/Android (Requirement 13 is
 // store-subscription-shaped; no RC Web Billing key exists in this project's
 // RevenueCat setup) -- the Playwright/web target is core-loop E2E only

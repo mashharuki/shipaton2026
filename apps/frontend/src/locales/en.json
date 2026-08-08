@@ -225,6 +225,7 @@
   },
   "paywall": {
     "loading": "Loading…",
+    "developmentBuildRequired": "The paywall is unavailable in Expo Go. Launch a development build instead.",
     "restorePurchases": "Restore purchases",
     "restoreSuccess": "Your purchase has been restored",
     "restoreError": "Restore failed. Please try again.",

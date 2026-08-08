@@ -225,6 +225,7 @@
   },
   "paywall": {
     "loading": "読み込み中…",
+    "developmentBuildRequired": "課金画面はExpo Goでは表示できません。開発ビルドで起動してください。",
     "restorePurchases": "購入を復元",
     "restoreSuccess": "購入を復元しました",
     "restoreError": "復元に失敗しました。もう一度お試しください。",

@@ -22,6 +22,7 @@ vi.mock("react-native-purchases-ui", () => ({
 }));
 
 vi.mock("@/features/subscription/purchases-client", () => ({
+  isRevenueCatNativeUiAvailable: vi.fn(() => true),
   restorePurchases: vi.fn(),
 }));
 
@@ -96,12 +97,13 @@ describe("outcomeToAnalyticsEvent", () => {
     expect(outcomeToAnalyticsEvent({ type: "error" })).toBe("purchase_failed");
   });
 
-  it("should return null for cancelled and not_presented (not funnel events)", async () => {
+  it("should return null for non-purchase outcomes", async () => {
     const { outcomeToAnalyticsEvent } = await import(
       "@/features/subscription/use-purchases"
     );
     expect(outcomeToAnalyticsEvent({ type: "cancelled" })).toBeNull();
     expect(outcomeToAnalyticsEvent({ type: "not_presented" })).toBeNull();
+    expect(outcomeToAnalyticsEvent({ type: "unavailable" })).toBeNull();
   });
 });
 
