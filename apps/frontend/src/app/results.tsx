@@ -69,7 +69,22 @@ export default function ResultsScreen() {
           </ThemedText>
         </ThemedView>
 
-        {isPending ? (
+        {!query ? (
+          <ThemedView style={styles.emptyState} testID="results-missing-query">
+            <ThemedText type="default" themeColor="textSecondary">
+              {t("results.missingQuery")}
+            </ThemedText>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.replace("/")}
+              testID="results-missing-query-home"
+            >
+              <ThemedText type="link">{t("results.backToHome")}</ThemedText>
+            </Pressable>
+          </ThemedView>
+        ) : null}
+
+        {query && isPending ? (
           <ThemedView style={styles.loading} testID="results-loading">
             <ActivityIndicator />
             <ThemedText type="default" themeColor="textSecondary">
@@ -78,11 +93,27 @@ export default function ResultsScreen() {
           </ThemedView>
         ) : null}
 
-        {!isPending && result && isErr(result) ? (
+        {query && !isPending && result && isErr(result) ? (
           <ErrorState error={result.error} onRetry={() => refetch()} />
         ) : null}
 
-        {!isPending && result && !isErr(result) ? (
+        {query &&
+        !isPending &&
+        result &&
+        !isErr(result) &&
+        result.data.length === 0 ? (
+          <ThemedView style={styles.emptyState} testID="results-empty">
+            <ThemedText type="default" themeColor="textSecondary">
+              {t("results.noRoutes")}
+            </ThemedText>
+          </ThemedView>
+        ) : null}
+
+        {query &&
+        !isPending &&
+        result &&
+        !isErr(result) &&
+        result.data.length > 0 ? (
           <ScrollView contentContainerStyle={styles.list} testID="results-list">
             {result.data.map((route) => (
               <RouteCard
@@ -143,6 +174,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.two,
+  },
+  emptyState: {
+    alignItems: "center",
+    gap: Spacing.two,
+    padding: Spacing.three,
   },
   list: {
     gap: Spacing.three,

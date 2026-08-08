@@ -60,6 +60,9 @@
   "results": {
     "title": "ルート比較",
     "loading": "計算中…",
+    "missingQuery": "検索条件を読み込めませんでした。ホームからもう一度検索してください。",
+    "noRoutes": "この日時・区間では利用できるルートが見つかりませんでした。",
+    "backToHome": "ホームに戻る",
     "fastest": "最速",
     "balanced": "バランス",
     "comfort": "最も快適",
