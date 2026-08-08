@@ -6,16 +6,18 @@ import { useTheme } from "@/hooks/use-theme";
 export type ScreenHeaderProps = {
   title: string;
   subtitle?: string;
+  testID?: string;
 };
 
 export function ScreenHeader({
   title,
   subtitle,
+  testID,
 }: ScreenHeaderProps): React.JSX.Element {
   const theme = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View testID={testID} style={styles.container}>
       <Text style={[Typography.h1, { color: theme.ink }]}>{title}</Text>
       {subtitle ? (
         <Text style={[Typography.body, { color: theme.textSecondary }]}>

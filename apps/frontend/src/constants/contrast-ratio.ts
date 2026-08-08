@@ -10,13 +10,17 @@ function hexToRgb(hex: string): Rgb {
 
 function channelToLinear(channel255: number): number {
   const channel = channel255 / 255;
-  return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  return channel <= 0.03928
+    ? channel / 12.92
+    : ((channel + 0.055) / 1.055) ** 2.4;
 }
 
 function relativeLuminance(hex: string): number {
   const { r, g, b } = hexToRgb(hex);
   return (
-    0.2126 * channelToLinear(r) + 0.7152 * channelToLinear(g) + 0.0722 * channelToLinear(b)
+    0.2126 * channelToLinear(r) +
+    0.7152 * channelToLinear(g) +
+    0.0722 * channelToLinear(b)
   );
 }
 

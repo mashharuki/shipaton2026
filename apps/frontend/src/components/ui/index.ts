@@ -10,7 +10,11 @@ export {
 } from "@/components/ui/button";
 export { Card, type CardProps } from "@/components/ui/card";
 export { Divider, type DividerProps } from "@/components/ui/divider";
-export { Icon, type IconProps } from "@/components/ui/icon";
+export {
+  type FeatherIconName,
+  Icon,
+  type IconProps,
+} from "@/components/ui/icon";
 export { RuleBar, type RuleBarProps } from "@/components/ui/rule-bar";
 export { clampRatio } from "@/components/ui/rule-bar-math";
 export {

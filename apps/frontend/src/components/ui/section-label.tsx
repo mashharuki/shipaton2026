@@ -5,14 +5,19 @@ import { useTheme } from "@/hooks/use-theme";
 
 export type SectionLabelProps = {
   children: string;
+  testID?: string;
 };
 
 export function SectionLabel({
   children,
+  testID,
 }: SectionLabelProps): React.JSX.Element {
   const theme = useTheme();
   return (
-    <Text style={[Typography.kicker, { color: theme.textSecondary }]}>
+    <Text
+      testID={testID}
+      style={[Typography.kicker, { color: theme.textSecondary }]}
+    >
       {children}
     </Text>
   );

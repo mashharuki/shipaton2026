@@ -12,6 +12,9 @@ export type ButtonProps = {
   variant?: ButtonVariant;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
+  accessibilityLabel?: string;
+  accessibilityRole?: "button";
 };
 
 export function Button({
@@ -20,6 +23,9 @@ export function Button({
   variant = "primary",
   disabled = false,
   style,
+  testID,
+  accessibilityLabel,
+  accessibilityRole = "button",
 }: ButtonProps): React.JSX.Element {
   const theme = useTheme();
 
@@ -27,6 +33,9 @@ export function Button({
     <AppPressable
       onPress={onPress}
       disabled={disabled}
+      testID={testID}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole={accessibilityRole}
       style={[
         styles.base,
         variant === "primary" && { backgroundColor: theme.clay },

@@ -3,13 +3,14 @@ import type { ComponentProps } from "react";
 
 import { useTheme } from "@/hooks/use-theme";
 
-type FeatherIconName = ComponentProps<typeof Feather>["name"];
+export type FeatherIconName = ComponentProps<typeof Feather>["name"];
 
 export type IconProps = {
   name: FeatherIconName;
   size?: number;
   color?: string;
   active?: boolean;
+  testID?: string;
 };
 
 export function Icon({
@@ -17,8 +18,11 @@ export function Icon({
   size = 20,
   color,
   active = false,
+  testID,
 }: IconProps): React.JSX.Element {
   const theme = useTheme();
   const resolvedColor = color ?? (active ? theme.clay : theme.ink);
-  return <Feather name={name} size={size} color={resolvedColor} />;
+  return (
+    <Feather name={name} size={size} color={resolvedColor} testID={testID} />
+  );
 }

@@ -15,7 +15,8 @@ export const Colors = {
     background: "#ffffff",
     backgroundElement: "#F0F0F3",
     backgroundSelected: "#E0E1E6",
-    // -- Heritage tokens (docs/superpowers/specs/2026-08-08-heritage-redesign-design.md) --
+    // -- Heritage tokens (ink/paper/clay/signal palette from the local Heritage
+    // redesign design doc, not tracked in this repo) --
     ink: "#1A1C1E",
     paper: "#F6F4EF",
     surface: "#FBF9F5",
@@ -23,7 +24,7 @@ export const Colors = {
     hairline: "rgba(26,28,30,0.12)",
     textSecondary: "#5C5952",
     clay: "#B8422E",
-    signal: "#9C6B2E",
+    signal: "#8A5D28",
   },
   dark: {
     text: "#ffffff",

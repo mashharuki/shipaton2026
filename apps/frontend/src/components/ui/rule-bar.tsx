@@ -12,9 +12,14 @@ import { useTheme } from "@/hooks/use-theme";
 export type RuleBarProps = {
   ratio: number;
   height?: number;
+  testID?: string;
 };
 
-export function RuleBar({ ratio, height = 4 }: RuleBarProps): React.JSX.Element {
+export function RuleBar({
+  ratio,
+  height = 4,
+  testID,
+}: RuleBarProps): React.JSX.Element {
   const theme = useTheme();
   const fillRatio = useSharedValue(0);
   const targetRatio = clampRatio(ratio);
@@ -29,9 +34,14 @@ export function RuleBar({ ratio, height = 4 }: RuleBarProps): React.JSX.Element 
 
   return (
     <View
+      testID={testID}
       style={[
         styles.track,
-        { backgroundColor: theme.surfaceSelected, height, borderRadius: height / 2 },
+        {
+          backgroundColor: theme.surfaceSelected,
+          height,
+          borderRadius: height / 2,
+        },
       ]}
     >
       <Animated.View

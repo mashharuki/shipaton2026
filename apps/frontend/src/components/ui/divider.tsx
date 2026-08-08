@@ -4,16 +4,19 @@ import { useTheme } from "@/hooks/use-theme";
 
 export type DividerProps = {
   orientation?: "horizontal" | "vertical";
+  testID?: string;
 };
 
 export function Divider({
   orientation = "horizontal",
+  testID,
 }: DividerProps): React.JSX.Element {
   const theme = useTheme();
   const isHorizontal = orientation === "horizontal";
 
   return (
     <View
+      testID={testID}
       style={[
         isHorizontal ? styles.horizontal : styles.vertical,
         { backgroundColor: theme.hairline },

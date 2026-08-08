@@ -1,8 +1,8 @@
-// Heritage rebrand (Cluster 1 of the redesign, see
-// docs/superpowers/specs/2026-08-08-heritage-redesign-design.md). Regenerates
-// every store-facing brand asset from one SVG mark so they never drift from
-// each other again. Re-run after changing the mark or the palette; this
-// script is not imported by the app at runtime.
+// Heritage rebrand (Cluster 1 of the redesign; full rationale lives in a
+// local, untracked design-process doc). Regenerates every store-facing brand
+// asset from one SVG mark so they never drift from each other again. Re-run
+// after changing the mark or the palette; this script is not imported by the
+// app at runtime.
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
@@ -22,12 +22,12 @@ const seatAndBarsPaths = `
 
 const iconSvg = `
 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1024" height="1024" rx="224" fill="${INK}"/>
+  <rect width="1024" height="1024" fill="${INK}"/>
   <g fill="${PAPER}">${seatAndBarsPaths}</g>
   <g fill="${CLAY}">
-    <rect x="352" y="704" width="120" height="24" rx="12"/>
-    <rect x="352" y="744" width="200" height="24" rx="12"/>
-    <rect x="352" y="784" width="320" height="24" rx="12"/>
+    <rect x="352" y="768" width="120" height="24" rx="12"/>
+    <rect x="352" y="808" width="200" height="24" rx="12"/>
+    <rect x="352" y="848" width="320" height="24" rx="12"/>
   </g>
 </svg>`;
 
@@ -38,9 +38,9 @@ const monochromeSvg = `
 <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <g fill="#FFFFFF">
     ${seatAndBarsPaths}
-    <rect x="352" y="704" width="120" height="24" rx="12"/>
-    <rect x="352" y="744" width="200" height="24" rx="12"/>
-    <rect x="352" y="784" width="320" height="24" rx="12"/>
+    <rect x="352" y="768" width="120" height="24" rx="12"/>
+    <rect x="352" y="808" width="200" height="24" rx="12"/>
+    <rect x="352" y="848" width="320" height="24" rx="12"/>
   </g>
 </svg>`;
 
@@ -63,4 +63,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

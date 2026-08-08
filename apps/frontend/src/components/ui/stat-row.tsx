@@ -7,17 +7,19 @@ export type StatRowProps = {
   label: string;
   value: string;
   emphasis?: boolean;
+  testID?: string;
 };
 
 export function StatRow({
   label,
   value,
   emphasis = false,
+  testID,
 }: StatRowProps): React.JSX.Element {
   const theme = useTheme();
 
   return (
-    <View style={styles.row}>
+    <View testID={testID} style={styles.row}>
       <Text style={[Typography.small, { color: theme.textSecondary }]}>
         {label}
       </Text>

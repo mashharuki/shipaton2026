@@ -8,11 +8,13 @@ export type BadgeTone = "neutral" | "accent";
 export type BadgeProps = {
   label: string;
   tone?: BadgeTone;
+  testID?: string;
 };
 
 export function Badge({
   label,
   tone = "neutral",
+  testID,
 }: BadgeProps): React.JSX.Element {
   const theme = useTheme();
   const backgroundColor =
@@ -20,7 +22,7 @@ export function Badge({
   const color = tone === "accent" ? theme.paper : theme.ink;
 
   return (
-    <View style={[styles.base, { backgroundColor }]}>
+    <View testID={testID} style={[styles.base, { backgroundColor }]}>
       <Text style={[Typography.kicker, { color }]}>{label}</Text>
     </View>
   );

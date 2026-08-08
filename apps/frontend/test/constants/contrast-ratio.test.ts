@@ -4,12 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("react-native", () => ({
   Platform: {
     OS: "ios",
-    select: (options: Record<string, unknown>) => options.ios ?? options.default,
+    select: (options: Record<string, unknown>) =>
+      options.ios ?? options.default,
   },
 }));
 
-import { Colors } from "@/constants/theme";
 import { contrastRatio } from "@/constants/contrast-ratio";
+import { Colors } from "@/constants/theme";
 
 const WCAG_AA_NORMAL_TEXT = 4.5;
 
@@ -31,9 +32,9 @@ describe("contrastRatio", () => {
 
 describe("Heritage token contrast (WCAG AA, normal text)", () => {
   it("should pass ink on paper (light)", () => {
-    expect(contrastRatio(Colors.light.ink, Colors.light.paper)).toBeGreaterThanOrEqual(
-      WCAG_AA_NORMAL_TEXT,
-    );
+    expect(
+      contrastRatio(Colors.light.ink, Colors.light.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
   it("should pass textSecondary on paper (light)", () => {
@@ -43,21 +44,27 @@ describe("Heritage token contrast (WCAG AA, normal text)", () => {
   });
 
   it("should pass clay on paper (light) for text/link use", () => {
-    expect(contrastRatio(Colors.light.clay, Colors.light.paper)).toBeGreaterThanOrEqual(
-      WCAG_AA_NORMAL_TEXT,
-    );
+    expect(
+      contrastRatio(Colors.light.clay, Colors.light.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
   it("should pass paper on clay (light) for button labels", () => {
-    expect(contrastRatio(Colors.light.paper, Colors.light.clay)).toBeGreaterThanOrEqual(
-      WCAG_AA_NORMAL_TEXT,
-    );
+    expect(
+      contrastRatio(Colors.light.paper, Colors.light.clay),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
+  });
+
+  it("should pass signal on paper (light)", () => {
+    expect(
+      contrastRatio(Colors.light.signal, Colors.light.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
   it("should pass ink on paper (dark)", () => {
-    expect(contrastRatio(Colors.dark.ink, Colors.dark.paper)).toBeGreaterThanOrEqual(
-      WCAG_AA_NORMAL_TEXT,
-    );
+    expect(
+      contrastRatio(Colors.dark.ink, Colors.dark.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
   it("should pass textSecondary on paper (dark)", () => {
@@ -67,8 +74,14 @@ describe("Heritage token contrast (WCAG AA, normal text)", () => {
   });
 
   it("should pass clay on paper (dark)", () => {
-    expect(contrastRatio(Colors.dark.clay, Colors.dark.paper)).toBeGreaterThanOrEqual(
-      WCAG_AA_NORMAL_TEXT,
-    );
+    expect(
+      contrastRatio(Colors.dark.clay, Colors.dark.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
+  });
+
+  it("should pass signal on paper (dark)", () => {
+    expect(
+      contrastRatio(Colors.dark.signal, Colors.dark.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 });

@@ -40,7 +40,7 @@ Sentry.init({
 
 // Cluster 1 (Heritage redesign): hold the splash screen until Public Sans
 // finishes loading, so no screen ever flashes the OS default font first.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // 6.1: configured once at module load (same pattern as Sentry.init above)
 // rather than inside an effect, so it's guaranteed ready before the first
@@ -133,7 +133,7 @@ function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
