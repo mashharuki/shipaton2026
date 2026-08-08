@@ -346,6 +346,10 @@
   - 検索から 3 案表示までの応答時間（目標 1.5 秒以内）を実測する
   - 完了条件: 主要フローが実機で完走し、オフライン・言語切替・応答時間の確認結果が記録される
   - _Requirements: 14.3, 15.1, 15.2, 18.6_
+  - _Blocked: 本セッションには物理デバイスも argent MCP 接続もなく（`xcrun devicectl` 0 台、`adb`
+    未インストール、`mcp__argent__*` 未接続）、design.md が指定する「実機・argent による UI フロー
+    検証」を実行できない。人間が実機（EAS dev build）で実行し、結果を記録する必要がある。手順書:
+    `docs/qa/10.3-10.4-manual-e2e-runbook.md`_
 
 - [ ] 10.4 sandbox 課金 E2E を検証する
   - sandbox で購入→Pro 即時解放→アプリ再起動での権利維持→「購入を復元」→購入キャンセル（非エラー）→期限切れで Free 相当へ戻ることを一連で確認する
@@ -353,6 +357,10 @@
   - 完了条件: 上記シナリオが dev build 実機で完走し、各状態遷移の確認結果が記録される
   - _Depends: 6.4_
   - _Requirements: 13.3, 13.4, 13.5, 13.6, 13.8, 18.5_
+  - _Blocked: sandbox 購入には実 Apple ID/Google アカウントでのサインインが必要で、これは Claude が
+    代行できないアクション。加えて 10.3 と同じ理由で実機・argent 接続がない。人間が実機（EAS dev
+    build）で sandbox テスターとして実行し、結果を記録する必要がある。手順書:
+    `docs/qa/10.3-10.4-manual-e2e-runbook.md`_
 
 ## Implementation Notes
 

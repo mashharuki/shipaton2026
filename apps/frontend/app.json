@@ -8,7 +8,10 @@
     "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.seatsignal.app"
+      "bundleIdentifier": "com.seat-signal.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.seatsignal.app",
@@ -41,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1254c4af-2bd4-43de-8963-6aaebbcb5d17"
+      }
     }
   }
 }
