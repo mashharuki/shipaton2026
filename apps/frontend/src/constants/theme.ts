@@ -9,18 +9,35 @@ import { Platform } from "react-native";
 
 export const Colors = {
   light: {
+    // -- pre-Heritage tokens (kept working until Clusters 2-4 migrate every
+    // screen off them, then removed) --
     text: "#000000",
     background: "#ffffff",
     backgroundElement: "#F0F0F3",
     backgroundSelected: "#E0E1E6",
-    textSecondary: "#60646C",
+    // -- Heritage tokens (docs/superpowers/specs/2026-08-08-heritage-redesign-design.md) --
+    ink: "#1A1C1E",
+    paper: "#F6F4EF",
+    surface: "#FBF9F5",
+    surfaceSelected: "#ECE8E0",
+    hairline: "rgba(26,28,30,0.12)",
+    textSecondary: "#5C5952",
+    clay: "#B8422E",
+    signal: "#9C6B2E",
   },
   dark: {
     text: "#ffffff",
     background: "#000000",
     backgroundElement: "#212225",
     backgroundSelected: "#2E3135",
-    textSecondary: "#B0B4BA",
+    ink: "#F2EFE9",
+    paper: "#161513",
+    surface: "#201F1C",
+    surfaceSelected: "#2A2822",
+    hairline: "rgba(242,239,233,0.12)",
+    textSecondary: "#B4AFA4",
+    clay: "#E2694A",
+    signal: "#C99A4A",
   },
 } as const;
 
@@ -59,6 +76,19 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+  seven: 96,
+} as const;
+
+export const Radius = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+} as const;
+
+export const Motion = {
+  pressScale: 0.97,
+  pressOpacity: 0.85,
+  pressDurationMs: 120,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
