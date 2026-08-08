@@ -1,4 +1,6 @@
+import type { CustomerInfo } from "react-native-purchases";
 import type { PAYWALL_RESULT as PaywallResultEnum } from "react-native-purchases-ui";
+import { PRO_ENTITLEMENT_ID } from "shared";
 import { describe, expect, it, vi } from "vitest";
 
 // react-native-purchases-ui hosts native view managers at module load time
@@ -42,6 +44,64 @@ describe("toPaywallOutcome", () => {
       type: "not_presented",
     });
     expect(toPaywallOutcome(PAYWALL_RESULT.ERROR)).toEqual({ type: "error" });
+  });
+});
+
+function customerInfoWithPeriodType(periodType: string): CustomerInfo {
+  return {
+    entitlements: {
+      active: { [PRO_ENTITLEMENT_ID]: { periodType } },
+      all: {},
+    },
+  } as unknown as CustomerInfo;
+}
+
+describe("isTrialPeriod", () => {
+  it("should be true when the pro entitlement's periodType is TRIAL", async () => {
+    const { isTrialPeriod } = await import(
+      "@/features/subscription/use-purchases"
+    );
+    expect(isTrialPeriod(customerInfoWithPeriodType("TRIAL"))).toBe(true);
+  });
+
+  it("should be false when the pro entitlement's periodType is NORMAL", async () => {
+    const { isTrialPeriod } = await import(
+      "@/features/subscription/use-purchases"
+    );
+    expect(isTrialPeriod(customerInfoWithPeriodType("NORMAL"))).toBe(false);
+  });
+
+  it("should be false when there is no active pro entitlement", async () => {
+    const { isTrialPeriod } = await import(
+      "@/features/subscription/use-purchases"
+    );
+    const info = {
+      entitlements: { active: {}, all: {} },
+    } as unknown as CustomerInfo;
+    expect(isTrialPeriod(info)).toBe(false);
+  });
+});
+
+describe("outcomeToAnalyticsEvent", () => {
+  it("should map purchased/restored/error to their funnel events", async () => {
+    const { outcomeToAnalyticsEvent } = await import(
+      "@/features/subscription/use-purchases"
+    );
+    expect(outcomeToAnalyticsEvent({ type: "purchased" })).toBe(
+      "purchase_completed",
+    );
+    expect(outcomeToAnalyticsEvent({ type: "restored" })).toBe(
+      "purchase_restored",
+    );
+    expect(outcomeToAnalyticsEvent({ type: "error" })).toBe("purchase_failed");
+  });
+
+  it("should return null for cancelled and not_presented (not funnel events)", async () => {
+    const { outcomeToAnalyticsEvent } = await import(
+      "@/features/subscription/use-purchases"
+    );
+    expect(outcomeToAnalyticsEvent({ type: "cancelled" })).toBeNull();
+    expect(outcomeToAnalyticsEvent({ type: "not_presented" })).toBeNull();
   });
 });
 

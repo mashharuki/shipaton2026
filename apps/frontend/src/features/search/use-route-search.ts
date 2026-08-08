@@ -8,6 +8,8 @@ import {
 } from "@/features/dataset/dataset-repository";
 import { createSqliteDatasetStore } from "@/features/dataset/dataset-store";
 import { usePreferenceStore } from "@/features/preferences/preference-store";
+import { analyticsClient } from "@/lib/analytics";
+import { floorToTimeBucket } from "@/lib/clock-time";
 import { getDb } from "@/lib/db";
 import { addRecentSearch } from "./recent-searches";
 import type { RankedRoute } from "./route-ranker";
@@ -35,6 +37,12 @@ export function useRouteSearch(query: RouteSearchQuery | null) {
         // Unreachable given `enabled`, but keeps the function total.
         return err({ code: "unknown", message: "No search query" });
       }
+
+      // 17.1/10.1: "検索開始" -- fires once per actual queryFn invocation
+      // (react-query dedupes by queryKey, so a cache hit doesn't re-fire this).
+      analyticsClient.track("search_started", {
+        timeBucket: floorToTimeBucket(query.departureTime),
+      });
 
       const db = await getDb();
       const store = createSqliteDatasetStore(db);
@@ -81,6 +89,12 @@ export function useRouteSearch(query: RouteSearchQuery | null) {
         await addRecentSearch({
           fromStationId: query.fromStationId,
           toStationId: query.toStationId,
+        });
+        // 17.1/10.1: "検索完了" -- only on a successful search, matching the
+        // funnel's next step (results.tsx's route comparison view) actually
+        // having something to render.
+        analyticsClient.track("search_completed", {
+          timeBucket: floorToTimeBucket(query.departureTime),
         });
       }
 

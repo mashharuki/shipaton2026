@@ -9,6 +9,7 @@ import { ThemedView } from "@/components/themed-view";
 import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { requestNotificationPermission } from "@/features/notifications/push-registration";
 import { completeOnboarding } from "@/features/onboarding/onboarding-store";
+import { analyticsClient } from "@/lib/analytics";
 
 const STEP_COUNT = 3;
 
@@ -33,6 +34,11 @@ export default function OnboardingScreen() {
     } catch (cause) {
       console.warn("Failed to persist onboarding completion", cause);
     }
+    // 17.1/10.1: fired regardless of whether the kv-store write above
+    // succeeded -- the funnel step is "user finished onboarding", not
+    // "flag persisted" (a persistence failure only means onboarding may
+    // show again next cold start, it doesn't undo this session's completion).
+    analyticsClient.track("onboarding_completed");
     router.replace("/(tabs)");
   };
 

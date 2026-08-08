@@ -98,3 +98,162 @@ describe("POST /v1/events", () => {
     expect(await eventCount()).toBe(before);
   });
 });
+
+// 10.1: "一連の操作後、D1 上の SQL で「起動→検索→閲覧→選択→乗車→フィードバック
+// →Paywall→購入」のファネルが再構成できる" -- this exercises the exact event
+// names now wired at each frontend trigger point (onboarding.tsx,
+// use-route-search.ts, results.tsx, coach-store.ts, feedback.tsx,
+// use-paywall-gate.ts, paywall.tsx) end-to-end through the real /v1/events
+// route and asserts the funnel is reconstructable with a plain SQL query.
+describe("funnel reconstruction (10.1)", () => {
+  it("reconstructs a full free->paywall->purchase funnel for one session via SQL", async () => {
+    const sessionId = "funnel-session-purchase";
+    const t = (offsetSeconds: number) =>
+      new Date(1738560000000 + offsetSeconds * 1000).toISOString();
+
+    const res = await post({
+      events: [
+        makeEvent(sessionId, {
+          name: "onboarding_completed",
+          props: {},
+          occurredAt: t(0),
+        }),
+        makeEvent(sessionId, {
+          name: "search_started",
+          props: { timeBucket: "07:30" },
+          occurredAt: t(1),
+        }),
+        makeEvent(sessionId, {
+          name: "search_completed",
+          props: { timeBucket: "07:30" },
+          occurredAt: t(2),
+        }),
+        makeEvent(sessionId, {
+          name: "route_selected",
+          props: {
+            routeType: "comfort",
+            diffFromFastestMinutes: 4,
+            confidence: "high",
+            planType: "free",
+          },
+          occurredAt: t(3),
+        }),
+        makeEvent(sessionId, { name: "trip_started", occurredAt: t(4) }),
+        makeEvent(sessionId, {
+          name: "feedback_submitted",
+          occurredAt: t(5),
+        }),
+        makeEvent(sessionId, {
+          name: "paywall_shown",
+          props: { paywallTrigger: "search_limit" },
+          occurredAt: t(6),
+        }),
+        makeEvent(sessionId, {
+          name: "purchase_completed",
+          props: { planType: "pro" },
+          occurredAt: t(7),
+        }),
+      ],
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ accepted: 8 });
+
+    // The funnel query a real operator would run: every stage's event name,
+    // in the order it happened, for one session.
+    const { results } = await env.DB.prepare(
+      "SELECT name FROM analytics_events WHERE session_id = ? ORDER BY created_at ASC",
+    )
+      .bind(sessionId)
+      .all<{ name: string }>();
+
+    expect(results.map((row) => row.name)).toEqual([
+      "onboarding_completed",
+      "search_started",
+      "search_completed",
+      "route_selected",
+      "trip_started",
+      "feedback_submitted",
+      "paywall_shown",
+      "purchase_completed",
+    ]);
+
+    // 17.2: props survive the round trip so the funnel can be sliced by
+    // route type / paywall trigger / plan, not just counted.
+    const routeSelected = await env.DB.prepare(
+      "SELECT props_json FROM analytics_events WHERE session_id = ? AND name = 'route_selected'",
+    )
+      .bind(sessionId)
+      .first<{ props_json: string }>();
+    expect(JSON.parse(routeSelected?.props_json ?? "{}")).toEqual({
+      routeType: "comfort",
+      diffFromFastestMinutes: 4,
+      confidence: "high",
+      planType: "free",
+    });
+  });
+
+  it("reconstructs a trial-start funnel distinctly from a direct purchase", async () => {
+    const sessionId = "funnel-session-trial";
+
+    const res = await post({
+      events: [
+        makeEvent(sessionId, {
+          name: "paywall_shown",
+          props: { paywallTrigger: "pro_feature" },
+          occurredAt: "2026-08-04T07:30:00.000Z",
+        }),
+        makeEvent(sessionId, {
+          name: "trial_started",
+          props: { planType: "pro" },
+          occurredAt: "2026-08-04T07:30:01.000Z",
+        }),
+      ],
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ accepted: 2 });
+
+    const { results } = await env.DB.prepare(
+      "SELECT name FROM analytics_events WHERE session_id = ? ORDER BY created_at ASC",
+    )
+      .bind(sessionId)
+      .all<{ name: string }>();
+
+    expect(results.map((row) => row.name)).toEqual([
+      "paywall_shown",
+      "trial_started",
+    ]);
+  });
+
+  it("counts restore/failure outcomes per paywall trigger across sessions", async () => {
+    const res = await post({
+      events: [
+        makeEvent("funnel-session-restore", {
+          name: "purchase_restored",
+          props: { planType: "pro" },
+          occurredAt: "2026-08-04T08:00:00.000Z",
+        }),
+        makeEvent("funnel-session-failed", {
+          name: "purchase_failed",
+          props: {},
+          occurredAt: "2026-08-04T08:00:01.000Z",
+        }),
+      ],
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ accepted: 2 });
+
+    const { results } = await env.DB.prepare(
+      `SELECT name, COUNT(*) AS c FROM analytics_events
+       WHERE session_id IN ('funnel-session-restore', 'funnel-session-failed')
+       GROUP BY name ORDER BY name`,
+    ).all<{ name: string; c: number }>();
+
+    expect(results).toEqual([
+      { name: "purchase_failed", c: 1 },
+      { name: "purchase_restored", c: 1 },
+    ]);
+  });
+});

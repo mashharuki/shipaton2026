@@ -15,6 +15,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useRouteSearch } from "@/features/search/use-route-search";
+import { isPro } from "@/features/subscription/subscription-gate";
+import { analyticsClient } from "@/lib/analytics";
 
 // 4.1-4.4: the search → 3-option comparison screen. Query params come from
 // whatever triggered the search (home screen's search form, a saved route,
@@ -89,15 +91,24 @@ export default function ResultsScreen() {
                 fastestStandingMinutes={
                   route.type === "comfort" ? fastestStandingMinutes : undefined
                 }
-                onPress={() =>
+                onPress={() => {
+                  // 17.1/17.2/10.1: "ルート選択（種別ごと）" -- fired at the
+                  // one place a route in the 3-way comparison actually gets
+                  // chosen, with the metrics already computed for this card.
+                  analyticsClient.track("route_selected", {
+                    routeType: route.type,
+                    diffFromFastestMinutes: route.diffFromFastestMinutes,
+                    confidence: route.prediction.confidence,
+                    planType: isPro() ? "pro" : "free",
+                  });
                   router.push({
                     pathname: "/route-detail",
                     params: {
                       legs: JSON.stringify(route.candidate.legs),
                       routeType: route.type,
                     },
-                  })
-                }
+                  });
+                }}
               />
             ))}
           </ScrollView>

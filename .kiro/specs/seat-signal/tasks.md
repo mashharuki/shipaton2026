@@ -326,7 +326,7 @@
   - _Requirements: 18.2, 18.3_
 
 - [ ] 10. 統合検証
-- [ ] 10.1 ファネル計測の統合を確認する
+- [x] 10.1 ファネル計測の統合を確認する
   - オンボーディング完了・検索開始/完了・ルート選択（種別）・乗車開始・フィードバック送信・Paywall 表示（トリガー種別）・トライアル開始・購入完了/復元/失敗の全イベントが各トリガー箇所で送信されることを確認する
   - 完了条件: 一連の操作後、D1 上の SQL で「起動→検索→閲覧→選択→乗車→フィードバック→Paywall→購入」のファネルが再構成できる
   - _Depends: 4.5, 6.4, 7.3, 9.1_
@@ -356,6 +356,22 @@
 
 ## Implementation Notes
 
+- **10.1**: 8 of the 11 `ANALYTICS_EVENT_NAMES` (shared/analytics-events.ts) had no `track()` call
+  anywhere in `apps/frontend/src` before this task — only `feedback_submitted`/`paywall_shown`/
+  `trip_started` (from 7.3/6.4/7.1) existed. Wired the rest at their real trigger points:
+  `onboarding_completed` (app/onboarding.tsx `finish()`), `search_started`/`search_completed`
+  (features/search/use-route-search.ts `queryFn`, so it covers every entry into search, not just
+  the home screen's demo button), `route_selected` (app/results.tsx RouteCard `onPress`, using
+  fields already computed on `RankedRoute`), and `trial_started`/`purchase_completed`/
+  `purchase_restored`/`purchase_failed` (app/paywall.tsx, via two new pure helpers in
+  `use-purchases.ts` — `isTrialPeriod(CustomerInfo)` reads RevenueCat's `periodType` since
+  `presentPaywall()` only resolves to the `PAYWALL_RESULT` enum with no CustomerInfo payload, and
+  `outcomeToAnalyticsEvent` maps the rest). Verification is a new backend integration test
+  (`apps/backend/test/routes/events.test.ts`, "funnel reconstruction (10.1)") that POSTs a full
+  funnel sequence and reconstructs it with a plain `SELECT ... ORDER BY created_at` SQL query,
+  matching the task's stated completion condition directly rather than only asserting on the
+  frontend call sites (screens/hooks aren't rendered under this project's Vitest pipeline, per
+  existing precedent — see toPaywallOutcome/withTimeout's own comments in use-purchases.ts).
 - **2.1**: D1 migrations live at `apps/backend/src/db/migrations/0001_init_schema.sql`, not
   `db/schema.sql` as design.md's File Structure Plan names it — `@cloudflare/vitest-pool-workers`'s
   `readD1Migrations()`/`applyD1Migrations()` (the only supported way to apply D1 migrations inside

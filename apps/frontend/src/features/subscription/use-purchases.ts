@@ -1,7 +1,10 @@
 import { useCallback, useState } from "react";
+import type { CustomerInfo } from "react-native-purchases";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+import { PRO_ENTITLEMENT_ID } from "shared";
 
 import { restorePurchases } from "@/features/subscription/purchases-client";
+import type { AnalyticsEventName } from "@/lib/analytics";
 
 // design.md: purchases go through RevenueCatUI.presentPaywall() (the
 // dashboard-configured template drives the actual purchase), never a
@@ -32,6 +35,37 @@ export function toPaywallOutcome(result: PAYWALL_RESULT): PaywallOutcome {
       return { type: "not_presented" };
     default:
       return { type: "error" };
+  }
+}
+
+// 17.1/10.1: distinguishes a trial-period purchase from a full purchase.
+// presentPaywall() only resolves to the PAYWALL_RESULT enum (no CustomerInfo
+// payload), so the caller re-fetches CustomerInfo and passes it here; kept
+// as its own pure function (same "extract the decision logic" precedent as
+// toPaywallOutcome) so the periodType check is Vitest-testable without a
+// native host.
+export function isTrialPeriod(info: CustomerInfo): boolean {
+  return info.entitlements.active[PRO_ENTITLEMENT_ID]?.periodType === "TRIAL";
+}
+
+// 17.1/10.1: maps a paywall outcome to the funnel event it represents.
+// `trial_started` is deliberately not produced here -- it depends on
+// CustomerInfo (via isTrialPeriod), which this function doesn't have; the
+// caller special-cases "purchased" + isTrialPeriod before falling back to
+// this mapping. `cancelled`/`not_presented` return null: neither is one of
+// the 17.1 funnel events (a cancellation isn't a failure, 13.6).
+export function outcomeToAnalyticsEvent(
+  outcome: PaywallOutcome,
+): AnalyticsEventName | null {
+  switch (outcome.type) {
+    case "purchased":
+      return "purchase_completed";
+    case "restored":
+      return "purchase_restored";
+    case "error":
+      return "purchase_failed";
+    default:
+      return null;
   }
 }
 

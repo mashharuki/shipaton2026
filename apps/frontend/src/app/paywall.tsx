@@ -9,11 +9,15 @@ import { ErrorState } from "@/components/error-state";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { fetchCustomerInfo } from "@/features/subscription/purchases-client";
 import {
+  isTrialPeriod,
+  outcomeToAnalyticsEvent,
   type PaywallOutcome,
   usePaywallPresentation,
   useRestorePurchases,
 } from "@/features/subscription/use-purchases";
+import { analyticsClient } from "@/lib/analytics";
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/lib/config";
 
 // 12.x/13.x: thin wrapper around RevenueCatUI.presentPaywall() -- the
@@ -35,6 +39,29 @@ export default function PaywallScreen() {
     setOutcome(null);
     const result = await present();
     setOutcome(result);
+
+    // 17.1/10.1: "トライアル開始・購入完了/復元/失敗" -- a PURCHASED result
+    // could be either a trial or a full purchase; CustomerInfo (fetched
+    // fresh, since presentPaywall() itself doesn't return it) is the only
+    // way to tell those apart.
+    if (result.type === "purchased") {
+      const infoResult = await fetchCustomerInfo();
+      analyticsClient.track(
+        infoResult.ok && isTrialPeriod(infoResult.data)
+          ? "trial_started"
+          : "purchase_completed",
+        { planType: "pro" },
+      );
+    } else {
+      const eventName = outcomeToAnalyticsEvent(result);
+      if (eventName) {
+        analyticsClient.track(
+          eventName,
+          eventName === "purchase_restored" ? { planType: "pro" } : {},
+        );
+      }
+    }
+
     // 13.6: CANCELLED is not an error -- return to the pre-purchase state,
     // same as a successful purchase/restore (Pro is already reflected via
     // subscription-gate's CustomerInfo listener by the time this resolves).
@@ -60,6 +87,10 @@ export default function PaywallScreen() {
     const succeeded = await restore();
     setRestoreMessage(succeeded ? "success" : "error");
     if (succeeded) {
+      // 17.1/10.1: the explicit "購入を復元" button is a second trigger
+      // point for the same funnel event openPaywall() tracks when
+      // presentPaywall()'s own template drives a restore.
+      analyticsClient.track("purchase_restored", { planType: "pro" });
       router.back();
     }
   }, [restore, router]);
