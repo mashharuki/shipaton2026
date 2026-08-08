@@ -1,5 +1,12 @@
+import {
+  PublicSans_400Regular,
+  PublicSans_500Medium,
+  PublicSans_600SemiBold,
+  PublicSans_700Bold,
+} from "@expo-google-fonts/public-sans";
 import * as Sentry from "@sentry/react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
 import {
   DarkTheme,
   DefaultTheme,
@@ -7,6 +14,7 @@ import {
   ThemeProvider,
   useRouter,
 } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef } from "react";
 
 import { useDatasetSync } from "@/features/dataset/use-dataset-sync";
@@ -29,6 +37,10 @@ import { queryClient } from "@/lib/query-client";
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? "",
 });
+
+// Cluster 1 (Heritage redesign): hold the splash screen until Public Sans
+// finishes loading, so no screen ever flashes the OS default font first.
+SplashScreen.preventAutoHideAsync();
 
 // 6.1: configured once at module load (same pattern as Sentry.init above)
 // rather than inside an effect, so it's guaranteed ready before the first
@@ -112,6 +124,22 @@ function OnboardingGateBoundary() {
 // screens live in the (tabs) group, whose own _layout.tsx renders AppTabs.
 function RootLayout() {
   const colorScheme = useAppColorScheme();
+  const [fontsLoaded, fontError] = useFonts({
+    PublicSans_400Regular,
+    PublicSans_500Medium,
+    PublicSans_600SemiBold,
+    PublicSans_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

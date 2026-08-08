@@ -91,5 +91,41 @@ export const Motion = {
   pressDurationMs: 120,
 } as const;
 
+const publicSansWeight = {
+  regular: "PublicSans_400Regular",
+  medium: "PublicSans_500Medium",
+  semiBold: "PublicSans_600SemiBold",
+  bold: "PublicSans_700Bold",
+} as const;
+
+export const Typography = {
+  display: { fontFamily: publicSansWeight.bold, fontSize: 40, lineHeight: 44 },
+  h1: { fontFamily: publicSansWeight.bold, fontSize: 32, lineHeight: 38 },
+  h2: { fontFamily: publicSansWeight.semiBold, fontSize: 22, lineHeight: 28 },
+  kicker: {
+    fontFamily: publicSansWeight.semiBold,
+    fontSize: 13,
+    lineHeight: 16,
+    letterSpacing: 1.04,
+  },
+  body: { fontFamily: publicSansWeight.regular, fontSize: 16, lineHeight: 24 },
+  bodyMedium: {
+    fontFamily: publicSansWeight.medium,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  small: { fontFamily: publicSansWeight.regular, fontSize: 13, lineHeight: 18 },
+  caption: {
+    fontFamily: publicSansWeight.regular,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  numericLarge: {
+    fontFamily: publicSansWeight.bold,
+    fontSize: 28,
+    lineHeight: 32,
+  },
+} as const;
+
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

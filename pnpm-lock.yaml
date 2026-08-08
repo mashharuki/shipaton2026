@@ -54,6 +54,9 @@ importers:
 
   apps/frontend:
     dependencies:
+      '@expo-google-fonts/public-sans':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@expo/ui':
         specifier: ~57.0.8
         version: 57.0.8(@babel/core@7.29.7)(@types/react@19.2.18)(expo@57.0.9)(react-dom@19.2.3(react@19.2.3))(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(react-native@0.86.2(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.29.7)(@react-native/metro-config@0.86.2(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
@@ -879,6 +882,9 @@ packages:
 
   '@expo-google-fonts/material-symbols@0.4.42':
     resolution: {integrity: sha512-KZmHZRcthJ3KFZZlpzHjopA9guZgWR9fb3uVZlTR0BNlvG2pw1bnYBCpkze2PB0vRllwGhAM7lWXsfmcWCbXYg==}
+
+  '@expo-google-fonts/public-sans@0.4.2':
+    resolution: {integrity: sha512-sIUyE7yXUHw6asSN6lXfcxNHl/EIyKl3EMKTgwDaY/1lTTP/9ZHYMYGwGS5XfEGQ/zgMUOjnzA7qlN9DJkctAw==}
 
   '@expo/apple-utils@2.1.22':
     resolution: {integrity: sha512-3EWFfJ8lN0whytDSyyEMS9c+RixGQarb2NEtDYJLwN9q4blhEcMUI/XQox4f2Sfl18FXPrln1nLaCe2jHCruOA==}
@@ -6240,6 +6246,8 @@ snapshots:
     optional: true
 
   '@expo-google-fonts/material-symbols@0.4.42': {}
+
+  '@expo-google-fonts/public-sans@0.4.2': {}
 
   '@expo/apple-utils@2.1.22': {}
 
