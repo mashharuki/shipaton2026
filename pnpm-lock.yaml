@@ -163,6 +163,9 @@ importers:
       '@playwright/test':
         specifier: 1.62.1
         version: 1.62.1
+      '@sentry/cli':
+        specifier: 2.58.4
+        version: 2.58.4
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.18
