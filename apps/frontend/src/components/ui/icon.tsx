@@ -21,7 +21,7 @@ export function Icon({
   testID,
 }: IconProps): React.JSX.Element {
   const theme = useTheme();
-  const resolvedColor = color ?? (active ? theme.clay : theme.ink);
+  const resolvedColor = color ?? (active ? theme.rail : theme.ink);
   return (
     <Feather name={name} size={size} color={resolvedColor} testID={testID} />
   );

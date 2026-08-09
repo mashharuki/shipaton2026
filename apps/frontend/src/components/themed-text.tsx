@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, Text, type TextProps } from "react-native";
 
-import { Fonts, type ThemeColor } from "@/constants/theme";
+import { Fonts, type ThemeColor, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
 export type ThemedTextProps = TextProps & {
@@ -12,7 +12,10 @@ export type ThemedTextProps = TextProps & {
     | "subtitle"
     | "link"
     | "linkPrimary"
-    | "code";
+    | "code"
+    | "numericHero"
+    | "numericLarge"
+    | "kicker";
   themeColor?: ThemeColor;
 };
 
@@ -36,6 +39,9 @@ export function ThemedText({
         type === "link" && styles.link,
         type === "linkPrimary" && styles.linkPrimary,
         type === "code" && styles.code,
+        type === "numericHero" && Typography.numericHero,
+        type === "numericLarge" && Typography.numericLarge,
+        type === "kicker" && Typography.kicker,
         style,
       ]}
       {...rest}

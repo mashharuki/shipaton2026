@@ -30,7 +30,7 @@ describe("contrastRatio", () => {
   });
 });
 
-describe("Heritage token contrast (WCAG AA, normal text)", () => {
+describe("Night Rail token contrast (WCAG AA, normal text)", () => {
   it("should pass ink on paper (light)", () => {
     expect(
       contrastRatio(Colors.light.ink, Colors.light.paper),
@@ -43,21 +43,21 @@ describe("Heritage token contrast (WCAG AA, normal text)", () => {
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
-  it("should pass clay on paper (light) for text/link use", () => {
+  it("should pass rail on surface (light) for text/link use", () => {
     expect(
-      contrastRatio(Colors.light.clay, Colors.light.paper),
+      contrastRatio(Colors.light.rail, Colors.light.surface),
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
-  it("should pass paper on clay (light) for button labels", () => {
+  it("should pass surface on rail (light) for button labels", () => {
     expect(
-      contrastRatio(Colors.light.paper, Colors.light.clay),
+      contrastRatio(Colors.light.surface, Colors.light.rail),
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
-  it("should pass signal on paper (light)", () => {
+  it("should pass seat on paper (light)", () => {
     expect(
-      contrastRatio(Colors.light.signal, Colors.light.paper),
+      contrastRatio(Colors.light.seat, Colors.light.paper),
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
@@ -73,15 +73,15 @@ describe("Heritage token contrast (WCAG AA, normal text)", () => {
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
-  it("should pass clay on paper (dark)", () => {
+  it("should pass rail on paper (dark)", () => {
     expect(
-      contrastRatio(Colors.dark.clay, Colors.dark.paper),
+      contrastRatio(Colors.dark.rail, Colors.dark.paper),
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 
-  it("should pass signal on paper (dark)", () => {
+  it("should pass seat on paper (dark)", () => {
     expect(
-      contrastRatio(Colors.dark.signal, Colors.dark.paper),
+      contrastRatio(Colors.dark.seat, Colors.dark.paper),
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 });

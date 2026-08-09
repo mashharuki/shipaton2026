@@ -48,7 +48,7 @@ export function RuleBar({
         style={[
           styles.fill,
           fillStyle,
-          { backgroundColor: theme.clay, height, borderRadius: height / 2 },
+          { backgroundColor: theme.rail, height, borderRadius: height / 2 },
         ]}
       />
     </View>
