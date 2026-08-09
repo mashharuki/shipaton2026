@@ -97,6 +97,7 @@
     "departureLabel": "発車",
     "direction": "進行方向",
     "recommendedCar": "推奨号車: {{car}} 号車",
+    "carDirectionHint": "← {{from}}方 / {{to}}方 →",
     "waitingPosition": "ホーム上の待機位置（号車）",
     "perStationTitle": "駅ごとの着座確率",
     "reason": {

@@ -28,6 +28,7 @@ export {
   ProBlurGate,
   type ProBlurGateProps,
 } from "@/components/ui/pro-blur-gate";
+export { Pulse, type PulseProps } from "@/components/ui/pulse";
 export { RuleBar, type RuleBarProps } from "@/components/ui/rule-bar";
 export { clampRatio } from "@/components/ui/rule-bar-math";
 export {

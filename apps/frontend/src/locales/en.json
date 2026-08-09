@@ -97,6 +97,7 @@
     "departureLabel": "Departs",
     "direction": "Direction of travel",
     "recommendedCar": "Recommended car: {{car}}",
+    "carDirectionHint": "← Toward {{from}} / Toward {{to}} →",
     "waitingPosition": "Waiting position on the platform (by car)",
     "perStationTitle": "Seat chance by station",
     "reason": {
