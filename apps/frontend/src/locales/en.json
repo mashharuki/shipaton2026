@@ -29,6 +29,7 @@
     "settings": "Settings"
   },
   "onboarding": {
+    "skip": "Skip",
     "step1Title": "Comfortable routes, not just fast ones",
     "step1Body": "SeatSignal suggests commute routes based on standing time and seat comfort, not just speed.",
     "step2Title": "Know your standing time up front",
@@ -161,6 +162,9 @@
   },
   "settings": {
     "title": "Settings",
+    "planFree": "Free plan",
+    "planPro": "Pro plan",
+    "proCardCta": "Upgrade to Pro to unlock every feature",
     "appearance": "Appearance",
     "appearanceSystem": "Match system",
     "appearanceLight": "Light",

@@ -29,6 +29,7 @@
     "settings": "設定"
   },
   "onboarding": {
+    "skip": "スキップ",
     "step1Title": "快適なルートを提案",
     "step1Body": "SeatSignalは、最速だけでなく「立ち時間」や「着座しやすさ」まで考えた通勤ルートを提案します。",
     "step2Title": "予想立ち時間を先に知る",
@@ -161,6 +162,9 @@
   },
   "settings": {
     "title": "設定",
+    "planFree": "Freeプラン",
+    "planPro": "Proプラン",
+    "proCardCta": "Proにアップグレードして全機能を使う",
     "appearance": "外観",
     "appearanceSystem": "システムに合わせる",
     "appearanceLight": "ライト",

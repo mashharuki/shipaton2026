@@ -1,14 +1,21 @@
+import { Feather } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { isErr, type VS_EXPECTED_OUTCOMES } from "shared";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import {
+  BottomTabInset,
+  Colors,
+  Fonts,
+  MaxContentWidth,
+  Radius,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { endCoachSession } from "@/features/coach/coach-store";
 import { getTimetableData } from "@/features/dataset/dataset-repository";
 import { createSqliteDatasetStore } from "@/features/dataset/dataset-store";
@@ -23,6 +30,7 @@ import {
 import { RANKED_ROUTE_TYPES } from "@/features/search/route-ranker";
 import type { RouteLeg } from "@/features/search/route-search-engine";
 import { createSqliteTripHistoryStore } from "@/features/trip-history/trip-history-repository";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { analyticsClient } from "@/lib/analytics";
 import { getDb } from "@/lib/db";
 import type { SupportedLocale } from "@/lib/i18n";
@@ -41,6 +49,32 @@ const VS_EXPECTED_VALUES: readonly VsExpected[] = [
   "more_crowded_than_expected",
 ];
 
+function OptionCard({
+  label,
+  onPress,
+  testID,
+}: {
+  label: string;
+  onPress: () => void;
+  testID: string;
+}) {
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      testID={testID}
+      style={[
+        styles.option,
+        { backgroundColor: c.surfaceMuted, borderColor: c.hairline },
+      ]}
+    >
+      <Text style={[styles.optionText, { color: c.text }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 // 7.3/8.1-8.6: reached from coach.tsx's "end ride" button. Outcome selection
 // (+ station tap when needed) is what actually submits -- the 2-tap
 // completion condition ("フィードバック送信が2タップで完了") -- while the
@@ -49,6 +83,8 @@ const VS_EXPECTED_VALUES: readonly VsExpected[] = [
 export default function FeedbackScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const params = useLocalSearchParams<{
     tripId?: string;
     legs?: string;
@@ -183,139 +219,147 @@ export default function FeedbackScreen() {
 
   if (submitted) {
     return (
-      <ThemedView style={styles.container} testID="feedback-screen">
+      <View style={[styles.container, { backgroundColor: c.background }]}>
         <SafeAreaView style={styles.safeArea}>
-          <ThemedView
-            style={styles.confirmation}
-            testID="feedback-confirmation"
-          >
-            <ThemedText type="title">{t("feedback.submitted")}</ThemedText>
+          <View style={styles.confirmation} testID="feedback-confirmation">
+            <Text style={[styles.confirmationTitle, { color: c.text }]}>
+              {t("feedback.submitted")}
+            </Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => router.replace("/")}
               testID="feedback-back-home"
+              style={styles.backHomeButton}
             >
-              <ThemedText type="link">{t("feedback.backHome")}</ThemedText>
+              <Text style={[styles.backHomeText, { color: c.seat }]}>
+                {t("feedback.backHome")}
+              </Text>
             </Pressable>
-          </ThemedView>
+          </View>
         </SafeAreaView>
-      </ThemedView>
+      </View>
     );
   }
 
   return (
-    <ThemedView style={styles.container} testID="feedback-screen">
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="feedback-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
+        <Text style={[styles.title, { color: c.text }]}>
           {t("feedback.title")}
-        </ThemedText>
+        </Text>
 
         <ScrollView contentContainerStyle={styles.content}>
-          <ThemedText type="smallBold" themeColor="textSecondary">
+          <Text style={[styles.improvementNotice, { color: c.textSecondary }]}>
             {t("feedback.improvementNotice")}
-          </ThemedText>
+          </Text>
 
           {!showStationPicker ? (
             <>
-              <ThemedText type="default">{t("feedback.prompt")}</ThemedText>
-              <Pressable
-                accessibilityRole="button"
+              <Text style={[styles.prompt, { color: c.text }]}>
+                {t("feedback.prompt")}
+              </Text>
+              <OptionCard
+                label={t("feedback.seatedFromStart")}
                 onPress={() => handleOutcomePress("seated_from_start")}
                 testID="feedback-seated-from-start"
-              >
-                <ThemedView type="backgroundElement" style={styles.option}>
-                  <ThemedText type="default">
-                    {t("feedback.seatedFromStart")}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
+              />
+              <OptionCard
+                label={t("feedback.seatedFromMiddle")}
                 onPress={handleSeatedFromMiddlePress}
                 testID="feedback-seated-from-middle"
-              >
-                <ThemedView type="backgroundElement" style={styles.option}>
-                  <ThemedText type="default">
-                    {t("feedback.seatedFromMiddle")}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
+              />
+              <OptionCard
+                label={t("feedback.stoodWholeTrip")}
                 onPress={() => handleOutcomePress("stood_whole_trip")}
                 testID="feedback-stood-whole-trip"
-              >
-                <ThemedView type="backgroundElement" style={styles.option}>
-                  <ThemedText type="default">
-                    {t("feedback.stoodWholeTrip")}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
+              />
             </>
           ) : (
             <>
-              <ThemedText type="default">
+              <Text style={[styles.prompt, { color: c.text }]}>
                 {t("feedback.selectSeatedStation")}
-              </ThemedText>
+              </Text>
               {seatedStationCandidates.map((station) => (
-                <Pressable
+                <OptionCard
                   key={station.id}
-                  accessibilityRole="button"
+                  label={
+                    (i18n.language as SupportedLocale) === "ja"
+                      ? station.nameJa
+                      : station.nameEn
+                  }
                   onPress={() => handleStationPress(station.id)}
                   testID={`feedback-station-${station.id}`}
-                >
-                  <ThemedView type="backgroundElement" style={styles.option}>
-                    <ThemedText type="default">
-                      {(i18n.language as SupportedLocale) === "ja"
-                        ? station.nameJa
-                        : station.nameEn}
-                    </ThemedText>
-                  </ThemedView>
-                </Pressable>
+                />
               ))}
             </>
           )}
 
-          <ThemedText type="small" style={styles.sectionLabel}>
+          <SectionSpacer />
+          <Text style={[styles.sectionLabel, { color: c.textSecondary }]}>
             {t("feedback.vsExpectedPrompt")}
-          </ThemedText>
-          <ThemedView style={styles.vsExpectedRow}>
-            {VS_EXPECTED_VALUES.map((value) => (
-              <Pressable
-                key={value}
-                accessibilityRole="button"
-                onPress={() => setVsExpected(value)}
-                testID={`feedback-vs-expected-${value}`}
-              >
-                <ThemedView
-                  type={
-                    vsExpected === value
-                      ? "backgroundSelected"
-                      : "backgroundElement"
-                  }
-                  style={styles.vsExpectedOption}
+          </Text>
+          <View style={styles.vsExpectedRow}>
+            {VS_EXPECTED_VALUES.map((value) => {
+              const isSelected = vsExpected === value;
+              return (
+                <Pressable
+                  key={value}
+                  accessibilityRole="button"
+                  onPress={() => setVsExpected(value)}
+                  testID={`feedback-vs-expected-${value}`}
+                  style={[
+                    styles.vsExpectedOption,
+                    isSelected
+                      ? {
+                          backgroundColor: `${c.seat}1F`,
+                          borderColor: c.seat,
+                        }
+                      : {
+                          backgroundColor: c.surfaceMuted,
+                          borderColor: c.hairline,
+                        },
+                  ]}
                 >
-                  <ThemedText type="small">
+                  <Text
+                    style={[
+                      styles.vsExpectedText,
+                      { color: isSelected ? c.seat : c.text },
+                    ]}
+                  >
                     {t(VS_EXPECTED_KEYS[value])}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            ))}
-          </ThemedView>
+                  </Text>
+                  {isSelected ? (
+                    <Feather
+                      name="check"
+                      size={13}
+                      color={c.seat}
+                      style={styles.vsExpectedCheck}
+                    />
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </View>
 
           {feedbackMutation.isError ? (
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
+            <Text
+              style={[styles.submitError, { color: c.textSecondary }]}
               testID="feedback-submit-error"
             >
               {t("feedback.submitError")}
-            </ThemedText>
+            </Text>
           ) : null}
         </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
+}
+
+function SectionSpacer() {
+  return <View style={{ height: Spacing.three }} />;
 }
 
 const styles = StyleSheet.create({
@@ -324,7 +368,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.five,
     paddingTop: Spacing.three,
     gap: Spacing.three,
     paddingBottom: BottomTabInset + Spacing.three,
@@ -333,17 +377,33 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    textAlign: "left",
+    ...Typography.h1,
   },
   content: {
     gap: Spacing.two,
   },
+  improvementNotice: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 12,
+  },
+  prompt: {
+    fontFamily: Fonts.jp,
+    fontSize: 15,
+  },
   option: {
-    borderRadius: Spacing.three,
+    minHeight: 60,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
     padding: Spacing.three,
+    justifyContent: "center",
+  },
+  optionText: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
   },
   sectionLabel: {
-    marginTop: Spacing.three,
+    fontFamily: Fonts.jp,
+    fontSize: 13,
   },
   vsExpectedRow: {
     flexDirection: "row",
@@ -351,13 +411,42 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   vsExpectedOption: {
-    borderRadius: Spacing.three,
-    padding: Spacing.two,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+  },
+  vsExpectedText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  vsExpectedCheck: {
+    marginLeft: 6,
+  },
+  submitError: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
   },
   confirmation: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.three,
+  },
+  confirmationTitle: {
+    ...Typography.h1,
+  },
+  backHomeButton: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 12,
+  },
+  backHomeText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
   },
 });
