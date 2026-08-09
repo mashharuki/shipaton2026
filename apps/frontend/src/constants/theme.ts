@@ -69,7 +69,10 @@ export const Gradients = {
     ] as const,
   },
   light: {
-    signal: ["#0B78C4", "#0E8C6B"] as const,
+    // Terminal stop matches Colors.light.seat (#0D8162) -- keep them in sync;
+    // the un-darkened #0E8C6B fails WCAG AA against onAccent (see
+    // test/constants/contrast-ratio.test.ts).
+    signal: ["#0B78C4", "#0D8162"] as const,
     border: [
       "rgba(11,120,196,0.55)",
       "rgba(14,140,107,0.35)",

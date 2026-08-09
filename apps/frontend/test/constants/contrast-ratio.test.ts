@@ -10,7 +10,7 @@ vi.mock("react-native", () => ({
 }));
 
 import { contrastRatio } from "@/constants/contrast-ratio";
-import { Colors } from "@/constants/theme";
+import { Colors, Gradients } from "@/constants/theme";
 
 const WCAG_AA_NORMAL_TEXT = 4.5;
 
@@ -82,6 +82,13 @@ describe("Night Rail token contrast (WCAG AA, normal text)", () => {
   it("should pass seat on paper (dark)", () => {
     expect(
       contrastRatio(Colors.dark.seat, Colors.dark.paper),
+    ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
+  });
+
+  it("should pass the signal gradient's terminal color on onAccent (light)", () => {
+    const [, terminal] = Gradients.light.signal;
+    expect(
+      contrastRatio(terminal, Colors.light.onAccent),
     ).toBeGreaterThanOrEqual(WCAG_AA_NORMAL_TEXT);
   });
 });
