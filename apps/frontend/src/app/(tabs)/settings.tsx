@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
   Linking,
   Pressable,
   ScrollView,
@@ -124,6 +125,19 @@ export default function SettingsScreen() {
   const setPreference = useThemeStore((state) => state.setPreference);
   const pro = useIsPro();
 
+  // openSubscriptionManagement() falls back to Linking.openURL(), which can
+  // reject (no handler for the URL, permission denied) -- both settings
+  // entry points into it share this handler so neither leaves that
+  // rejection unhandled.
+  const handleManageSubscription = async () => {
+    try {
+      await openSubscriptionManagement();
+    } catch (cause) {
+      console.warn("Failed to open subscription management", cause);
+      Alert.alert(t("settings.subscriptionManagementError"));
+    }
+  };
+
   return (
     <View
       style={[styles.container, { backgroundColor: c.background }]}
@@ -138,7 +152,7 @@ export default function SettingsScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() =>
-              pro ? openSubscriptionManagement() : router.push("/paywall")
+              pro ? handleManageSubscription() : router.push("/paywall")
             }
             testID="settings-plan-card"
           >
@@ -206,7 +220,7 @@ export default function SettingsScreen() {
             />
             <ListRow
               label={t("settings.subscriptionManagement")}
-              onPress={() => openSubscriptionManagement()}
+              onPress={handleManageSubscription}
               testID="settings-subscription-management-link"
             />
             <ListRow

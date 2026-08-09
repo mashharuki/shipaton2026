@@ -175,6 +175,7 @@
     "notifications": "通知設定",
     "privacy": "プライバシー・データ管理",
     "subscriptionManagement": "サブスクリプション管理",
+    "subscriptionManagementError": "サブスクリプション管理画面を開けませんでした。もう一度お試しください。",
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",
     "licenses": "帰属表示・サポート",

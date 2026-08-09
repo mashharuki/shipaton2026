@@ -175,6 +175,7 @@
     "notifications": "Notification settings",
     "privacy": "Privacy & data management",
     "subscriptionManagement": "Manage subscription",
+    "subscriptionManagementError": "Couldn't open subscription management. Please try again.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "licenses": "Attribution & support",
