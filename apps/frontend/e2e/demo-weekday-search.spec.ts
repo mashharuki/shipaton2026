@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { completeOnboarding, waitForSearchResults } from "./helpers";
 
+// detectDeviceLocale() (src/lib/i18n.ts) reads navigator.language via
+// expo-localization, which Playwright's default context leaves at en-US --
+// see language-and-offline.spec.ts's own comment on this. This spec asserts
+// the Japanese demoSchedule string literally, so it needs the ja-JP locale
+// pinned explicitly rather than inheriting whatever the runner's default is.
+test.use({ locale: "ja-JP" });
+
 test("uses the fixed weekday timetable for the home demo on weekends", async ({
   page,
 }) => {

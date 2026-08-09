@@ -83,6 +83,10 @@ jobs:
       - name: Install Playwright browsers
         working-directory: apps/frontend
         run: npx playwright install --with-deps chromium
+      - name: Configure matching API_SHARED_KEY for backend and frontend
+        run: |
+          echo "API_SHARED_KEY=${E2E_API_SHARED_KEY}" >> apps/backend/.dev.vars
+          echo "EXPO_PUBLIC_API_SHARED_KEY=${E2E_API_SHARED_KEY}" >> apps/frontend/.env.local
       - name: Apply local D1 migrations
         working-directory: apps/backend
         run: pnpm run db:migrate:local
