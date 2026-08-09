@@ -127,16 +127,25 @@ export default function CoachScreen() {
 
   const { snapshot, isPending } = useCoachSession(legs);
 
-  const adviceText = snapshot?.isApproachingDestination
-    ? t("coach.approachingDestination")
+  const advice = snapshot?.isApproachingDestination
+    ? {
+        text: t("coach.approachingDestination"),
+        testID: "coach-alighting-guidance",
+      }
     : snapshot && snapshot.delayMinutes > 0
-      ? t("coach.delayNotice", { minutes: snapshot.delayMinutes })
+      ? {
+          text: t("coach.delayNotice", { minutes: snapshot.delayMinutes }),
+          testID: "coach-delay-notice",
+        }
       : snapshot?.trainStatusStale
-        ? t("coach.staleNotice")
+        ? { text: t("coach.staleNotice"), testID: "coach-stale-notice" }
         : null;
 
   return (
-    <View style={[styles.container, { backgroundColor: c.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="coach-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Pressable
@@ -257,13 +266,13 @@ export default function CoachScreen() {
               </View>
             ) : null}
 
-            {adviceText ? (
+            {advice ? (
               <View
                 style={[styles.adviceBand, { backgroundColor: `${c.rail}1A` }]}
-                testID="coach-advice"
+                testID={advice.testID}
               >
                 <Text style={[styles.adviceText, { color: c.rail }]}>
-                  {adviceText}
+                  {advice.text}
                 </Text>
               </View>
             ) : null}

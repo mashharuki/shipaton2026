@@ -103,7 +103,10 @@ export default function RouteDetailScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: c.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="route-detail-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Pressable
