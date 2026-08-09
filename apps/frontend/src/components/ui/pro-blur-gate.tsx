@@ -35,7 +35,13 @@ export function ProBlurGate({
 
   return (
     <View style={styles.wrap} testID={testID}>
-      <View pointerEvents="none">{children}</View>
+      <View
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {children}
+      </View>
       <BlurView intensity={28} tint={scheme} style={StyleSheet.absoluteFill} />
       <AppPressable
         accessibilityRole="button"

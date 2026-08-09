@@ -181,6 +181,7 @@ export default function HomeScreen() {
             <Image
               source={require("@/assets/images/night-rail-icon.png")}
               style={styles.headerIcon}
+              accessible={false}
             />
             <Text style={styles.wordmark}>
               <Text style={{ color: c.text }}>Seat</Text>
