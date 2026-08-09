@@ -17,7 +17,7 @@ import {
 } from "@/constants/theme";
 import type { WeeklyMetrics } from "@/features/report/use-weekly-report";
 import { useWeeklyReport } from "@/features/report/use-weekly-report";
-import { isPro } from "@/features/subscription/subscription-gate";
+import { useIsPro } from "@/features/subscription/subscription-gate";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
@@ -158,6 +158,7 @@ export default function ReportScreen() {
   const scheme = useAppColorScheme();
   const c = Colors[scheme];
   const paywallGate = usePaywallGate();
+  const isPro = useIsPro();
   const [weekOffset, setWeekOffset] = useState(0);
   const { isLoading, window, current, previous } = useWeeklyReport(weekOffset);
 
@@ -260,7 +261,7 @@ export default function ReportScreen() {
               </View>
 
               <ProBlurGate
-                locked={!isPro()}
+                locked={!isPro}
                 onPress={() =>
                   paywallGate({
                     type: "pro_feature",

@@ -272,7 +272,13 @@ export default function HomeScreen() {
                   </Text>
                 </Pressable>
                 <View style={styles.savedRouteRight}>
-                  {comfortEsm !== undefined ? (
+                  {/* comfortEsm is a single value from the one demo search
+                  above, not a per-route estimate -- only valid for the row
+                  that actually matches that query. */}
+                  {comfortEsm !== undefined &&
+                  route.fromStationId === DEMO_QUERY.fromStationId &&
+                  route.toStationId === DEMO_QUERY.toStationId &&
+                  route.departureTime === DEMO_QUERY.departureTime ? (
                     <Text style={styles.savedRouteEsm}>
                       <Text
                         style={{ color: c.seat, fontFamily: Fonts.numBold }}

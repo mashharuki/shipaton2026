@@ -21,7 +21,7 @@ import {
   Typography,
 } from "@/constants/theme";
 import { openSubscriptionManagement } from "@/features/subscription/purchases-client";
-import { isPro } from "@/features/subscription/subscription-gate";
+import { useIsPro } from "@/features/subscription/subscription-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/lib/config";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/i18n";
@@ -122,7 +122,7 @@ export default function SettingsScreen() {
   const c = Colors[scheme];
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
-  const pro = isPro();
+  const pro = useIsPro();
 
   return (
     <View
