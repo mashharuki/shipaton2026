@@ -82,6 +82,7 @@
     "confidenceMedium": "Medium",
     "confidenceHigh": "High",
     "comfortDiff": "Add {{extra}} min to cut expected standing time by {{reduced}} min",
+    "rangeNotice": "Shown as a range instead of a point estimate due to limited data",
     "minutesValue": "{{minutes}} min",
     "percentValue": "{{percent}}%"
   },

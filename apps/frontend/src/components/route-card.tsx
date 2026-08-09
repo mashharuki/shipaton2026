@@ -1,14 +1,15 @@
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { StandingMinutesEstimate } from "shared";
 
-import { Spacing } from "@/constants/theme";
+import { GradientBorderCard } from "@/components/ui/gradient-border";
+import { Meter } from "@/components/ui/meter";
+import { Colors, Fonts, Radius, Spacing, Typography } from "@/constants/theme";
 import type {
   RankedRoute,
   RankedRouteType,
 } from "@/features/search/route-ranker";
-import { ThemedText } from "./themed-text";
-import { ThemedView } from "./themed-view";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
 const TYPE_LABEL_KEYS: Record<RankedRouteType, string> = {
   fastest: "results.fastest",
@@ -41,17 +42,21 @@ export type RouteCardProps = {
   onPress?: () => void;
 };
 
-// 4.2/4.3: one card = one RankedRoute, showing every metric design.md's
-// requirement lists (arrival, duration, diff-from-fastest, standing/seated
-// minutes, seat probability, transfer count, comfort score, confidence),
-// plus the comfort-specific "extra time for less standing" tradeoff line.
+/**
+ * 情報階層: ESM（最大の数字） > 着座確率メーター > 到着/所要/乗換 > 信頼度。
+ * comfort カードだけがヒーロー扱い（グラデ枠 + 46px の ESM）。
+ */
 export function RouteCard({
   route,
   fastestStandingMinutes,
   onPress,
 }: RouteCardProps) {
   const { t } = useTranslation();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const standing = route.prediction.standingMinutes;
+  const isHero = route.type === "comfort";
+
   const standingText =
     "point" in standing
       ? t("results.standingMinutesPoint", {
@@ -70,95 +75,155 @@ export function RouteCard({
         )
       : 0;
   const showComfortDiff =
-    route.type === "comfort" &&
+    isHero &&
     fastestStandingMinutes !== undefined &&
     route.diffFromFastestMinutes > 0;
+
+  const body = (
+    <View style={styles.body}>
+      <View style={styles.headRow}>
+        <View style={styles.badges}>
+          <View
+            style={[
+              styles.badge,
+              { backgroundColor: isHero ? `${c.seat}29` : c.surfaceMuted },
+            ]}
+          >
+            <Text
+              style={[styles.badgeText, { color: isHero ? c.seat : c.text }]}
+            >
+              {t(TYPE_LABEL_KEYS[route.type])}
+            </Text>
+          </View>
+          <View style={[styles.badge, { backgroundColor: c.surfaceMuted }]}>
+            <Text style={[styles.badgeText, { color: c.textSecondary }]}>
+              {t("results.confidence")}{" "}
+              {t(CONFIDENCE_LABEL_KEYS[route.prediction.confidence])}
+            </Text>
+          </View>
+        </View>
+        {route.diffFromFastestMinutes > 0 ? (
+          <Text style={[styles.meta, { color: c.textSecondary }]}>
+            +{route.diffFromFastestMinutes}分
+          </Text>
+        ) : null}
+      </View>
+
+      <View style={styles.metricRow}>
+        <View>
+          <Text style={[styles.label, { color: c.textSecondary }]}>
+            {t("results.standingMinutes")}
+          </Text>
+          <Text
+            style={[isHero ? styles.esmHero : styles.esm, { color: c.text }]}
+          >
+            {standingText.replace(/\s*分$/, "")}
+            <Text style={[styles.unit, { color: c.textSecondary }]}> 分</Text>
+          </Text>
+        </View>
+        <View style={styles.meterCol}>
+          <View style={styles.meterHead}>
+            <Text style={[styles.label, { color: c.textSecondary }]}>
+              {t("results.seatProbability")}
+            </Text>
+            <Text
+              style={[
+                styles.pct,
+                {
+                  color:
+                    route.prediction.confidence === "high" ? c.seat : c.text,
+                },
+              ]}
+            >
+              {Math.round(route.prediction.seatProbability * 100)}%
+            </Text>
+          </View>
+          <Meter
+            value={route.prediction.seatProbability}
+            confidence={route.prediction.confidence}
+          />
+          <Text style={[styles.meta, { color: c.textSecondary }]}>
+            {route.arrivalTime} 着 ・ {route.totalMinutes}分 ・{" "}
+            {t("results.transferCount")} {route.transferCount}
+          </Text>
+        </View>
+      </View>
+
+      {showComfortDiff ? (
+        <>
+          <View style={[styles.rule, { backgroundColor: c.hairline }]} />
+          <Text style={[styles.diff, { color: c.seat }]} testID="comfort-diff">
+            {t("results.comfortDiff", {
+              extra: route.diffFromFastestMinutes,
+              reduced: reducedMinutes,
+            })}
+          </Text>
+        </>
+      ) : null}
+
+      {!("point" in standing) ? (
+        <Text style={[styles.note, { color: c.textSecondary }]}>
+          {t("results.rangeNotice")}
+        </Text>
+      ) : null}
+    </View>
+  );
 
   return (
     <Pressable
       accessibilityRole={onPress ? "button" : undefined}
       onPress={onPress}
       disabled={!onPress}
+      testID={`route-card-${route.type}`}
       style={({ pressed }) => pressed && onPress && styles.pressed}
     >
-      <ThemedView
-        type="backgroundElement"
-        style={styles.card}
-        testID={`route-card-${route.type}`}
-      >
-        <ThemedText type="smallBold">
-          {t(TYPE_LABEL_KEYS[route.type])}
-        </ThemedText>
-        <ThemedText type="title" style={styles.arrival} testID="route-arrival">
-          {route.arrivalTime}
-        </ThemedText>
-        <ThemedText type="default" themeColor="textSecondary">
-          {t("results.duration")}:{" "}
-          {t("results.minutesValue", { minutes: route.totalMinutes })}
-        </ThemedText>
-        {route.diffFromFastestMinutes > 0 ? (
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            testID="route-diff"
-          >
-            {t("results.diffFromFastest", {
-              minutes: route.diffFromFastestMinutes,
-            })}
-          </ThemedText>
-        ) : null}
-        <ThemedText type="default">
-          {t("results.standingMinutes")}: {standingText}
-        </ThemedText>
-        <ThemedText type="default">
-          {t("results.seatedMinutes")}:{" "}
-          {t("results.minutesValue", {
-            minutes: Math.round(route.prediction.seatedMinutes),
-          })}
-        </ThemedText>
-        <ThemedText type="default">
-          {t("results.seatProbability")}:{" "}
-          {t("results.percentValue", {
-            percent: Math.round(route.prediction.seatProbability * 100),
-          })}
-        </ThemedText>
-        <ThemedText type="default">
-          {t("results.transferCount")}: {route.transferCount}
-        </ThemedText>
-        <ThemedText type="default">
-          {t("results.comfortScore")}:{" "}
-          {t("results.percentValue", {
-            percent: Math.round(route.prediction.comfortScore * 100),
-          })}
-        </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t("results.confidence")}:{" "}
-          {t(CONFIDENCE_LABEL_KEYS[route.prediction.confidence])}
-        </ThemedText>
-        {showComfortDiff ? (
-          <ThemedText type="smallBold" testID="comfort-diff">
-            {t("results.comfortDiff", {
-              extra: route.diffFromFastestMinutes,
-              reduced: reducedMinutes,
-            })}
-          </ThemedText>
-        ) : null}
-      </ThemedView>
+      {isHero ? (
+        <GradientBorderCard strong>{body}</GradientBorderCard>
+      ) : (
+        <View
+          style={[
+            styles.plain,
+            { backgroundColor: c.surfaceMuted, borderColor: c.hairline },
+          ]}
+        >
+          {body}
+        </View>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    gap: Spacing.one,
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
+  plain: { borderRadius: Radius.xl, borderWidth: 1, padding: Spacing.four },
+  body: { gap: Spacing.three },
+  headRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  arrival: {
-    fontSize: 32,
-    lineHeight: 36,
+  badges: { flexDirection: "row", gap: Spacing.two },
+  badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: Radius.sm },
+  badgeText: { fontFamily: Fonts.jpBold, fontSize: 11, lineHeight: 11 },
+  metricRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: Spacing.four,
   },
-  pressed: {
-    opacity: 0.7,
+  meterCol: { flex: 1, gap: Spacing.two, paddingBottom: Spacing.one },
+  meterHead: { flexDirection: "row", justifyContent: "space-between" },
+  label: { ...Typography.caption },
+  esm: { ...Typography.numericLarge },
+  esmHero: {
+    fontFamily: Fonts.numBold,
+    fontSize: 46,
+    lineHeight: 46,
+    letterSpacing: -0.9,
   },
+  unit: { fontFamily: Fonts.jp, fontSize: 15 },
+  pct: { fontFamily: Fonts.numBold, fontSize: 12 },
+  meta: { ...Typography.caption },
+  rule: { height: 1 },
+  diff: { fontFamily: Fonts.jpBold, fontSize: 13, lineHeight: 20 },
+  note: { ...Typography.caption },
+  pressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
 });

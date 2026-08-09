@@ -82,6 +82,7 @@
     "confidenceMedium": "中",
     "confidenceHigh": "高",
     "comfortDiff": "追加 {{extra}} 分で予想立ち時間を {{reduced}} 分削減",
+    "rangeNotice": "データが少ないため、点ではなく範囲で表示しています",
     "minutesValue": "{{minutes}} 分",
     "percentValue": "{{percent}}%"
   },
