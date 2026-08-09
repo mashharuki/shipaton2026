@@ -57,12 +57,11 @@ export function RouteCard({
   const standing = route.prediction.standingMinutes;
   const isHero = route.type === "comfort";
 
-  const standingText =
+  const standingUnit = t("results.minutesUnit");
+  const standingValueText =
     "point" in standing
-      ? t("results.standingMinutesPoint", {
-          minutes: Math.round(standing.point),
-        })
-      : t("results.standingMinutesRange", {
+      ? String(Math.round(standing.point))
+      : t("results.standingMinutesRangeValue", {
           min: Math.round(standing.rangeMin),
           max: Math.round(standing.rangeMax),
         });
@@ -104,7 +103,10 @@ export function RouteCard({
         </View>
         {route.diffFromFastestMinutes > 0 ? (
           <Text style={[styles.meta, { color: c.textSecondary }]}>
-            +{route.diffFromFastestMinutes}分
+            +
+            {t("results.minutesValue", {
+              minutes: route.diffFromFastestMinutes,
+            })}
           </Text>
         ) : null}
       </View>
@@ -117,8 +119,11 @@ export function RouteCard({
           <Text
             style={[isHero ? styles.esmHero : styles.esm, { color: c.text }]}
           >
-            {standingText.replace(/\s*分$/, "")}
-            <Text style={[styles.unit, { color: c.textSecondary }]}> 分</Text>
+            {standingValueText}
+            <Text style={[styles.unit, { color: c.textSecondary }]}>
+              {" "}
+              {standingUnit}
+            </Text>
           </Text>
         </View>
         <View style={styles.meterCol}>
@@ -143,7 +148,8 @@ export function RouteCard({
             confidence={route.prediction.confidence}
           />
           <Text style={[styles.meta, { color: c.textSecondary }]}>
-            {route.arrivalTime} 着 ・ {route.totalMinutes}分 ・{" "}
+            {route.arrivalTime} {t("results.arrivalTime")} ・{" "}
+            {t("results.minutesValue", { minutes: route.totalMinutes })} ・{" "}
             {t("results.transferCount")} {route.transferCount}
           </Text>
         </View>
