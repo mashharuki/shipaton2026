@@ -72,6 +72,8 @@ jobs:
   e2e:
     name: Playwright E2E (frontend)
     runs-on: ubuntu-latest
+    env:
+      E2E_API_SHARED_KEY: e2e-ci-shared-key
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
