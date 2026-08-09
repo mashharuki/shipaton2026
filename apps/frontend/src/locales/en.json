@@ -47,7 +47,11 @@
   "home": {
     "title": "SeatSignal",
     "placeholder": "Search is coming soon",
-    "demoSearch": "Search Shinjuku → Tokyo (demo)"
+    "demoSearch": "Search Shinjuku → Tokyo (demo)",
+    "demoFromStation": "Shinjuku",
+    "demoToStation": "Tokyo",
+    "headline": "Leave {{extra}} min later this morning to cut standing time by {{reduced}} min",
+    "weeklySavedSummary": "You saved {{minutes}} min of standing time in total"
   },
   "savedRoutes": {
     "title": "Saved routes",
@@ -147,6 +151,8 @@
     "noData": "No data",
     "dailyTrend": "Expected standing time by day",
     "vsLastWeek": "Vs. last week",
+    "hero": "Standing time saved",
+    "vsLastWeekShort": "{{delta}} min vs last week",
     "proGate": {
       "title": "Pro feature",
       "cta": "Upgrade to Pro to see the daily trend and week-over-week comparison"
@@ -164,7 +170,8 @@
     "subscriptionManagement": "Manage subscription",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "licenses": "Attribution & support"
+    "licenses": "Attribution & support",
+    "replayOnboarding": "Watch the app intro again"
   },
   "privacySettings": {
     "title": "Privacy & data management",

@@ -47,7 +47,11 @@
   "home": {
     "title": "SeatSignal",
     "placeholder": "検索機能は近日公開予定です",
-    "demoSearch": "新宿→東京を検索（デモ）"
+    "demoSearch": "新宿→東京を検索（デモ）",
+    "demoFromStation": "新宿",
+    "demoToStation": "東京",
+    "headline": "今朝は {{extra}} 分遅く出ると立ち時間が {{reduced}} 分減ります",
+    "weeklySavedSummary": "合計 {{minutes}} 分の立ち時間を削減しました"
   },
   "savedRoutes": {
     "title": "保存したルート",
@@ -147,6 +151,8 @@
     "noData": "データなし",
     "dailyTrend": "日別の予想立ち時間",
     "vsLastWeek": "前週との比較",
+    "hero": "削減できた予想立ち時間",
+    "vsLastWeekShort": "前週比 {{delta}} 分",
     "proGate": {
       "title": "Pro機能",
       "cta": "Proにアップグレードして日別推移と前週比較を見る"
@@ -164,7 +170,8 @@
     "subscriptionManagement": "サブスクリプション管理",
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",
-    "licenses": "帰属表示・サポート"
+    "licenses": "帰属表示・サポート",
+    "replayOnboarding": "アプリの説明をもう一度見る"
   },
   "privacySettings": {
     "title": "プライバシー・データ管理",
