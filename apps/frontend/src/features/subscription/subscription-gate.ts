@@ -111,6 +111,18 @@ export function isPro(): boolean {
   return useSubscriptionGateStore.getState().isPro;
 }
 
+// Reactive counterpart of isPro() for use in a component's render body --
+// isPro() reads the store's current snapshot via getState() (no
+// subscription), so a component calling it directly won't re-render when
+// onEntitlementChange's listener updates the store later (purchase, restore,
+// renewal, expiry). Only call this from render bodies; imperative call sites
+// (onPress handlers, non-component functions) should keep using isPro().
+export function useIsPro(): boolean {
+  const storeIsPro = useSubscriptionGateStore((state) => state.isPro);
+  const override = e2eProOverride();
+  return override !== null ? override : storeIsPro;
+}
+
 export function guard(trigger: PaywallTrigger): GuardResult {
   if (isPro()) {
     return { allowed: true };

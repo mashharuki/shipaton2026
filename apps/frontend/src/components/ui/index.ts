@@ -11,10 +11,24 @@ export {
 export { Card, type CardProps } from "@/components/ui/card";
 export { Divider, type DividerProps } from "@/components/ui/divider";
 export {
+  GradientBorderCard,
+  type GradientBorderCardProps,
+} from "@/components/ui/gradient-border";
+export {
+  GradientButton,
+  type GradientButtonProps,
+} from "@/components/ui/gradient-button";
+export {
   type FeatherIconName,
   Icon,
   type IconProps,
 } from "@/components/ui/icon";
+export { Meter, type MeterProps } from "@/components/ui/meter";
+export {
+  ProBlurGate,
+  type ProBlurGateProps,
+} from "@/components/ui/pro-blur-gate";
+export { Pulse, type PulseProps } from "@/components/ui/pulse";
 export { RuleBar, type RuleBarProps } from "@/components/ui/rule-bar";
 export { clampRatio } from "@/components/ui/rule-bar-math";
 export {

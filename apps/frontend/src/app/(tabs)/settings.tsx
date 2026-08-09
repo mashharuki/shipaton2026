@@ -1,12 +1,29 @@
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Linking, Pressable, StyleSheet } from "react-native";
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { GradientBorderCard } from "@/components/ui/gradient-border";
+import {
+  BottomTabInset,
+  Colors,
+  Fonts,
+  MaxContentWidth,
+  Radius,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { openSubscriptionManagement } from "@/features/subscription/purchases-client";
+import { useIsPro } from "@/features/subscription/subscription-gate";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/lib/config";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@/lib/i18n";
 import {
@@ -29,6 +46,72 @@ const LOCALE_LABELS: Record<SupportedLocale, string> = {
   en: "English",
 };
 
+function OptionPill({
+  label,
+  isSelected,
+  onPress,
+  testID,
+}: {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+  testID?: string;
+}) {
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: isSelected }}
+      onPress={onPress}
+      testID={testID}
+      style={[
+        styles.optionButton,
+        isSelected
+          ? { backgroundColor: `${c.seat}24`, borderColor: `${c.seat}80` }
+          : { backgroundColor: c.surfaceMuted, borderColor: c.hairline },
+      ]}
+    >
+      <Text
+        style={[
+          styles.optionText,
+          { color: isSelected ? c.seat : c.textSecondary },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function ListRow({
+  label,
+  onPress,
+  testID,
+  isLast,
+}: {
+  label: string;
+  onPress: () => void;
+  testID?: string;
+  isLast?: boolean;
+}) {
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      testID={testID}
+      style={[
+        styles.listRow,
+        !isLast && { borderBottomWidth: 1, borderBottomColor: c.hairline },
+      ]}
+    >
+      <Text style={[styles.listRowText, { color: c.text }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 // 16.6 の設定ハブ本体（通知・位置情報・データ共有・履歴削除・サブスクリプ
 // ション管理・プライバシーポリシー・利用規約への導線）は task 9.2 で実装。
 // 位置情報・データ共有・履歴削除は settings/privacy.tsx に集約し、このハブ
@@ -36,196 +119,233 @@ const LOCALE_LABELS: Record<SupportedLocale, string> = {
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
+  const pro = useIsPro();
+
+  // openSubscriptionManagement() falls back to Linking.openURL(), which can
+  // reject (no handler for the URL, permission denied) -- both settings
+  // entry points into it share this handler so neither leaves that
+  // rejection unhandled.
+  const handleManageSubscription = async () => {
+    try {
+      await openSubscriptionManagement();
+    } catch (cause) {
+      console.warn("Failed to open subscription management", cause);
+      Alert.alert(t("settings.subscriptionManagementError"));
+    }
+  };
 
   return (
-    <ThemedView style={styles.container} testID="settings-screen">
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="settings-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          {t("settings.title")}
-        </ThemedText>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={[styles.title, { color: c.text }]}>
+            {t("settings.title")}
+          </Text>
 
-        <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold">{t("settings.appearance")}</ThemedText>
-          <ThemedView style={styles.optionRow}>
-            {THEME_PREFERENCES.map((option) => (
-              <Pressable
-                key={option}
-                accessibilityRole="button"
-                accessibilityState={{ selected: preference === option }}
-                onPress={() => setPreference(option)}
-                style={({ pressed }) => pressed && styles.pressed}
-              >
-                <ThemedView
-                  type={
-                    preference === option ? "backgroundSelected" : "background"
-                  }
-                  style={styles.optionButton}
-                >
-                  <ThemedText
-                    type="small"
-                    themeColor={
-                      preference === option ? "text" : "textSecondary"
-                    }
-                  >
-                    {t(PREFERENCE_LABEL_KEYS[option])}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            ))}
-          </ThemedView>
-        </ThemedView>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              pro ? handleManageSubscription() : router.push("/paywall")
+            }
+            testID="settings-plan-card"
+          >
+            <GradientBorderCard strong={pro}>
+              <Text style={[styles.planLabel, { color: c.text }]}>
+                {pro ? t("settings.planPro") : t("settings.planFree")}
+              </Text>
+              {!pro ? (
+                <Text style={[styles.planCta, { color: c.seat }]}>
+                  {t("settings.proCardCta")}
+                </Text>
+              ) : null}
+            </GradientBorderCard>
+          </Pressable>
 
-        <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold">{t("settings.language")}</ThemedText>
-          <ThemedView style={styles.optionRow}>
-            {SUPPORTED_LOCALES.map((locale) => (
-              <Pressable
-                key={locale}
-                accessibilityRole="button"
-                accessibilityState={{ selected: i18n.language === locale }}
-                onPress={() => i18n.changeLanguage(locale)}
-                testID={`settings-language-${locale}`}
-                style={({ pressed }) => pressed && styles.pressed}
-              >
-                <ThemedView
-                  type={
-                    i18n.language === locale
-                      ? "backgroundSelected"
-                      : "background"
-                  }
-                  style={styles.optionButton}
-                >
-                  <ThemedText
-                    type="small"
-                    themeColor={
-                      i18n.language === locale ? "text" : "textSecondary"
-                    }
-                  >
-                    {LOCALE_LABELS[locale]}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            ))}
-          </ThemedView>
-        </ThemedView>
-
-        <Pressable
-          accessibilityRole="button"
-          testID="settings-notifications-link"
-          onPress={() => router.push("/settings/notifications")}
-          style={({ pressed }) => pressed && styles.pressed}
-        >
-          <ThemedView type="backgroundElement" style={styles.section}>
-            <ThemedText type="smallBold">
-              {t("settings.notifications")}
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          testID="settings-privacy-link"
-          onPress={() => router.push("/settings/privacy")}
-          style={({ pressed }) => pressed && styles.pressed}
-        >
-          <ThemedView type="backgroundElement" style={styles.section}>
-            <ThemedText type="smallBold">{t("settings.privacy")}</ThemedText>
-          </ThemedView>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          testID="settings-subscription-management-link"
-          onPress={() => openSubscriptionManagement()}
-          style={({ pressed }) => pressed && styles.pressed}
-        >
-          <ThemedView type="backgroundElement" style={styles.section}>
-            <ThemedText type="smallBold">
-              {t("settings.subscriptionManagement")}
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          testID="settings-licenses-link"
-          onPress={() => router.push("/settings/licenses")}
-          style={({ pressed }) => pressed && styles.pressed}
-        >
-          <ThemedView type="backgroundElement" style={styles.section}>
-            <ThemedText type="smallBold">{t("settings.licenses")}</ThemedText>
-          </ThemedView>
-        </Pressable>
-
-        <ThemedView style={styles.linkRow}>
-          {PRIVACY_POLICY_URL ? (
-            <Pressable
-              accessibilityRole="link"
-              testID="settings-privacy-policy-link"
-              onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
-              style={({ pressed }) => pressed && styles.pressed}
+          <View style={[styles.group, { backgroundColor: c.surfaceMuted }]}>
+            <View style={styles.groupRow}>
+              <Text style={[styles.groupLabel, { color: c.text }]}>
+                {t("settings.appearance")}
+              </Text>
+              <View style={styles.optionRow}>
+                {THEME_PREFERENCES.map((option) => (
+                  <OptionPill
+                    key={option}
+                    label={t(PREFERENCE_LABEL_KEYS[option])}
+                    isSelected={preference === option}
+                    onPress={() => setPreference(option)}
+                  />
+                ))}
+              </View>
+            </View>
+            <View
+              style={[
+                styles.groupRow,
+                { borderTopWidth: 1, borderTopColor: c.hairline },
+              ]}
             >
-              <ThemedText type="link">{t("settings.privacyPolicy")}</ThemedText>
-            </Pressable>
-          ) : null}
-          {TERMS_OF_SERVICE_URL ? (
-            <Pressable
-              accessibilityRole="link"
-              testID="settings-terms-link"
-              onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL)}
-              style={({ pressed }) => pressed && styles.pressed}
-            >
-              <ThemedText type="link">
-                {t("settings.termsOfService")}
-              </ThemedText>
-            </Pressable>
-          ) : null}
-        </ThemedView>
+              <Text style={[styles.groupLabel, { color: c.text }]}>
+                {t("settings.language")}
+              </Text>
+              <View style={styles.optionRow}>
+                {SUPPORTED_LOCALES.map((locale) => (
+                  <OptionPill
+                    key={locale}
+                    label={LOCALE_LABELS[locale]}
+                    isSelected={i18n.language === locale}
+                    onPress={() => i18n.changeLanguage(locale)}
+                    testID={`settings-language-${locale}`}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
+
+          <View style={[styles.group, { backgroundColor: c.surfaceMuted }]}>
+            <ListRow
+              label={t("settings.notifications")}
+              onPress={() => router.push("/settings/notifications")}
+              testID="settings-notifications-link"
+            />
+            <ListRow
+              label={t("settings.privacy")}
+              onPress={() => router.push("/settings/privacy")}
+              testID="settings-privacy-link"
+            />
+            <ListRow
+              label={t("settings.subscriptionManagement")}
+              onPress={handleManageSubscription}
+              testID="settings-subscription-management-link"
+            />
+            <ListRow
+              label={t("settings.licenses")}
+              onPress={() => router.push("/settings/licenses")}
+              testID="settings-licenses-link"
+            />
+            <ListRow
+              label={t("settings.replayOnboarding")}
+              onPress={() => router.push("/onboarding")}
+              testID="settings-replay-onboarding-link"
+              isLast
+            />
+          </View>
+
+          <View style={styles.linkRow}>
+            {PRIVACY_POLICY_URL ? (
+              <Pressable
+                accessibilityRole="link"
+                testID="settings-privacy-policy-link"
+                onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+                style={styles.legalLink}
+              >
+                <Text
+                  style={[styles.legalLinkText, { color: c.textSecondary }]}
+                >
+                  {t("settings.privacyPolicy")}
+                </Text>
+              </Pressable>
+            ) : null}
+            {TERMS_OF_SERVICE_URL ? (
+              <Pressable
+                accessibilityRole="link"
+                testID="settings-terms-link"
+                onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL)}
+                style={styles.legalLink}
+              >
+                <Text
+                  style={[styles.legalLinkText, { color: c.textSecondary }]}
+                >
+                  {t("settings.termsOfService")}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    flexDirection: "row",
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.five,
     paddingTop: Spacing.five,
-    gap: Spacing.three,
+    gap: Spacing.four,
     paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
     alignSelf: "center",
     width: "100%",
   },
   title: {
-    textAlign: "left",
+    ...Typography.h1,
   },
-  section: {
+  planLabel: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 16,
+  },
+  planCta: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 13,
+    marginTop: Spacing.one,
+  },
+  group: {
+    borderRadius: Radius.xl,
+    overflow: "hidden",
+  },
+  groupRow: {
     gap: Spacing.two,
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
+    padding: Spacing.four,
+  },
+  groupLabel: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 13,
   },
   optionRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
   optionButton: {
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+  },
+  optionText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  listRow: {
+    minHeight: 56,
+    justifyContent: "center",
+    paddingHorizontal: Spacing.four,
+  },
+  listRowText: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
   },
   linkRow: {
     flexDirection: "row",
     gap: Spacing.three,
   },
-  pressed: {
-    opacity: 0.7,
+  legalLink: {
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  legalLinkText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
   },
 });

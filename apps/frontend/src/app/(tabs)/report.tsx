@@ -1,15 +1,25 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { GradientBorderCard } from "@/components/ui/gradient-border";
+import { ProBlurGate } from "@/components/ui/pro-blur-gate";
+import { SectionLabel } from "@/components/ui/section-label";
+import {
+  BottomTabInset,
+  Colors,
+  Fonts,
+  MaxContentWidth,
+  Radius,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import type { WeeklyMetrics } from "@/features/report/use-weekly-report";
 import { useWeeklyReport } from "@/features/report/use-weekly-report";
-import { isPro } from "@/features/subscription/subscription-gate";
+import { useIsPro } from "@/features/subscription/subscription-gate";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
 // "YYYY-MM-DD" -> "M/D", this app's only date-display need so far -- no
 // date library dependency exists (or is worth adding) for this alone.
@@ -30,60 +40,39 @@ function deltaLabel(current: number, previous: number): string {
   return diff > 0 ? `+${diff}` : `${diff}`;
 }
 
-// 12.4: same locally-owned ProGateTeaser pattern as route-detail.tsx (its
-// own comment already anticipated this task reusing the same guard()
-// mechanism with its own presentation).
-function ProGateTeaser() {
-  const { t } = useTranslation();
-  const paywallGate = usePaywallGate();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() =>
-        paywallGate({ type: "pro_feature", feature: "detailed_report" })
-      }
-      testID="report-detail-gate"
-    >
-      <ThemedView type="backgroundSelected" style={styles.proGate}>
-        <ThemedText type="smallBold">{t("report.proGate.title")}</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t("report.proGate.cta")}
-        </ThemedText>
-      </ThemedView>
-    </Pressable>
-  );
-}
-
 function DailyTrend({
   daily,
 }: {
   daily: WeeklyMetrics["dailyStandingMinutes"];
 }) {
   const { t } = useTranslation();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const maxMinutes = Math.max(1, ...daily.map((day) => day.minutes));
 
   return (
-    <ThemedView testID="report-daily-trend">
-      <ThemedText type="smallBold">{t("report.dailyTrend")}</ThemedText>
-      <ThemedView style={styles.dailyRow}>
+    <View style={styles.card} testID="report-daily-trend">
+      <SectionLabel>{t("report.dailyTrend")}</SectionLabel>
+      <View style={styles.dailyRow}>
         {daily.map((day) => (
-          <ThemedView key={day.date} style={styles.dailyBarColumn}>
-            <ThemedView
-              type="backgroundSelected"
+          <View key={day.date} style={styles.dailyBarColumn}>
+            <View
               style={[
                 styles.dailyBar,
-                { height: 8 + (day.minutes / maxMinutes) * 72 },
+                {
+                  height: 8 + (day.minutes / maxMinutes) * 72,
+                  backgroundColor: c.surfaceSelected,
+                },
               ]}
               testID={`report-daily-bar-${day.date}`}
             />
-            <ThemedText type="small" themeColor="textSecondary">
+            <Text style={[styles.dailyBarLabel, { color: c.textSecondary }]}>
               {shortDate(day.date)}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         ))}
-      </ThemedView>
-    </ThemedView>
+      </View>
+    </View>
   );
 }
 
@@ -95,116 +84,204 @@ function WeekComparison({
   previous: WeeklyMetrics;
 }) {
   const { t } = useTranslation();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
 
   return (
-    <ThemedView testID="report-week-comparison">
-      <ThemedText type="smallBold">{t("report.vsLastWeek")}</ThemedText>
-      <ThemedText type="small" testID="report-delta-standing">
+    <View style={styles.card} testID="report-week-comparison">
+      <SectionLabel>{t("report.vsLastWeek")}</SectionLabel>
+      <Text
+        style={[styles.comparisonRow, { color: c.text }]}
+        testID="report-delta-standing"
+      >
         {t("report.totalStandingMinutes")}:{" "}
         {deltaLabel(
           current.totalStandingMinutes,
           previous.totalStandingMinutes,
         )}
-      </ThemedText>
-      <ThemedText type="small" testID="report-delta-reduced">
+      </Text>
+      <Text
+        style={[styles.comparisonRow, { color: c.text }]}
+        testID="report-delta-reduced"
+      >
         {t("report.reducedStandingMinutes")}:{" "}
         {deltaLabel(
           current.reducedStandingMinutes,
           previous.reducedStandingMinutes,
         )}
-      </ThemedText>
-      <ThemedText type="small" testID="report-delta-comfort">
+      </Text>
+      <Text
+        style={[styles.comparisonRow, { color: c.text }]}
+        testID="report-delta-comfort"
+      >
         {t("report.comfortRouteCount")}:{" "}
         {deltaLabel(current.comfortRouteCount, previous.comfortRouteCount)}
-      </ThemedText>
-    </ThemedView>
+      </Text>
+    </View>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  testID,
+}: {
+  label: string;
+  value: string;
+  testID: string;
+}) {
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+
+  return (
+    <View
+      style={[styles.statTile, { backgroundColor: c.surfaceMuted }]}
+      testID={testID}
+    >
+      <Text
+        style={[styles.statLabel, { color: c.textSecondary }]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+      <Text style={[styles.statValue, { color: c.text }]}>{value}</Text>
+    </View>
   );
 }
 
 // 11.1-11.4: weekly report screen -- headline metrics (11.1) are always
 // visible, the daily trend (11.2) and week-over-week comparison (11.4) are
-// the "detail" portion 11.3 gates behind Pro.
+// rendered underneath a Pro blur gate (blurred, not hidden) rather than
+// swapped out for a separate teaser.
 export default function ReportScreen() {
   const { t } = useTranslation();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+  const paywallGate = usePaywallGate();
+  const isPro = useIsPro();
   const [weekOffset, setWeekOffset] = useState(0);
   const { isLoading, window, current, previous } = useWeeklyReport(weekOffset);
-  const showDetail = isPro();
 
   return (
-    <ThemedView style={styles.container} testID="report-screen">
+    <View style={[styles.container, { backgroundColor: c.background }]}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title" style={styles.title}>
-          {t("report.title")}
-        </ThemedText>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          testID="report-screen"
+        >
+          <Text style={[styles.title, { color: c.text }]}>
+            {t("report.title")}
+          </Text>
 
-        <ThemedView style={styles.weekNav}>
-          <Pressable
-            accessibilityRole="button"
-            testID="report-week-prev"
-            onPress={() => setWeekOffset((offset) => offset - 1)}
-          >
-            <ThemedText type="link">{t("report.previousWeek")}</ThemedText>
-          </Pressable>
-          <ThemedText type="small" testID="report-week-range">
-            {shortDate(window.start)} - {shortDate(window.end)}
-          </ThemedText>
-          <Pressable
-            accessibilityRole="button"
-            testID="report-week-next"
-            disabled={weekOffset >= 0}
-            onPress={() => setWeekOffset((offset) => Math.min(0, offset + 1))}
-          >
-            <ThemedText
-              type="link"
-              themeColor={weekOffset >= 0 ? "textSecondary" : undefined}
+          <View style={styles.weekNav}>
+            <Pressable
+              accessibilityRole="button"
+              testID="report-week-prev"
+              onPress={() => setWeekOffset((offset) => offset - 1)}
+              style={styles.weekNavButton}
             >
-              {t("report.nextWeek")}
-            </ThemedText>
-          </Pressable>
-        </ThemedView>
+              <Text style={[styles.weekNavLabel, { color: c.text }]}>
+                {t("report.previousWeek")}
+              </Text>
+            </Pressable>
+            <Text
+              style={[styles.weekRange, { color: c.textSecondary }]}
+              testID="report-week-range"
+            >
+              {shortDate(window.start)} - {shortDate(window.end)}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              testID="report-week-next"
+              disabled={weekOffset >= 0}
+              onPress={() => setWeekOffset((offset) => Math.min(0, offset + 1))}
+              style={styles.weekNavButton}
+            >
+              <Text
+                style={[
+                  styles.weekNavLabel,
+                  { color: weekOffset >= 0 ? c.textSecondary : c.text },
+                ]}
+              >
+                {t("report.nextWeek")}
+              </Text>
+            </Pressable>
+          </View>
 
-        {isLoading ? (
-          <ThemedText type="default" themeColor="textSecondary">
-            {t("report.loading")}
-          </ThemedText>
-        ) : (
-          <>
-            <ThemedView type="backgroundElement" style={styles.metricsGrid}>
-              <ThemedText type="default" testID="report-total-standing">
-                {t("report.totalStandingMinutes")}:{" "}
-                {formatMinutes(current.totalStandingMinutes)}{" "}
-                {t("report.minutesUnit")}
-              </ThemedText>
-              <ThemedText type="default" testID="report-reduced-standing">
-                {t("report.reducedStandingMinutes")}:{" "}
-                {formatMinutes(current.reducedStandingMinutes)}{" "}
-                {t("report.minutesUnit")}
-              </ThemedText>
-              <ThemedText type="default" testID="report-comfort-count">
-                {t("report.comfortRouteCount")}: {current.comfortRouteCount}
-              </ThemedText>
-              <ThemedText type="default" testID="report-prediction-accuracy">
-                {t("report.predictionAccuracy")}:{" "}
-                {current.predictionAccuracy === null
-                  ? t("report.noData")
-                  : t("results.percentValue", {
-                      percent: Math.round(current.predictionAccuracy * 100),
-                    })}
-              </ThemedText>
-            </ThemedView>
+          {isLoading ? (
+            <Text style={[styles.loading, { color: c.textSecondary }]}>
+              {t("report.loading")}
+            </Text>
+          ) : (
+            <>
+              <GradientBorderCard strong>
+                <SectionLabel>{t("report.hero")}</SectionLabel>
+                <Text
+                  style={[styles.hero, { color: c.text }]}
+                  testID="report-reduced-standing"
+                >
+                  {formatMinutes(current.reducedStandingMinutes)}
+                  <Text style={[styles.heroUnit, { color: c.textSecondary }]}>
+                    {" "}
+                    {t("report.minutesUnit")}
+                  </Text>
+                </Text>
+                <Text style={[styles.heroDelta, { color: c.seat }]}>
+                  {t("report.vsLastWeekShort", {
+                    delta: deltaLabel(
+                      current.reducedStandingMinutes,
+                      previous.reducedStandingMinutes,
+                    ),
+                  })}
+                </Text>
+              </GradientBorderCard>
 
-            {showDetail ? (
-              <>
-                <DailyTrend daily={current.dailyStandingMinutes} />
-                <WeekComparison current={current} previous={previous} />
-              </>
-            ) : (
-              <ProGateTeaser />
-            )}
-          </>
-        )}
+              <View style={styles.statsRow}>
+                <StatTile
+                  label={t("report.totalStandingMinutes")}
+                  value={`${formatMinutes(current.totalStandingMinutes)} ${t("report.minutesUnit")}`}
+                  testID="report-total-standing"
+                />
+                <StatTile
+                  label={t("report.comfortRouteCount")}
+                  value={String(current.comfortRouteCount)}
+                  testID="report-comfort-count"
+                />
+                <StatTile
+                  label={t("report.predictionAccuracy")}
+                  value={
+                    current.predictionAccuracy === null
+                      ? t("report.noData")
+                      : t("results.percentValue", {
+                          percent: Math.round(current.predictionAccuracy * 100),
+                        })
+                  }
+                  testID="report-prediction-accuracy"
+                />
+              </View>
+
+              <ProBlurGate
+                locked={!isPro}
+                onPress={() =>
+                  paywallGate({
+                    type: "pro_feature",
+                    feature: "detailed_report",
+                  })
+                }
+                title={t("report.proGate.title")}
+                ctaLabel={t("report.proGate.cta")}
+                testID="report-detail-gate"
+              >
+                <View style={styles.gatedSection}>
+                  <DailyTrend daily={current.dailyStandingMinutes} />
+                  <WeekComparison current={current} previous={previous} />
+                </View>
+              </ProBlurGate>
+            </>
+          )}
+        </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -214,31 +291,78 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.five,
     paddingTop: Spacing.three,
-    gap: Spacing.three,
+    gap: Spacing.five,
     paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
     alignSelf: "center",
     width: "100%",
   },
   title: {
-    textAlign: "left",
+    ...Typography.h1,
   },
   weekNav: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  metricsGrid: {
-    gap: Spacing.one,
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
+  weekNavButton: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: "center",
   },
-  proGate: {
-    gap: Spacing.one,
-    borderRadius: Spacing.three,
+  weekNavLabel: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
+  },
+  weekRange: {
+    fontFamily: Fonts.jp,
+    fontSize: 13,
+  },
+  loading: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
+  },
+  hero: {
+    ...Typography.numericHero,
+    marginTop: Spacing.one,
+  },
+  heroUnit: {
+    fontFamily: Fonts.jp,
+    fontSize: 16,
+  },
+  heroDelta: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 12,
+    marginTop: Spacing.one,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "stretch",
+  },
+  statTile: {
+    flex: 1,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
+    gap: Spacing.one,
+  },
+  statLabel: {
+    fontFamily: Fonts.jp,
+    fontSize: 11,
+  },
+  statValue: {
+    ...Typography.numericMedium,
+    marginTop: "auto",
+  },
+  gatedSection: {
+    gap: Spacing.four,
+  },
+  card: {
+    gap: Spacing.two,
   },
   dailyRow: {
     flexDirection: "row",
@@ -253,5 +377,13 @@ const styles = StyleSheet.create({
   dailyBar: {
     width: 20,
     borderRadius: Spacing.half,
+  },
+  dailyBarLabel: {
+    fontFamily: Fonts.jp,
+    fontSize: 11,
+  },
+  comparisonRow: {
+    fontFamily: Fonts.jp,
+    fontSize: 13,
   },
 });

@@ -13,7 +13,12 @@ import { ErrorState } from "@/components/error-state";
 import { RouteCard, standingMinutesPoint } from "@/components/route-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import {
+  BottomTabInset,
+  MaxContentWidth,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { useRouteSearch } from "@/features/search/use-route-search";
 import { isPro } from "@/features/subscription/subscription-gate";
 import { analyticsClient } from "@/lib/analytics";
@@ -63,10 +68,11 @@ export default function ResultsScreen() {
             accessibilityRole="button"
             onPress={() => router.back()}
             testID="results-back"
+            style={styles.back}
           >
             <ThemedText type="link">{t("common.back")}</ThemedText>
           </Pressable>
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type="default" style={styles.title}>
             {t("results.title")}
           </ThemedText>
           {query?.serviceDate ? (
@@ -171,9 +177,17 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   header: {
-    gap: Spacing.one,
+    gap: Spacing.two,
+  },
+  back: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignSelf: "flex-start",
   },
   title: {
+    ...Typography.h1,
     textAlign: "left",
   },
   loading: {
@@ -188,6 +202,6 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
   },
   list: {
-    gap: Spacing.three,
+    gap: 18,
   },
 });

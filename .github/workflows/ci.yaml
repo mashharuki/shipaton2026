@@ -72,6 +72,8 @@ jobs:
   e2e:
     name: Playwright E2E (frontend)
     runs-on: ubuntu-latest
+    env:
+      E2E_API_SHARED_KEY: e2e-ci-shared-key
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -83,9 +85,16 @@ jobs:
       - name: Install Playwright browsers
         working-directory: apps/frontend
         run: npx playwright install --with-deps chromium
+      - name: Configure matching API_SHARED_KEY for backend and frontend
+        run: |
+          echo "API_SHARED_KEY=${E2E_API_SHARED_KEY}" >> apps/backend/.dev.vars
+          echo "EXPO_PUBLIC_API_SHARED_KEY=${E2E_API_SHARED_KEY}" >> apps/frontend/.env.local
       - name: Apply local D1 migrations
         working-directory: apps/backend
         run: pnpm run db:migrate:local
+      - name: Seed local KV with dataset fixtures
+        working-directory: apps/backend
+        run: pnpm run push:datasets
       - name: Run E2E smoke tests
         working-directory: apps/frontend
         run: pnpm run e2e

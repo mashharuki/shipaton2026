@@ -38,7 +38,7 @@ export function Button({
       accessibilityRole={accessibilityRole}
       style={[
         styles.base,
-        variant === "primary" && { backgroundColor: theme.clay },
+        variant === "primary" && { backgroundColor: theme.rail },
         variant === "secondary" && {
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: theme.hairline,

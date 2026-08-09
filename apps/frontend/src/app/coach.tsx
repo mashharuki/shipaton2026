@@ -6,20 +6,36 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Circle } from "react-native-svg";
 
+import { standingMinutesPoint } from "@/components/route-card";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { Meter } from "@/components/ui/meter";
+import { Pulse } from "@/components/ui/pulse";
+import { SectionLabel } from "@/components/ui/section-label";
 import {
-  CONFIDENCE_LABEL_KEYS,
-  standingMinutesPoint,
-} from "@/components/route-card";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+  BottomTabInset,
+  Colors,
+  Fonts,
+  MaxContentWidth,
+  Radius,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { getActiveTrip, startCoachSession } from "@/features/coach/coach-store";
 import { useCoachSession } from "@/features/coach/use-coach-session";
 import type { RouteLeg } from "@/features/search/route-search-engine";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import type { SupportedLocale } from "@/lib/i18n";
+
+const RING_SIZE = 196;
+const RING_STROKE = 15;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 function stationName(
   station: { nameJa: string; nameEn: string },
@@ -28,6 +44,53 @@ function stationName(
   return (language as SupportedLocale) === "ja"
     ? station.nameJa
     : station.nameEn;
+}
+
+function SeatProbabilityRing({
+  percent,
+  remainingLabel,
+}: {
+  percent: number;
+  remainingLabel: string;
+}) {
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+  const dashOffset = RING_CIRCUMFERENCE * (1 - percent / 100);
+
+  return (
+    <View style={styles.ringWrap}>
+      <Svg width={RING_SIZE} height={RING_SIZE}>
+        <Circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          stroke={c.hairline}
+          strokeWidth={RING_STROKE}
+          fill="none"
+        />
+        <Circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          stroke={c.seat}
+          strokeWidth={RING_STROKE}
+          strokeLinecap="round"
+          strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
+          strokeDashoffset={dashOffset}
+          fill="none"
+          rotation={-90}
+          originX={RING_SIZE / 2}
+          originY={RING_SIZE / 2}
+        />
+      </Svg>
+      <View style={styles.ringCenter}>
+        <Text style={[styles.ringPercent, { color: c.text }]}>{percent}%</Text>
+        <Text style={[styles.ringRemaining, { color: c.textSecondary }]}>
+          {remainingLabel}
+        </Text>
+      </View>
+    </View>
+  );
 }
 
 // 7.1-7.6: Live Comfort Coach. Reached only from route-detail.tsx's
@@ -40,6 +103,8 @@ function stationName(
 export default function CoachScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const params = useLocalSearchParams<{ legs?: string; routeType?: string }>();
 
   const legs = useMemo<RouteLeg[] | null>(() => {
@@ -62,29 +127,57 @@ export default function CoachScreen() {
 
   const { snapshot, isPending } = useCoachSession(legs);
 
+  const advice = snapshot?.isApproachingDestination
+    ? {
+        text: t("coach.approachingDestination"),
+        testID: "coach-alighting-guidance",
+      }
+    : snapshot && snapshot.delayMinutes > 0
+      ? {
+          text: t("coach.delayNotice", { minutes: snapshot.delayMinutes }),
+          testID: "coach-delay-notice",
+        }
+      : snapshot?.trainStatusStale
+        ? { text: t("coach.staleNotice"), testID: "coach-stale-notice" }
+        : null;
+
   return (
-    <ThemedView style={styles.container} testID="coach-screen">
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="coach-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.header}>
+        <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
             onPress={() => router.back()}
             testID="coach-back"
+            style={styles.back}
           >
-            <ThemedText type="link">{t("common.back")}</ThemedText>
+            <Text style={[styles.backText, { color: c.text }]}>
+              {t("common.back")}
+            </Text>
           </Pressable>
-          <ThemedText type="title" style={styles.title}>
+          <View style={styles.liveRow}>
+            <Pulse durationMs={1600} style={styles.liveDot}>
+              <View
+                style={[styles.liveDotInner, { backgroundColor: c.seat }]}
+              />
+            </Pulse>
+            <Text style={[styles.liveLabel, { color: c.seat }]}>LIVE</Text>
+          </View>
+          <Text style={[styles.title, { color: c.text }]}>
             {t("coach.title")}
-          </ThemedText>
-        </ThemedView>
+          </Text>
+        </View>
 
         {legs === null || isPending ? (
-          <ThemedView style={styles.loading} testID="coach-loading">
+          <View style={styles.loading} testID="coach-loading">
             <ActivityIndicator />
-            <ThemedText type="default" themeColor="textSecondary">
+            <Text style={[styles.loadingText, { color: c.textSecondary }]}>
               {t("coach.loading")}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         ) : null}
 
         {legs !== null && !isPending && snapshot ? (
@@ -92,48 +185,10 @@ export default function CoachScreen() {
             contentContainerStyle={styles.content}
             testID="coach-content"
           >
-            <ThemedView type="backgroundElement" style={styles.card}>
-              <ThemedText type="small" themeColor="textSecondary">
-                {t("coach.currentStation")}
-              </ThemedText>
-              <ThemedText
-                type="title"
-                style={styles.stationName}
-                testID="coach-current-station"
-              >
-                {stationName(snapshot.currentStation, i18n.language)}
-              </ThemedText>
-
-              {snapshot.nextStation ? (
-                <ThemedText type="default" testID="coach-next-station">
-                  {t("coach.nextStation")}:{" "}
-                  {stationName(snapshot.nextStation, i18n.language)}
-                </ThemedText>
-              ) : null}
-
-              <ThemedText type="small" themeColor="textSecondary">
-                {t("coach.remainingStops", {
-                  count: snapshot.remainingStops,
-                })}
-              </ThemedText>
-            </ThemedView>
-
-            {snapshot.isApproachingDestination ? (
-              <ThemedView
-                type="backgroundSelected"
-                style={styles.card}
-                testID="coach-alighting-guidance"
-              >
-                <ThemedText type="smallBold">
-                  {t("coach.approachingDestination")}
-                </ThemedText>
-              </ThemedView>
-            ) : null}
-
-            <ThemedView type="backgroundElement" style={styles.card}>
-              <ThemedText type="default" testID="coach-standing-minutes">
-                {t("coach.standingMinutes")}:{" "}
-                {"point" in snapshot.prediction.standingMinutes
+            <SeatProbabilityRing
+              percent={Math.round(snapshot.prediction.seatProbability * 100)}
+              remainingLabel={
+                "point" in snapshot.prediction.standingMinutes
                   ? t("results.standingMinutesPoint", {
                       minutes: Math.round(
                         standingMinutesPoint(
@@ -148,65 +203,84 @@ export default function CoachScreen() {
                       max: Math.round(
                         snapshot.prediction.standingMinutes.rangeMax,
                       ),
-                    })}
-              </ThemedText>
-              <ThemedText type="default">
-                {t("coach.seatProbability")}:{" "}
-                {t("results.percentValue", {
-                  percent: Math.round(
-                    snapshot.prediction.seatProbability * 100,
-                  ),
-                })}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {t("results.confidence")}:{" "}
-                {t(CONFIDENCE_LABEL_KEYS[snapshot.prediction.confidence])}
-              </ThemedText>
+                    })
+              }
+            />
 
-              {snapshot.delayMinutes > 0 ? (
-                <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
-                  testID="coach-delay-notice"
+            <View style={[styles.card, { backgroundColor: c.surfaceMuted }]}>
+              <Text style={[styles.stationLabel, { color: c.textSecondary }]}>
+                {t("coach.currentStation")}
+              </Text>
+              <Text
+                style={[styles.stationName, { color: c.text }]}
+                testID="coach-current-station"
+              >
+                {stationName(snapshot.currentStation, i18n.language)}
+              </Text>
+              {snapshot.nextStation ? (
+                <Text
+                  style={[styles.nextStation, { color: c.textSecondary }]}
+                  testID="coach-next-station"
                 >
-                  {t("coach.delayNotice", { minutes: snapshot.delayMinutes })}
-                </ThemedText>
+                  {t("coach.nextStation")}:{" "}
+                  {stationName(snapshot.nextStation, i18n.language)}
+                </Text>
               ) : null}
-              {snapshot.trainStatusStale ? (
-                <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
-                  testID="coach-stale-notice"
-                >
-                  {t("coach.staleNotice")}
-                </ThemedText>
-              ) : null}
-            </ThemedView>
+              <Text style={[styles.remainingStops, { color: c.textSecondary }]}>
+                {t("coach.remainingStops", { count: snapshot.remainingStops })}
+              </Text>
+            </View>
 
             {snapshot.aheadStationProbabilities.length > 0 ? (
-              <ThemedView
-                type="backgroundElement"
-                style={styles.card}
+              <View
+                style={[styles.card, { backgroundColor: c.surfaceMuted }]}
                 testID="coach-ahead-stations"
               >
-                <ThemedText type="small" style={styles.sectionLabel}>
-                  {t("coach.aheadTitle")}
-                </ThemedText>
-                {snapshot.aheadStationProbabilities.map(
-                  ({ station, probability }) => (
-                    <ThemedText key={station.id} type="small">
-                      {stationName(station, i18n.language)}:{" "}
-                      {t("results.percentValue", {
-                        percent: Math.round(probability * 100),
-                      })}
-                    </ThemedText>
-                  ),
-                )}
-              </ThemedView>
+                <SectionLabel>{t("coach.aheadTitle")}</SectionLabel>
+                {snapshot.aheadStationProbabilities
+                  .slice(0, 3)
+                  .map(({ station, probability }) => (
+                    <View key={station.id} style={styles.aheadRow}>
+                      <Text
+                        style={[styles.aheadName, { color: c.text }]}
+                        numberOfLines={1}
+                      >
+                        {stationName(station, i18n.language)}
+                      </Text>
+                      <View style={styles.aheadMeter}>
+                        <Meter
+                          value={probability}
+                          confidence={snapshot.prediction.confidence}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.aheadPercent,
+                          { color: c.textSecondary },
+                        ]}
+                      >
+                        {Math.round(probability * 100)}%
+                      </Text>
+                    </View>
+                  ))}
+              </View>
             ) : null}
 
-            <Pressable
-              accessibilityRole="button"
+            {advice ? (
+              <View
+                style={[styles.adviceBand, { backgroundColor: `${c.rail}1A` }]}
+                testID={advice.testID}
+              >
+                <Text style={[styles.adviceText, { color: c.rail }]}>
+                  {advice.text}
+                </Text>
+              </View>
+            ) : null}
+
+            <GradientButton
+              label={t("coach.endRide")}
+              variant="outline"
+              testID="coach-end-ride"
               onPress={() => {
                 const activeTrip = getActiveTrip();
                 router.push({
@@ -231,16 +305,11 @@ export default function CoachScreen() {
                   },
                 });
               }}
-              testID="coach-end-ride"
-            >
-              <ThemedView type="backgroundSelected" style={styles.endButton}>
-                <ThemedText type="smallBold">{t("coach.endRide")}</ThemedText>
-              </ThemedView>
-            </Pressable>
+            />
           </ScrollView>
         ) : null}
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -250,19 +319,45 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-    alignSelf: "center",
-    width: "100%",
   },
   header: {
+    paddingHorizontal: Spacing.five,
+    paddingTop: Spacing.three,
     gap: Spacing.one,
   },
+  back: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+    marginLeft: -12,
+  },
+  backText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
+  },
+  liveRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.one,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+  },
+  liveDotInner: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  liveLabel: {
+    fontFamily: Fonts.numBold,
+    fontSize: 11,
+    letterSpacing: 1.54,
+  },
   title: {
-    textAlign: "left",
+    ...Typography.h1,
   },
   loading: {
     flex: 1,
@@ -270,23 +365,89 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: Spacing.two,
   },
+  loadingText: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
+  },
   content: {
-    gap: Spacing.three,
+    paddingHorizontal: Spacing.five,
+    paddingTop: Spacing.four,
+    paddingBottom: BottomTabInset + Spacing.four,
+    gap: Spacing.four,
+    maxWidth: MaxContentWidth,
+    alignSelf: "center",
+    width: "100%",
+  },
+  ringWrap: {
+    alignSelf: "center",
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ringCenter: {
+    position: "absolute",
+    alignItems: "center",
+  },
+  ringPercent: {
+    ...Typography.numericHero,
+    fontSize: 54,
+    lineHeight: 54,
+  },
+  ringRemaining: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+    marginTop: Spacing.one,
   },
   card: {
     gap: Spacing.one,
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
+    borderRadius: Radius.xl,
+    padding: Spacing.four,
+  },
+  stationLabel: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
   },
   stationName: {
-    textAlign: "left",
+    ...Typography.h1,
+    fontSize: 24,
+    lineHeight: 30,
   },
-  sectionLabel: {
-    marginBottom: Spacing.one,
+  nextStation: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
   },
-  endButton: {
-    borderRadius: Spacing.three,
-    padding: Spacing.three,
+  remainingStops: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  aheadRow: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  aheadName: {
+    width: 62,
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  aheadMeter: {
+    flex: 1,
+  },
+  aheadPercent: {
+    width: 38,
+    textAlign: "right",
+    fontFamily: Fonts.numBold,
+    fontSize: 12,
+  },
+  adviceBand: {
+    borderRadius: 12,
+    padding: Spacing.three,
+  },
+  adviceText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+    lineHeight: 12 * 1.6,
   },
 });

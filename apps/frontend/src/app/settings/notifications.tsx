@@ -1,13 +1,30 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { isErr, WEEKDAYS } from "shared";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { SectionLabel } from "@/components/ui/section-label";
+import {
+  BottomTabInset,
+  Colors,
+  Fonts,
+  Gradients,
+  MaxContentWidth,
+  Radius,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import {
   getNotificationPermissionStatus,
   registerPushNotification,
@@ -16,6 +33,7 @@ import {
   usePushRegistrationStore,
   type Weekday,
 } from "@/features/notifications/push-registration";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 
 const LEAD_MINUTES_OPTIONS = [15, 20, 25, 30] as const;
 const NOTIFY_AT_OPTIONS = ["07:00", "07:30", "07:45", "08:00"] as const;
@@ -31,12 +49,54 @@ function toggleWeekday(weekdays: Weekday[], day: Weekday): Weekday[] {
     : [...weekdays, day];
 }
 
+function EnableToggle({
+  isOn,
+  disabled,
+  onToggle,
+  testID,
+}: {
+  isOn: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+  testID: string;
+}) {
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
+
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: isOn, disabled }}
+      disabled={disabled}
+      onPress={onToggle}
+      testID={testID}
+    >
+      {isOn ? (
+        <LinearGradient
+          colors={Gradients[scheme].signal}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={[styles.toggleTrack, styles.toggleTrackOn]}
+        >
+          <View style={[styles.toggleKnob, Shadows.card, styles.knobRight]} />
+        </LinearGradient>
+      ) : (
+        <View style={[styles.toggleTrack, { backgroundColor: c.hairline }]}>
+          <View style={[styles.toggleKnob, Shadows.card, styles.knobLeft]} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 // 10.1-10.5: smart-notification opt-in + frequency/time settings. Reached
 // from the settings tab; design.md lists this file directly under 10.x's own
 // component set (task 8.2), separate from task 9.2's settings-hub shell.
 export default function NotificationsSettingsScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const registration = usePushRegistrationStore((state) => state.registration);
 
   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(
@@ -122,169 +182,195 @@ export default function NotificationsSettingsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container} testID="notifications-settings-screen">
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="notifications-settings-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.header}>
+        <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
             onPress={() => router.back()}
             testID="notifications-settings-back"
+            style={styles.back}
           >
-            <ThemedText type="link">{t("common.back")}</ThemedText>
+            <Text style={[styles.backText, { color: c.text }]}>
+              {t("common.back")}
+            </Text>
           </Pressable>
-          <ThemedText type="title" style={styles.title}>
+          <Text style={[styles.title, { color: c.text }]}>
             {t("notificationsSettings.title")}
-          </ThemedText>
-        </ThemedView>
+          </Text>
+        </View>
 
-        {registration ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t("notificationsSettings.enabled")}
-          </ThemedText>
-        ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t("notificationsSettings.disabled")}
-          </ThemedText>
-        )}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={[styles.enableRow, { backgroundColor: c.surfaceMuted }]}>
+            <Text style={[styles.enableLabel, { color: c.text }]}>
+              {registration
+                ? t("notificationsSettings.enabled")
+                : t("notificationsSettings.disabled")}
+            </Text>
+            <EnableToggle
+              isOn={!!registration}
+              disabled={isSaving}
+              onToggle={registration ? handleDisable : handleEnable}
+              testID={
+                registration ? "notifications-disable" : "notifications-enable"
+              }
+            />
+          </View>
 
-        <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold">
-            {t("notificationsSettings.weekdays")}
-          </ThemedText>
-          <ThemedView style={styles.optionRow}>
-            {WEEKDAYS.map((day) => (
-              <Pressable
-                key={day}
-                accessibilityRole="button"
-                accessibilityState={{ selected: weekdays.includes(day) }}
-                testID={`notifications-weekday-${day}`}
-                onPress={() => setWeekdays((prev) => toggleWeekday(prev, day))}
-              >
-                <ThemedView
-                  type={
-                    weekdays.includes(day) ? "backgroundSelected" : "background"
-                  }
-                  style={styles.optionButton}
-                >
-                  <ThemedText type="small">
-                    {t(`notificationsSettings.weekdayShort.${day}`)}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            ))}
-          </ThemedView>
-        </ThemedView>
+          <View style={styles.section}>
+            <SectionLabel>{t("notificationsSettings.weekdays")}</SectionLabel>
+            <View style={styles.weekdayRow}>
+              {WEEKDAYS.map((day) => {
+                const isSelected = weekdays.includes(day);
+                return (
+                  <Pressable
+                    key={day}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    testID={`notifications-weekday-${day}`}
+                    onPress={() =>
+                      setWeekdays((prev) => toggleWeekday(prev, day))
+                    }
+                    style={[
+                      styles.weekdayButton,
+                      isSelected
+                        ? {
+                            backgroundColor: `${c.seat}24`,
+                            borderColor: `${c.seat}80`,
+                          }
+                        : {
+                            backgroundColor: c.surfaceMuted,
+                            borderColor: c.hairline,
+                          },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.weekdayText,
+                        { color: isSelected ? c.seat : c.textSecondary },
+                      ]}
+                    >
+                      {t(`notificationsSettings.weekdayShort.${day}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
-        <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold">
-            {t("notificationsSettings.notifyAt")}
-          </ThemedText>
-          <ThemedView style={styles.optionRow}>
-            {NOTIFY_AT_OPTIONS.map((option) => (
-              <Pressable
-                key={option}
-                accessibilityRole="button"
-                accessibilityState={{ selected: notifyAt === option }}
-                testID={`notifications-notify-at-${option}`}
-                onPress={() => setNotifyAt(option)}
-              >
-                <ThemedView
-                  type={
-                    notifyAt === option ? "backgroundSelected" : "background"
-                  }
-                  style={styles.optionButton}
-                >
-                  <ThemedText type="small">{option}</ThemedText>
-                </ThemedView>
-              </Pressable>
-            ))}
-          </ThemedView>
-        </ThemedView>
+          <View style={styles.section}>
+            <SectionLabel>{t("notificationsSettings.notifyAt")}</SectionLabel>
+            <View style={styles.optionRow}>
+              {NOTIFY_AT_OPTIONS.map((option) => {
+                const isSelected = notifyAt === option;
+                return (
+                  <Pressable
+                    key={option}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    testID={`notifications-notify-at-${option}`}
+                    onPress={() => setNotifyAt(option)}
+                    style={[
+                      styles.optionButton,
+                      isSelected
+                        ? {
+                            backgroundColor: `${c.seat}24`,
+                            borderColor: `${c.seat}80`,
+                          }
+                        : {
+                            backgroundColor: c.surfaceMuted,
+                            borderColor: c.hairline,
+                          },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        { color: isSelected ? c.seat : c.text },
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
-        <ThemedView type="backgroundElement" style={styles.section}>
-          <ThemedText type="smallBold">
-            {t("notificationsSettings.leadMinutes")}
-          </ThemedText>
-          <ThemedView style={styles.optionRow}>
-            {LEAD_MINUTES_OPTIONS.map((option) => (
-              <Pressable
-                key={option}
-                accessibilityRole="button"
-                accessibilityState={{ selected: leadMinutes === option }}
-                testID={`notifications-lead-minutes-${option}`}
-                onPress={() => setLeadMinutes(option)}
-              >
-                <ThemedView
-                  type={
-                    leadMinutes === option ? "backgroundSelected" : "background"
-                  }
-                  style={styles.optionButton}
-                >
-                  <ThemedText type="small">
-                    {t("notificationsSettings.minutesValue", {
-                      minutes: option,
-                    })}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            ))}
-          </ThemedView>
-        </ThemedView>
+          <View style={styles.section}>
+            <SectionLabel>
+              {t("notificationsSettings.leadMinutes")}
+            </SectionLabel>
+            <View style={styles.optionRow}>
+              {LEAD_MINUTES_OPTIONS.map((option) => {
+                const isSelected = leadMinutes === option;
+                return (
+                  <Pressable
+                    key={option}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                    testID={`notifications-lead-minutes-${option}`}
+                    onPress={() => setLeadMinutes(option)}
+                    style={[
+                      styles.optionButton,
+                      isSelected
+                        ? {
+                            backgroundColor: `${c.seat}24`,
+                            borderColor: `${c.seat}80`,
+                          }
+                        : {
+                            backgroundColor: c.surfaceMuted,
+                            borderColor: c.hairline,
+                          },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.optionText,
+                        { color: isSelected ? c.seat : c.text },
+                      ]}
+                    >
+                      {t("notificationsSettings.minutesValue", {
+                        minutes: option,
+                      })}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
-        {errorMessage ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {errorMessage}
-          </ThemedText>
-        ) : null}
+          {errorMessage ? (
+            <Text style={[styles.errorText, { color: c.textSecondary }]}>
+              {errorMessage}
+            </Text>
+          ) : null}
 
-        {registration ? (
-          <Pressable
-            accessibilityRole="button"
-            testID="notifications-disable"
-            disabled={isSaving}
-            onPress={handleDisable}
-          >
-            <ThemedView type="backgroundElement" style={styles.actionButton}>
-              <ThemedText type="smallBold">
-                {t("notificationsSettings.disableAction")}
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            testID="notifications-enable"
-            disabled={isSaving}
-            onPress={handleEnable}
-          >
-            <ThemedView type="backgroundSelected" style={styles.actionButton}>
-              <ThemedText type="smallBold">
-                {t("notificationsSettings.enableAction")}
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
-        )}
+          {registration ? (
+            <Pressable
+              accessibilityRole="button"
+              testID="notifications-update"
+              disabled={isSaving}
+              onPress={applyRegistration}
+              style={styles.updateLink}
+            >
+              <Text style={[styles.updateLinkText, { color: c.rail }]}>
+                {t("notificationsSettings.updateAction")}
+              </Text>
+            </Pressable>
+          ) : null}
 
-        {registration ? (
-          <Pressable
-            accessibilityRole="button"
-            testID="notifications-update"
-            disabled={isSaving}
-            onPress={applyRegistration}
-          >
-            <ThemedText type="link">
-              {t("notificationsSettings.updateAction")}
-            </ThemedText>
-          </Pressable>
-        ) : null}
-
-        {permissionGranted === false ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {t("notificationsSettings.permissionDenied")}
-          </ThemedText>
-        ) : null}
+          {permissionGranted === false ? (
+            <Text style={[styles.errorText, { color: c.textSecondary }]}>
+              {t("notificationsSettings.permissionDenied")}
+            </Text>
+          ) : null}
+        </ScrollView>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -294,24 +380,86 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
+  },
+  header: {
+    paddingHorizontal: Spacing.five,
     paddingTop: Spacing.three,
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
+    gap: Spacing.two,
+  },
+  back: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+    marginLeft: -12,
+  },
+  backText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
+  },
+  title: {
+    ...Typography.h1,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.five,
+    paddingTop: Spacing.four,
+    paddingBottom: BottomTabInset + Spacing.four,
+    gap: Spacing.four,
     maxWidth: MaxContentWidth,
     alignSelf: "center",
     width: "100%",
   },
-  header: {
-    gap: Spacing.one,
+  enableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: Radius.lg,
+    padding: Spacing.four,
   },
-  title: {
-    textAlign: "left",
+  enableLabel: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
+  },
+  toggleTrack: {
+    width: 56,
+    height: 32,
+    borderRadius: 16,
+    padding: 3,
+  },
+  toggleTrackOn: {
+    alignItems: "flex-end",
+  },
+  toggleKnob: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "#FFFFFF",
+  },
+  knobLeft: {
+    alignSelf: "flex-start",
+  },
+  knobRight: {
+    alignSelf: "flex-end",
   },
   section: {
     gap: Spacing.two,
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
+  },
+  weekdayRow: {
+    flexDirection: "row",
+    gap: Spacing.one,
+  },
+  weekdayButton: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  weekdayText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 12,
   },
   optionRow: {
     flexDirection: "row",
@@ -319,13 +467,25 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   optionButton: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-  },
-  actionButton: {
-    alignItems: "center",
     paddingVertical: Spacing.two,
-    borderRadius: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+  },
+  optionText: {
+    fontFamily: Fonts.numBold,
+    fontSize: 14,
+  },
+  errorText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  updateLink: {
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  updateLinkText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
   },
 });

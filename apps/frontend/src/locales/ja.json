@@ -29,6 +29,7 @@
     "settings": "設定"
   },
   "onboarding": {
+    "skip": "スキップ",
     "step1Title": "快適なルートを提案",
     "step1Body": "SeatSignalは、最速だけでなく「立ち時間」や「着座しやすさ」まで考えた通勤ルートを提案します。",
     "step2Title": "予想立ち時間を先に知る",
@@ -47,7 +48,11 @@
   "home": {
     "title": "SeatSignal",
     "placeholder": "検索機能は近日公開予定です",
-    "demoSearch": "新宿→東京を検索（デモ）"
+    "demoSearch": "新宿→東京を検索（デモ）",
+    "demoFromStation": "新宿",
+    "demoToStation": "東京",
+    "headline": "今朝は {{extra}} 分遅く出ると立ち時間が {{reduced}} 分減ります",
+    "weeklySavedSummary": "合計 {{minutes}} 分の立ち時間を削減しました"
   },
   "savedRoutes": {
     "title": "保存したルート",
@@ -72,7 +77,9 @@
     "diffFromFastest": "最速との差 +{{minutes}} 分",
     "standingMinutes": "予想立ち時間",
     "standingMinutesRange": "{{min}}〜{{max}} 分",
+    "standingMinutesRangeValue": "{{min}}〜{{max}}",
     "standingMinutesPoint": "{{minutes}} 分",
+    "minutesUnit": "分",
     "seatedMinutes": "予想着座時間",
     "seatProbability": "着座確率",
     "transferCount": "乗換回数",
@@ -82,6 +89,7 @@
     "confidenceMedium": "中",
     "confidenceHigh": "高",
     "comfortDiff": "追加 {{extra}} 分で予想立ち時間を {{reduced}} 分削減",
+    "rangeNotice": "データが少ないため、点ではなく範囲で表示しています",
     "minutesValue": "{{minutes}} 分",
     "percentValue": "{{percent}}%"
   },
@@ -92,6 +100,7 @@
     "departureLabel": "発車",
     "direction": "進行方向",
     "recommendedCar": "推奨号車: {{car}} 号車",
+    "carDirectionHint": "← {{from}}方 / {{to}}方 →",
     "waitingPosition": "ホーム上の待機位置（号車）",
     "perStationTitle": "駅ごとの着座確率",
     "reason": {
@@ -146,6 +155,8 @@
     "noData": "データなし",
     "dailyTrend": "日別の予想立ち時間",
     "vsLastWeek": "前週との比較",
+    "hero": "削減できた予想立ち時間",
+    "vsLastWeekShort": "前週比 {{delta}} 分",
     "proGate": {
       "title": "Pro機能",
       "cta": "Proにアップグレードして日別推移と前週比較を見る"
@@ -153,6 +164,9 @@
   },
   "settings": {
     "title": "設定",
+    "planFree": "Freeプラン",
+    "planPro": "Proプラン",
+    "proCardCta": "Proにアップグレードして全機能を使う",
     "appearance": "外観",
     "appearanceSystem": "システムに合わせる",
     "appearanceLight": "ライト",
@@ -161,9 +175,11 @@
     "notifications": "通知設定",
     "privacy": "プライバシー・データ管理",
     "subscriptionManagement": "サブスクリプション管理",
+    "subscriptionManagementError": "サブスクリプション管理画面を開けませんでした。もう一度お試しください。",
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",
-    "licenses": "帰属表示・サポート"
+    "licenses": "帰属表示・サポート",
+    "replayOnboarding": "アプリの説明をもう一度見る"
   },
   "privacySettings": {
     "title": "プライバシー・データ管理",

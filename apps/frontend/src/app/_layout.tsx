@@ -1,9 +1,18 @@
 import {
+  Outfit_500Medium,
+  Outfit_600SemiBold,
+} from "@expo-google-fonts/outfit";
+import {
   PublicSans_400Regular,
   PublicSans_500Medium,
   PublicSans_600SemiBold,
   PublicSans_700Bold,
 } from "@expo-google-fonts/public-sans";
+import {
+  ZenKakuGothicNew_400Regular,
+  ZenKakuGothicNew_700Bold,
+  ZenKakuGothicNew_900Black,
+} from "@expo-google-fonts/zen-kaku-gothic-new";
 import * as Sentry from "@sentry/react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
@@ -129,6 +138,11 @@ function RootLayout() {
     PublicSans_500Medium,
     PublicSans_600SemiBold,
     PublicSans_700Bold,
+    ZenKakuGothicNew_400Regular,
+    ZenKakuGothicNew_700Bold,
+    ZenKakuGothicNew_900Black,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
   });
 
   useEffect(() => {

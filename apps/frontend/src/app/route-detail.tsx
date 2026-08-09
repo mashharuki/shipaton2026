@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,21 +7,35 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createAppError, isErr } from "shared";
 
 import { ErrorState } from "@/components/error-state";
 import { CONFIDENCE_LABEL_KEYS } from "@/components/route-card";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { GradientButton } from "@/components/ui/gradient-button";
+import { ProBlurGate } from "@/components/ui/pro-blur-gate";
+import { Pulse } from "@/components/ui/pulse";
+import { SectionLabel } from "@/components/ui/section-label";
+import {
+  Colors,
+  Fonts,
+  Gradients,
+  MaxContentWidth,
+  Radius,
+  Shadows,
+  Spacing,
+  Typography,
+} from "@/constants/theme";
 import { startCoachSession } from "@/features/coach/coach-store";
 import type { Station } from "@/features/prediction/use-route-detail";
 import { useRouteDetail } from "@/features/prediction/use-route-detail";
 import type { RouteLeg } from "@/features/search/route-search-engine";
 import { isPro } from "@/features/subscription/subscription-gate";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import type { SupportedLocale } from "@/lib/i18n";
 
 function stationName(station: Station, language: string): string {
@@ -29,40 +44,12 @@ function stationName(station: Station, language: string): string {
     : station.nameEn;
 }
 
-type ProGateFeature = "boarding_detail" | "full_station_prediction";
+type ThemePalette = { [K in keyof (typeof Colors)["dark"]]: string };
 
-// 12.4: locked teaser shown instead of the two Pro-only sections
-// (detailed car/boarding-position guidance, full-route per-station seat
-// probability) for a Free user. Kept local to this screen rather than a
-// shared component -- 7.1/8.3 gate different Pro features behind the same
-// guard() mechanism but design.md leaves each task owning its own
-// presentation.
-function ProGateTeaser({
-  feature,
-  testID,
-}: {
-  feature: ProGateFeature;
-  testID: string;
-}) {
-  const { t } = useTranslation();
-  const paywallGate = usePaywallGate();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => paywallGate({ type: "pro_feature", feature })}
-      testID={testID}
-    >
-      <ThemedView type="backgroundSelected" style={styles.proGate}>
-        <ThemedText type="smallBold">
-          {t("routeDetail.proGate.title")}
-        </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          {t("routeDetail.proGate.cta")}
-        </ThemedText>
-      </ThemedView>
-    </Pressable>
-  );
+function probabilityColor(probability: number, c: ThemePalette) {
+  if (probability >= 0.7) return c.seat;
+  if (probability >= 0.35) return c.confidenceMedium;
+  return c.confidenceLow;
 }
 
 // 6.1-6.4: the route-detail/boarding-position screen reached by tapping a
@@ -75,6 +62,8 @@ function ProGateTeaser({
 export default function RouteDetailScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const params = useLocalSearchParams<{ legs?: string; routeType?: string }>();
 
   const legs = useMemo<RouteLeg[] | null>(() => {
@@ -94,7 +83,7 @@ export default function RouteDetailScreen() {
 
   // 7.1: the Pro gate for Coach's entry point lives here, at the one place
   // a rider can launch it -- guard-then-navigate, same pattern
-  // use-route-search.ts's free-tier check and ProGateTeaser above use.
+  // use-route-search.ts's free-tier check and the Pro gates below use.
   // Blocked callers never reach startCoachSession()/router.push("/coach").
   function handleStartRide() {
     if (!legs) {
@@ -114,45 +103,38 @@ export default function RouteDetailScreen() {
   }
 
   return (
-    <ThemedView style={styles.container} testID="route-detail-screen">
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="route-detail-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.header}>
+        <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
             onPress={() => router.back()}
             testID="route-detail-back"
+            style={styles.back}
           >
-            <ThemedText type="link">{t("common.back")}</ThemedText>
+            <Text style={[styles.backText, { color: c.text }]}>
+              {t("common.back")}
+            </Text>
           </Pressable>
-          <ThemedText type="title" style={styles.title}>
+          <Text style={[styles.title, { color: c.text }]}>
             {t("routeDetail.title")}
-          </ThemedText>
-          {legs !== null ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={handleStartRide}
-              testID="route-detail-start-ride"
-            >
-              <ThemedView type="backgroundSelected" style={styles.startRide}>
-                <ThemedText type="smallBold">
-                  {t("routeDetail.startRide")}
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-          ) : null}
-        </ThemedView>
+          </Text>
+        </View>
 
         {legs === null ? (
           <ErrorState error={createAppError("unknown", "No route selected")} />
         ) : null}
 
         {legs !== null && isPending ? (
-          <ThemedView style={styles.loading} testID="route-detail-loading">
+          <View style={styles.loading} testID="route-detail-loading">
             <ActivityIndicator />
-            <ThemedText type="default" themeColor="textSecondary">
+            <Text style={[styles.loadingText, { color: c.textSecondary }]}>
               {t("routeDetail.loading")}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         ) : null}
 
         {legs !== null && !isPending && result && isErr(result) ? (
@@ -165,55 +147,40 @@ export default function RouteDetailScreen() {
             testID="route-detail-list"
           >
             {result.data.map((detail, index) => (
-              <ThemedView
+              <View
                 // biome-ignore lint/suspicious/noArrayIndexKey: legs have no stable id of their own within one route
                 key={index}
-                type="backgroundElement"
-                style={styles.legCard}
+                style={[
+                  styles.legCard,
+                  { backgroundColor: c.surfaceMuted, borderColor: c.hairline },
+                ]}
                 testID={`route-detail-leg-${index}`}
               >
-                <ThemedText type="smallBold">
-                  {t("routeDetail.trainLabel")}: {detail.leg.trainId}
-                </ThemedText>
-                <ThemedText type="default">
-                  {t("routeDetail.departureLabel")}: {detail.leg.departureTime}{" "}
-                  → {detail.leg.arrivalTime}
-                </ThemedText>
-
-                <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
+                <Text style={[styles.trainLine, { color: c.textSecondary }]}>
+                  {t("routeDetail.trainLabel")}: {detail.leg.trainId} ・{" "}
+                  {detail.leg.departureTime} → {detail.leg.arrivalTime}
+                </Text>
+                <Text
+                  style={[styles.direction, { color: c.textSecondary }]}
                   testID="route-detail-direction"
                 >
                   {t("routeDetail.direction")}:{" "}
                   {stationName(detail.fromStation, i18n.language)} →{" "}
                   {stationName(detail.toStation, i18n.language)}
-                </ThemedText>
+                </Text>
 
                 {isPro() ? (
-                  <>
-                    <ThemedText
-                      type="default"
+                  <View style={styles.recommendedSection}>
+                    <Text
+                      style={[styles.recommendedTitle, { color: c.text }]}
                       testID="route-detail-recommended-car"
                     >
                       {t("routeDetail.recommendedCar", {
                         car: detail.boardingAdvice.recommendedCarNumber,
                       })}
-                    </ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {t(detail.boardingAdvice.reasonMessageKey)}
-                    </ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {t("results.confidence")}:{" "}
-                      {t(
-                        CONFIDENCE_LABEL_KEYS[detail.boardingAdvice.confidence],
-                      )}
-                    </ThemedText>
+                    </Text>
 
-                    <ThemedText type="small" style={styles.sectionLabel}>
-                      {t("routeDetail.waitingPosition")}
-                    </ThemedText>
-                    <ThemedView
+                    <View
                       style={styles.carRow}
                       testID="route-detail-car-diagram"
                     >
@@ -224,63 +191,225 @@ export default function RouteDetailScreen() {
                         const isRecommended =
                           carNumber ===
                           detail.boardingAdvice.recommendedCarNumber;
-                        return (
-                          <ThemedView
+                        const box = isRecommended ? (
+                          <LinearGradient
                             key={carNumber}
-                            type={
-                              isRecommended
-                                ? "backgroundSelected"
-                                : "background"
-                            }
-                            style={styles.carBox}
+                            colors={Gradients[scheme].signal}
+                            style={[styles.carBoxRecommended, Shadows.accent]}
                             testID={`route-detail-car-${carNumber}`}
                           >
-                            <ThemedText
-                              type={isRecommended ? "smallBold" : "small"}
+                            <Text
+                              style={[styles.carLabel, { color: c.onAccent }]}
                             >
                               {carNumber}
-                            </ThemedText>
-                          </ThemedView>
+                            </Text>
+                          </LinearGradient>
+                        ) : (
+                          <View
+                            key={carNumber}
+                            style={[
+                              styles.carBox,
+                              { backgroundColor: c.hairline },
+                            ]}
+                            testID={`route-detail-car-${carNumber}`}
+                          >
+                            <Text
+                              style={[
+                                styles.carLabel,
+                                { color: c.textSecondary },
+                              ]}
+                            >
+                              {carNumber}
+                            </Text>
+                          </View>
+                        );
+                        return isRecommended ? (
+                          <Pulse
+                            key={carNumber}
+                            style={styles.carFlexRecommended}
+                          >
+                            {box}
+                          </Pulse>
+                        ) : (
+                          <View key={carNumber} style={styles.carFlexNormal}>
+                            {box}
+                          </View>
                         );
                       })}
-                    </ThemedView>
-                  </>
+                    </View>
+                    <Text
+                      style={[
+                        styles.carDirectionHint,
+                        { color: c.textSecondary },
+                      ]}
+                    >
+                      {t("routeDetail.carDirectionHint", {
+                        from: stationName(detail.fromStation, i18n.language),
+                        to: stationName(detail.toStation, i18n.language),
+                      })}
+                    </Text>
+                    <Text
+                      style={[styles.reasonText, { color: c.textSecondary }]}
+                    >
+                      {t(detail.boardingAdvice.reasonMessageKey)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.confidenceText,
+                        { color: c.textSecondary },
+                      ]}
+                    >
+                      {t("results.confidence")}:{" "}
+                      {t(
+                        CONFIDENCE_LABEL_KEYS[detail.boardingAdvice.confidence],
+                      )}
+                    </Text>
+                  </View>
                 ) : (
-                  <ProGateTeaser
-                    feature="boarding_detail"
+                  <ProBlurGate
+                    locked
+                    onPress={() =>
+                      paywallGate({
+                        type: "pro_feature",
+                        feature: "boarding_detail",
+                      })
+                    }
+                    title={t("routeDetail.proGate.title")}
+                    ctaLabel={t("routeDetail.proGate.cta")}
                     testID="route-detail-boarding-gate"
-                  />
+                  >
+                    <View style={styles.recommendedSection}>
+                      <Text
+                        style={[styles.recommendedTitle, { color: c.text }]}
+                      >
+                        {t("routeDetail.recommendedCar", { car: 1 })}
+                      </Text>
+                      <View style={styles.carRow}>
+                        {[1, 2, 3].map((carNumber) => (
+                          <View
+                            key={carNumber}
+                            style={[
+                              styles.carBox,
+                              styles.carFlexNormal,
+                              { backgroundColor: c.hairline },
+                            ]}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  </ProBlurGate>
                 )}
 
                 {detail.perStationProbabilities.length > 0 && isPro() ? (
-                  <>
-                    <ThemedText type="small" style={styles.sectionLabel}>
+                  <View style={styles.perStationSection}>
+                    <SectionLabel>
                       {t("routeDetail.perStationTitle")}
-                    </ThemedText>
+                    </SectionLabel>
                     {detail.perStationProbabilities.map(
                       ({ station, probability }) => (
-                        <ThemedText key={station.id} type="small">
-                          {stationName(station, i18n.language)}:{" "}
-                          {t("results.percentValue", {
-                            percent: Math.round(probability * 100),
-                          })}
-                        </ThemedText>
+                        <View key={station.id} style={styles.perStationRow}>
+                          <Text
+                            style={[styles.perStationName, { color: c.text }]}
+                            numberOfLines={1}
+                          >
+                            {stationName(station, i18n.language)}
+                          </Text>
+                          <View
+                            style={[
+                              styles.perStationTrack,
+                              { backgroundColor: c.hairline },
+                            ]}
+                          >
+                            {probability >= 0.7 ? (
+                              <LinearGradient
+                                colors={Gradients[scheme].signal}
+                                style={[
+                                  styles.perStationFill,
+                                  {
+                                    width: `${Math.round(probability * 100)}%`,
+                                  },
+                                ]}
+                              />
+                            ) : (
+                              <View
+                                style={[
+                                  styles.perStationFill,
+                                  {
+                                    width: `${Math.round(probability * 100)}%`,
+                                    backgroundColor: probabilityColor(
+                                      probability,
+                                      c,
+                                    ),
+                                  },
+                                ]}
+                              />
+                            )}
+                          </View>
+                          <Text
+                            style={[
+                              styles.perStationPercent,
+                              {
+                                color:
+                                  probability >= 0.7 ? c.seat : c.textSecondary,
+                              },
+                            ]}
+                          >
+                            {Math.round(probability * 100)}%
+                          </Text>
+                        </View>
                       ),
                     )}
-                  </>
+                  </View>
                 ) : null}
                 {detail.perStationProbabilities.length > 0 && !isPro() ? (
-                  <ProGateTeaser
-                    feature="full_station_prediction"
+                  <ProBlurGate
+                    locked
+                    onPress={() =>
+                      paywallGate({
+                        type: "pro_feature",
+                        feature: "full_station_prediction",
+                      })
+                    }
+                    title={t("routeDetail.proGate.title")}
+                    ctaLabel={t("routeDetail.proGate.cta")}
                     testID="route-detail-per-station-gate"
-                  />
+                  >
+                    <View style={styles.perStationSection}>
+                      <SectionLabel>
+                        {t("routeDetail.perStationTitle")}
+                      </SectionLabel>
+                      <View
+                        style={[
+                          styles.perStationTrack,
+                          { backgroundColor: c.hairline },
+                        ]}
+                      />
+                    </View>
+                  </ProBlurGate>
                 ) : null}
-              </ThemedView>
+              </View>
             ))}
           </ScrollView>
         ) : null}
+
+        {legs !== null ? (
+          <View style={styles.ctaWrap} pointerEvents="box-none">
+            <LinearGradient
+              colors={[`${c.background}00`, `${c.background}F0`]}
+              style={styles.ctaFade}
+              pointerEvents="none"
+            />
+            <View style={styles.ctaInner}>
+              <GradientButton
+                label={t("routeDetail.startRide")}
+                onPress={handleStartRide}
+                testID="route-detail-start-ride"
+              />
+            </View>
+          </View>
+        ) : null}
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -290,24 +419,26 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-    alignSelf: "center",
-    width: "100%",
   },
   header: {
-    gap: Spacing.one,
+    paddingHorizontal: Spacing.five,
+    paddingTop: Spacing.three,
+    gap: Spacing.two,
   },
-  startRide: {
-    borderRadius: Spacing.three,
-    padding: Spacing.two,
-    alignItems: "center",
+  back: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+    marginLeft: -12,
+  },
+  backText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
   },
   title: {
-    textAlign: "left",
+    ...Typography.h1,
   },
   loading: {
     flex: 1,
@@ -315,33 +446,125 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: Spacing.two,
   },
+  loadingText: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
+  },
   list: {
-    gap: Spacing.three,
+    paddingHorizontal: Spacing.five,
+    paddingTop: Spacing.four,
+    paddingBottom: 120,
+    gap: Spacing.four,
+    maxWidth: MaxContentWidth,
+    alignSelf: "center",
+    width: "100%",
   },
   legCard: {
-    gap: Spacing.one,
-    borderRadius: Spacing.four,
-    padding: Spacing.three,
+    gap: Spacing.two,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    padding: Spacing.four,
   },
-  sectionLabel: {
+  trainLine: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  direction: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  recommendedSection: {
+    gap: Spacing.two,
     marginTop: Spacing.two,
+  },
+  recommendedTitle: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 17,
   },
   carRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: Spacing.one,
+    alignItems: "center",
+  },
+  carFlexNormal: {
+    flex: 1,
+  },
+  carFlexRecommended: {
+    flex: 1.35,
   },
   carBox: {
-    width: 32,
-    height: 32,
-    borderRadius: Spacing.one,
+    height: 34,
+    borderRadius: 7,
     alignItems: "center",
     justifyContent: "center",
   },
-  proGate: {
-    gap: Spacing.one,
-    borderRadius: Spacing.three,
-    padding: Spacing.three,
+  carBoxRecommended: {
+    height: 48,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  carLabel: {
+    fontFamily: Fonts.numBold,
+    fontSize: 13,
+  },
+  carDirectionHint: {
+    fontFamily: Fonts.jp,
+    fontSize: 11,
+  },
+  reasonText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+    lineHeight: 12 * 1.6,
+  },
+  confidenceText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  perStationSection: {
+    gap: Spacing.two,
     marginTop: Spacing.two,
+  },
+  perStationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  perStationName: {
+    width: 62,
+    fontFamily: Fonts.jp,
+    fontSize: 12,
+  },
+  perStationTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  perStationFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+  perStationPercent: {
+    width: 38,
+    textAlign: "right",
+    fontFamily: Fonts.numBold,
+    fontSize: 12,
+  },
+  ctaWrap: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  ctaFade: {
+    height: 48,
+  },
+  ctaInner: {
+    paddingHorizontal: Spacing.five,
+    paddingBottom: Spacing.six,
+    maxWidth: MaxContentWidth,
+    alignSelf: "center",
+    width: "100%",
   },
 });

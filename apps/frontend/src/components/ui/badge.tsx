@@ -18,7 +18,7 @@ export function Badge({
 }: BadgeProps): React.JSX.Element {
   const theme = useTheme();
   const backgroundColor =
-    tone === "accent" ? theme.clay : theme.surfaceSelected;
+    tone === "accent" ? theme.rail : theme.surfaceSelected;
   const color = tone === "accent" ? theme.paper : theme.ink;
 
   return (

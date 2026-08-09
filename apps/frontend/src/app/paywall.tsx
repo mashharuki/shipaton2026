@@ -1,14 +1,18 @@
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, Pressable, StyleSheet } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createAppError } from "shared";
 
 import { ErrorState } from "@/components/error-state";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import {
+  BottomTabInset,
+  Colors,
+  Fonts,
+  MaxContentWidth,
+  Spacing,
+} from "@/constants/theme";
 import { fetchCustomerInfo } from "@/features/subscription/purchases-client";
 import {
   isTrialPeriod,
@@ -17,6 +21,7 @@ import {
   usePaywallPresentation,
   useRestorePurchases,
 } from "@/features/subscription/use-purchases";
+import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { analyticsClient } from "@/lib/analytics";
 import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/lib/config";
 
@@ -28,6 +33,8 @@ import { PRIVACY_POLICY_URL, TERMS_OF_SERVICE_URL } from "@/lib/config";
 export default function PaywallScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const scheme = useAppColorScheme();
+  const c = Colors[scheme];
   const { present, isPresenting } = usePaywallPresentation();
   const { restore, isRestoring } = useRestorePurchases();
   const [outcome, setOutcome] = useState<PaywallOutcome | null>(null);
@@ -102,22 +109,28 @@ export default function PaywallScreen() {
   const isNativePaywallUnavailable = outcome?.type === "unavailable";
 
   return (
-    <ThemedView style={styles.container} testID="paywall-screen">
+    <View
+      style={[styles.container, { backgroundColor: c.background }]}
+      testID="paywall-screen"
+    >
       <SafeAreaView style={styles.safeArea}>
         <Pressable
           accessibilityRole="button"
           onPress={() => router.back()}
           testID="paywall-close"
+          style={styles.close}
         >
-          <ThemedText type="link">{t("common.back")}</ThemedText>
+          <Text style={[styles.closeText, { color: c.text }]}>
+            {t("common.back")}
+          </Text>
         </Pressable>
 
         {isPresenting ? (
-          <ThemedView style={styles.center} testID="paywall-loading">
-            <ThemedText type="default" themeColor="textSecondary">
+          <View style={styles.center} testID="paywall-loading">
+            <Text style={[styles.bodyText, { color: c.textSecondary }]}>
               {t("paywall.loading")}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         ) : null}
 
         {showRetry ? (
@@ -128,58 +141,59 @@ export default function PaywallScreen() {
         ) : null}
 
         {isNativePaywallUnavailable ? (
-          <ThemedView
+          <View
             style={styles.center}
             testID="paywall-development-build-required"
           >
-            <ThemedText type="default" themeColor="textSecondary">
+            <Text style={[styles.bodyText, { color: c.textSecondary }]}>
               {t("paywall.developmentBuildRequired")}
-            </ThemedText>
-          </ThemedView>
+            </Text>
+          </View>
         ) : null}
 
-        <ThemedView style={styles.footer}>
+        <View style={styles.footer}>
           <Pressable
             accessibilityRole="button"
             onPress={handleRestore}
             disabled={isRestoring || isNativePaywallUnavailable}
             testID="paywall-restore"
+            style={styles.restoreLink}
           >
-            <ThemedText type="link">{t("paywall.restorePurchases")}</ThemedText>
+            <Text style={[styles.restoreLinkText, { color: c.rail }]}>
+              {t("paywall.restorePurchases")}
+            </Text>
           </Pressable>
           {restoreMessage === "success" ? (
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
+            <Text
+              style={[styles.smallText, { color: c.textSecondary }]}
               testID="paywall-restore-success"
             >
               {t("paywall.restoreSuccess")}
-            </ThemedText>
+            </Text>
           ) : null}
           {restoreMessage === "error" ? (
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
+            <Text
+              style={[styles.smallText, { color: c.textSecondary }]}
               testID="paywall-restore-error"
             >
               {t("paywall.restoreError")}
-            </ThemedText>
+            </Text>
           ) : null}
 
-          <ThemedText type="small" themeColor="textSecondary">
+          <Text style={[styles.smallText, { color: c.textSecondary }]}>
             {t("paywall.renewalTerms")}
-          </ThemedText>
+          </Text>
 
-          <ThemedView style={styles.links}>
+          <View style={styles.links}>
             {PRIVACY_POLICY_URL ? (
               <Pressable
                 accessibilityRole="link"
                 onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
                 testID="paywall-privacy"
               >
-                <ThemedText type="small">
+                <Text style={[styles.smallText, { color: c.textSecondary }]}>
                   {t("paywall.privacyPolicy")}
-                </ThemedText>
+                </Text>
               </Pressable>
             ) : null}
             {TERMS_OF_SERVICE_URL ? (
@@ -188,15 +202,15 @@ export default function PaywallScreen() {
                 onPress={() => Linking.openURL(TERMS_OF_SERVICE_URL)}
                 testID="paywall-terms"
               >
-                <ThemedText type="small">
+                <Text style={[styles.smallText, { color: c.textSecondary }]}>
                   {t("paywall.termsOfService")}
-                </ThemedText>
+                </Text>
               </Pressable>
             ) : null}
-          </ThemedView>
-        </ThemedView>
+          </View>
+        </View>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -214,6 +228,22 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
   },
+  close: {
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+    marginLeft: -12,
+  },
+  closeText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
+  },
+  bodyText: {
+    fontFamily: Fonts.jp,
+    fontSize: 14,
+  },
   center: {
     flex: 1,
     alignItems: "center",
@@ -221,6 +251,18 @@ const styles = StyleSheet.create({
   },
   footer: {
     gap: Spacing.two,
+  },
+  restoreLink: {
+    minHeight: 44,
+    justifyContent: "center",
+  },
+  restoreLinkText: {
+    fontFamily: Fonts.jpBold,
+    fontSize: 14,
+  },
+  smallText: {
+    fontFamily: Fonts.jp,
+    fontSize: 12,
   },
   links: {
     flexDirection: "row",

@@ -29,6 +29,7 @@
     "settings": "Settings"
   },
   "onboarding": {
+    "skip": "Skip",
     "step1Title": "Comfortable routes, not just fast ones",
     "step1Body": "SeatSignal suggests commute routes based on standing time and seat comfort, not just speed.",
     "step2Title": "Know your standing time up front",
@@ -47,7 +48,11 @@
   "home": {
     "title": "SeatSignal",
     "placeholder": "Search is coming soon",
-    "demoSearch": "Search Shinjuku → Tokyo (demo)"
+    "demoSearch": "Search Shinjuku → Tokyo (demo)",
+    "demoFromStation": "Shinjuku",
+    "demoToStation": "Tokyo",
+    "headline": "Leave {{extra}} min later this morning to cut standing time by {{reduced}} min",
+    "weeklySavedSummary": "You saved {{minutes}} min of standing time in total"
   },
   "savedRoutes": {
     "title": "Saved routes",
@@ -72,7 +77,9 @@
     "diffFromFastest": "+{{minutes}} min vs fastest",
     "standingMinutes": "Expected standing",
     "standingMinutesRange": "{{min}}–{{max}} min",
+    "standingMinutesRangeValue": "{{min}}–{{max}}",
     "standingMinutesPoint": "{{minutes}} min",
+    "minutesUnit": "min",
     "seatedMinutes": "Expected seated",
     "seatProbability": "Seat chance",
     "transferCount": "Transfers",
@@ -82,6 +89,7 @@
     "confidenceMedium": "Medium",
     "confidenceHigh": "High",
     "comfortDiff": "Add {{extra}} min to cut expected standing time by {{reduced}} min",
+    "rangeNotice": "Shown as a range instead of a point estimate due to limited data",
     "minutesValue": "{{minutes}} min",
     "percentValue": "{{percent}}%"
   },
@@ -92,6 +100,7 @@
     "departureLabel": "Departs",
     "direction": "Direction of travel",
     "recommendedCar": "Recommended car: {{car}}",
+    "carDirectionHint": "← Toward {{from}} / Toward {{to}} →",
     "waitingPosition": "Waiting position on the platform (by car)",
     "perStationTitle": "Seat chance by station",
     "reason": {
@@ -146,6 +155,8 @@
     "noData": "No data",
     "dailyTrend": "Expected standing time by day",
     "vsLastWeek": "Vs. last week",
+    "hero": "Standing time saved",
+    "vsLastWeekShort": "{{delta}} min vs last week",
     "proGate": {
       "title": "Pro feature",
       "cta": "Upgrade to Pro to see the daily trend and week-over-week comparison"
@@ -153,6 +164,9 @@
   },
   "settings": {
     "title": "Settings",
+    "planFree": "Free plan",
+    "planPro": "Pro plan",
+    "proCardCta": "Upgrade to Pro to unlock every feature",
     "appearance": "Appearance",
     "appearanceSystem": "Match system",
     "appearanceLight": "Light",
@@ -161,9 +175,11 @@
     "notifications": "Notification settings",
     "privacy": "Privacy & data management",
     "subscriptionManagement": "Manage subscription",
+    "subscriptionManagementError": "Couldn't open subscription management. Please try again.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "licenses": "Attribution & support"
+    "licenses": "Attribution & support",
+    "replayOnboarding": "Watch the app intro again"
   },
   "privacySettings": {
     "title": "Privacy & data management",
