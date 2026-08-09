@@ -92,6 +92,9 @@ jobs:
       - name: Apply local D1 migrations
         working-directory: apps/backend
         run: pnpm run db:migrate:local
+      - name: Seed local KV with dataset fixtures
+        working-directory: apps/backend
+        run: pnpm run push:datasets
       - name: Run E2E smoke tests
         working-directory: apps/frontend
         run: pnpm run e2e
