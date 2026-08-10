@@ -70,8 +70,16 @@ async function syncOne<T extends { schemaVersion: number }>(
   );
 
   if (!result.ok) {
-    // Sync failure (offline, server down, etc.) -- keep whatever is already
-    // stored and try again on the next sync cycle (15.1/15.2).
+    // Sync failure (offline, server down, auth mismatch, empty KV, etc.) --
+    // keep whatever is already stored and try again on the next sync cycle
+    // (15.1/15.2). Logged (code + message only, never `cause`) so a 401 vs
+    // 404 vs offline vs timeout is distinguishable in Metro logs instead of
+    // collapsing into the same generic "not synced yet" UI state.
+    console.warn(
+      `dataset sync failed: ${name}`,
+      result.error.code,
+      result.error.message,
+    );
     return;
   }
   if ("notModified" in result.data) {

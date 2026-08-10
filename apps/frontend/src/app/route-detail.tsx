@@ -157,8 +157,8 @@ export default function RouteDetailScreen() {
                 testID={`route-detail-leg-${index}`}
               >
                 <Text style={[styles.trainLine, { color: c.textSecondary }]}>
-                  {t("routeDetail.trainLabel")}: {detail.leg.trainId} ・{" "}
-                  {detail.leg.departureTime} → {detail.leg.arrivalTime}
+                  {t("routeDetail.trainLabel")}: {detail.leg.departureTime} →{" "}
+                  {detail.leg.arrivalTime}
                 </Text>
                 <Text
                   style={[styles.direction, { color: c.textSecondary }]}
@@ -170,101 +170,172 @@ export default function RouteDetailScreen() {
                 </Text>
 
                 {isPro() ? (
-                  <View style={styles.recommendedSection}>
-                    <Text
-                      style={[styles.recommendedTitle, { color: c.text }]}
-                      testID="route-detail-recommended-car"
-                    >
-                      {t("routeDetail.recommendedCar", {
-                        car: detail.boardingAdvice.recommendedCarNumber,
-                      })}
-                    </Text>
+                  <>
+                    <View style={styles.recommendedSection}>
+                      <Text
+                        style={[styles.recommendedTitle, { color: c.text }]}
+                        testID="route-detail-recommended-car"
+                      >
+                        {t("routeDetail.recommendedCar", {
+                          car: detail.boardingAdvice.recommendedCarNumber,
+                        })}
+                      </Text>
 
-                    <View
-                      style={styles.carRow}
-                      testID="route-detail-car-diagram"
-                    >
-                      {Array.from(
-                        { length: detail.boardingAdvice.carCount },
-                        (_, carIndex) => carIndex + 1,
-                      ).map((carNumber) => {
-                        const isRecommended =
-                          carNumber ===
-                          detail.boardingAdvice.recommendedCarNumber;
-                        const box = isRecommended ? (
-                          <LinearGradient
-                            key={carNumber}
-                            colors={Gradients[scheme].signal}
-                            style={[styles.carBoxRecommended, Shadows.accent]}
-                            testID={`route-detail-car-${carNumber}`}
-                          >
-                            <Text
-                              style={[styles.carLabel, { color: c.onAccent }]}
+                      <View
+                        style={styles.carRow}
+                        testID="route-detail-car-diagram"
+                      >
+                        {Array.from(
+                          { length: detail.boardingAdvice.carCount },
+                          (_, carIndex) => carIndex + 1,
+                        ).map((carNumber) => {
+                          const isRecommended =
+                            carNumber ===
+                            detail.boardingAdvice.recommendedCarNumber;
+                          const box = isRecommended ? (
+                            <LinearGradient
+                              key={carNumber}
+                              colors={Gradients[scheme].signal}
+                              style={[styles.carBoxRecommended, Shadows.accent]}
+                              testID={`route-detail-car-${carNumber}`}
                             >
-                              {carNumber}
-                            </Text>
-                          </LinearGradient>
-                        ) : (
-                          <View
-                            key={carNumber}
-                            style={[
-                              styles.carBox,
-                              { backgroundColor: c.hairline },
-                            ]}
-                            testID={`route-detail-car-${carNumber}`}
-                          >
-                            <Text
+                              <Text
+                                style={[styles.carLabel, { color: c.onAccent }]}
+                              >
+                                {carNumber}
+                              </Text>
+                            </LinearGradient>
+                          ) : (
+                            <View
+                              key={carNumber}
                               style={[
-                                styles.carLabel,
-                                { color: c.textSecondary },
+                                styles.carBox,
+                                { backgroundColor: c.hairline },
                               ]}
+                              testID={`route-detail-car-${carNumber}`}
                             >
-                              {carNumber}
-                            </Text>
-                          </View>
-                        );
-                        return isRecommended ? (
-                          <Pulse
-                            key={carNumber}
-                            style={styles.carFlexRecommended}
-                          >
-                            {box}
-                          </Pulse>
-                        ) : (
-                          <View key={carNumber} style={styles.carFlexNormal}>
-                            {box}
-                          </View>
-                        );
-                      })}
+                              <Text
+                                style={[
+                                  styles.carLabel,
+                                  { color: c.textSecondary },
+                                ]}
+                              >
+                                {carNumber}
+                              </Text>
+                            </View>
+                          );
+                          return isRecommended ? (
+                            <Pulse
+                              key={carNumber}
+                              style={styles.carFlexRecommended}
+                            >
+                              {box}
+                            </Pulse>
+                          ) : (
+                            <View key={carNumber} style={styles.carFlexNormal}>
+                              {box}
+                            </View>
+                          );
+                        })}
+                      </View>
+                      <Text
+                        style={[
+                          styles.carDirectionHint,
+                          { color: c.textSecondary },
+                        ]}
+                      >
+                        {t("routeDetail.carDirectionHint", {
+                          from: stationName(detail.fromStation, i18n.language),
+                          to: stationName(detail.toStation, i18n.language),
+                        })}
+                      </Text>
+                      <Text
+                        style={[styles.reasonText, { color: c.textSecondary }]}
+                      >
+                        {t(detail.boardingAdvice.reasonMessageKey)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.confidenceText,
+                          { color: c.textSecondary },
+                        ]}
+                      >
+                        {t("results.confidence")}:{" "}
+                        {t(
+                          CONFIDENCE_LABEL_KEYS[
+                            detail.boardingAdvice.confidence
+                          ],
+                        )}
+                      </Text>
                     </View>
-                    <Text
-                      style={[
-                        styles.carDirectionHint,
-                        { color: c.textSecondary },
-                      ]}
-                    >
-                      {t("routeDetail.carDirectionHint", {
-                        from: stationName(detail.fromStation, i18n.language),
-                        to: stationName(detail.toStation, i18n.language),
-                      })}
-                    </Text>
-                    <Text
-                      style={[styles.reasonText, { color: c.textSecondary }]}
-                    >
-                      {t(detail.boardingAdvice.reasonMessageKey)}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.confidenceText,
-                        { color: c.textSecondary },
-                      ]}
-                    >
-                      {t("results.confidence")}:{" "}
-                      {t(
-                        CONFIDENCE_LABEL_KEYS[detail.boardingAdvice.confidence],
-                      )}
-                    </Text>
-                  </View>
+
+                    {detail.perStationProbabilities.length > 0 ? (
+                      <View style={styles.perStationSection}>
+                        <SectionLabel>
+                          {t("routeDetail.perStationTitle")}
+                        </SectionLabel>
+                        {detail.perStationProbabilities.map(
+                          ({ station, probability }) => (
+                            <View key={station.id} style={styles.perStationRow}>
+                              <Text
+                                style={[
+                                  styles.perStationName,
+                                  { color: c.text },
+                                ]}
+                                numberOfLines={1}
+                              >
+                                {stationName(station, i18n.language)}
+                              </Text>
+                              <View
+                                style={[
+                                  styles.perStationTrack,
+                                  { backgroundColor: c.hairline },
+                                ]}
+                              >
+                                {probability >= 0.7 ? (
+                                  <LinearGradient
+                                    colors={Gradients[scheme].signal}
+                                    style={[
+                                      styles.perStationFill,
+                                      {
+                                        width: `${Math.round(probability * 100)}%`,
+                                      },
+                                    ]}
+                                  />
+                                ) : (
+                                  <View
+                                    style={[
+                                      styles.perStationFill,
+                                      {
+                                        width: `${Math.round(probability * 100)}%`,
+                                        backgroundColor: probabilityColor(
+                                          probability,
+                                          c,
+                                        ),
+                                      },
+                                    ]}
+                                  />
+                                )}
+                              </View>
+                              <Text
+                                style={[
+                                  styles.perStationPercent,
+                                  {
+                                    color:
+                                      probability >= 0.7
+                                        ? c.seat
+                                        : c.textSecondary,
+                                  },
+                                ]}
+                              >
+                                {Math.round(probability * 100)}%
+                              </Text>
+                            </View>
+                          ),
+                        )}
+                      </View>
+                    ) : null}
+                  </>
                 ) : (
                   <ProBlurGate
                     locked
@@ -276,7 +347,7 @@ export default function RouteDetailScreen() {
                     }
                     title={t("routeDetail.proGate.title")}
                     ctaLabel={t("routeDetail.proGate.cta")}
-                    testID="route-detail-boarding-gate"
+                    testID="route-detail-pro-gate"
                   >
                     <View style={styles.recommendedSection}>
                       <Text
@@ -297,96 +368,22 @@ export default function RouteDetailScreen() {
                         ))}
                       </View>
                     </View>
+
+                    {detail.perStationProbabilities.length > 0 ? (
+                      <View style={styles.perStationSection}>
+                        <SectionLabel>
+                          {t("routeDetail.perStationTitle")}
+                        </SectionLabel>
+                        <View
+                          style={[
+                            styles.perStationTrack,
+                            { backgroundColor: c.hairline },
+                          ]}
+                        />
+                      </View>
+                    ) : null}
                   </ProBlurGate>
                 )}
-
-                {detail.perStationProbabilities.length > 0 && isPro() ? (
-                  <View style={styles.perStationSection}>
-                    <SectionLabel>
-                      {t("routeDetail.perStationTitle")}
-                    </SectionLabel>
-                    {detail.perStationProbabilities.map(
-                      ({ station, probability }) => (
-                        <View key={station.id} style={styles.perStationRow}>
-                          <Text
-                            style={[styles.perStationName, { color: c.text }]}
-                            numberOfLines={1}
-                          >
-                            {stationName(station, i18n.language)}
-                          </Text>
-                          <View
-                            style={[
-                              styles.perStationTrack,
-                              { backgroundColor: c.hairline },
-                            ]}
-                          >
-                            {probability >= 0.7 ? (
-                              <LinearGradient
-                                colors={Gradients[scheme].signal}
-                                style={[
-                                  styles.perStationFill,
-                                  {
-                                    width: `${Math.round(probability * 100)}%`,
-                                  },
-                                ]}
-                              />
-                            ) : (
-                              <View
-                                style={[
-                                  styles.perStationFill,
-                                  {
-                                    width: `${Math.round(probability * 100)}%`,
-                                    backgroundColor: probabilityColor(
-                                      probability,
-                                      c,
-                                    ),
-                                  },
-                                ]}
-                              />
-                            )}
-                          </View>
-                          <Text
-                            style={[
-                              styles.perStationPercent,
-                              {
-                                color:
-                                  probability >= 0.7 ? c.seat : c.textSecondary,
-                              },
-                            ]}
-                          >
-                            {Math.round(probability * 100)}%
-                          </Text>
-                        </View>
-                      ),
-                    )}
-                  </View>
-                ) : null}
-                {detail.perStationProbabilities.length > 0 && !isPro() ? (
-                  <ProBlurGate
-                    locked
-                    onPress={() =>
-                      paywallGate({
-                        type: "pro_feature",
-                        feature: "full_station_prediction",
-                      })
-                    }
-                    title={t("routeDetail.proGate.title")}
-                    ctaLabel={t("routeDetail.proGate.cta")}
-                    testID="route-detail-per-station-gate"
-                  >
-                    <View style={styles.perStationSection}>
-                      <SectionLabel>
-                        {t("routeDetail.perStationTitle")}
-                      </SectionLabel>
-                      <View
-                        style={[
-                          styles.perStationTrack,
-                          { backgroundColor: c.hairline },
-                        ]}
-                      />
-                    </View>
-                  </ProBlurGate>
-                ) : null}
               </View>
             ))}
           </ScrollView>

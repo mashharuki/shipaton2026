@@ -19,11 +19,7 @@ export type PaywallTrigger =
   | { type: "search_limit" } // 12.2
   | {
       type: "pro_feature";
-      feature:
-        | "boarding_detail"
-        | "full_station_prediction"
-        | "coach"
-        | "detailed_report";
+      feature: "boarding_detail" | "coach" | "detailed_report";
     } // 12.4
   | { type: "saved_route_limit" }; // 9.3
 
