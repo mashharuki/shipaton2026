@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --ip 0.0.0.0",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "typecheck": "tsc --noEmit",
@@ -12,6 +12,7 @@
     "db:migrate:local": "wrangler d1 migrations apply seatsignal-db --local",
     "generate:datasets": "tsx scripts/generate-datasets.ts",
     "push:datasets": "tsx scripts/push-datasets-to-kv.ts",
+    "setup:local": "pnpm run db:migrate:local && pnpm run push:datasets",
     "openapi": "tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
