@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Seat Signal",
+    "slug": "Seat Signal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "SeatSignal",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.seat-signal.app",
