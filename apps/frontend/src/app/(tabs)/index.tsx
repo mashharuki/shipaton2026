@@ -1,3 +1,16 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { isErr } from "shared";
 import { standingMinutesPoint } from "@/components/route-card";
 import { AppPressable } from "@/components/ui/app-pressable";
 import { GradientBorderCard } from "@/components/ui/gradient-border";
@@ -22,19 +35,6 @@ import { useRouteSearch } from "@/features/search/use-route-search";
 import { recordSearch } from "@/features/subscription/usage-limiter";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { isErr } from "shared";
 
 // 07:30 lands inside the only two populated congestion windows in the
 // current single-railway fixture (07:00-08:00 / 18:00-19:00) -- a full
