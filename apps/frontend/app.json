@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Seat Signal",
-    "slug": "Seat Signal",
+    "slug": "SeatSignal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -48,8 +48,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1254c4af-2bd4-43de-8963-6aaebbcb5d17"
+        "projectId": "2a0b1de6-8416-4eda-b880-d945668f0a2c"
       }
-    }
+    },
+    "owner": "mashharuki"
   }
 }

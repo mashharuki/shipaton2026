@@ -60,6 +60,7 @@
     "android": "SENTRY_DISABLE_AUTO_UPLOAD=true expo run:android",
     "ios": "SENTRY_DISABLE_AUTO_UPLOAD=true expo run:ios",
     "web": "expo start --web",
+    "build": "pnpm exec eas build --platform ios --profile production",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
