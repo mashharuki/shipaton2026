@@ -50,19 +50,26 @@ handler yet.
 **Location**: `apps/frontend/src/app/`
 **Purpose**: `expo-router` file-based routing — each file is a screen/route, `_layout.tsx` defines
 shared layout/navigation for its directory. `(tabs)/` is a route group for the 3-tab shell
-(home/report/settings); `results.tsx` and `route-detail.tsx` are pushed screens outside the tabs.
-**Example**: `src/app/(tabs)/index.tsx` (home tab), `src/app/results.tsx`, `src/app/_layout.tsx`
+(home/report/settings); everything else is a pushed screen outside the tabs, reached from a tab or
+from another pushed screen — `onboarding.tsx`, `results.tsx`, `route-detail.tsx`, `coach.tsx`,
+`feedback.tsx`, `paywall.tsx`. A subdirectory groups a tab's own pushed sub-screens the same way
+`(tabs)/` groups the tab shell: `settings/licenses.tsx`, `settings/notifications.tsx`,
+`settings/privacy.tsx` are all reached from `(tabs)/settings.tsx`.
+**Example**: `src/app/(tabs)/index.tsx` (home tab), `src/app/results.tsx`, `src/app/paywall.tsx`,
+`src/app/settings/privacy.tsx`, `src/app/_layout.tsx`
 
 ### Frontend feature domain logic
 **Location**: `apps/frontend/src/features/<feature>/`
 **Purpose**: Pure/testable business logic per feature area — search, prediction, preferences,
-dataset sync — kept separate from screens specifically so Vitest can exercise it (see [[tech]]'s
-note on why RN component rendering isn't testable here). A feature typically pairs a
-store/engine/repository file with a `use-*.ts` hook that screens call; I/O boundaries (SQLite,
-storage) are abstracted behind a typed port (e.g. `dataset-store.ts`) so the logic file itself has
-no native dependency.
+dataset sync, subscription, coach, feedback, onboarding, saved-routes, trip-history — kept separate
+from screens specifically so Vitest can exercise it (see [[tech]]'s note on why RN component
+rendering isn't testable here). A feature typically pairs a store/engine/repository file with a
+`use-*.ts` hook that screens call; I/O boundaries (SQLite, storage, the RevenueCat SDK) are
+abstracted behind a typed port (e.g. `dataset-store.ts`, `purchases-client.ts`) so the logic file
+itself has no native dependency.
 **Example**: `features/search/route-search-engine.ts` + `use-route-search.ts`,
-`features/dataset/dataset-repository.ts` + `dataset-store.ts` (port)
+`features/dataset/dataset-repository.ts` + `dataset-store.ts` (port),
+`features/subscription/purchases-client.ts` (port) + `subscription-gate.ts` + `use-purchases.ts`
 
 ### Frontend lib (cross-cutting infrastructure)
 **Location**: `apps/frontend/src/lib/`
@@ -159,4 +166,4 @@ domain-logic-only, rendering is Playwright's job).
 
 ---
 _Document patterns, not file trees. New files following patterns shouldn't require updates_
-_Last synced with codebase: 2026-08-06 (kiro-steering sync)_
+_Last synced with codebase: 2026-08-11 (kiro-steering sync)_

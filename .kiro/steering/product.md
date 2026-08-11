@@ -17,8 +17,10 @@ ride. It does not reserve seats — it predicts the probability of getting one a
 - **Expected Standing Minutes (ESM)** as the differentiating, academically-grounded core metric,
   computed from timetable data, ridership patterns, weather/events/delays, and anonymized
   user feedback (see `packages/shared/src/prediction/scoring.ts` for the scoring model).
-- In-app monetization via RevenueCat (Pro tier), gating unlimited search / weekly comfort
-  reports / multiple saved routes — the intended core mechanic for the Shipaton submission.
+- In-app monetization via RevenueCat (Pro tier): the SDK is integrated (`apps/frontend/src/features/subscription/`,
+  a `paywall.tsx` screen) and the RevenueCat dashboard project ("SeatSignal") has entitlement/offering/product
+  config live, gating unlimited search / weekly comfort reports / multiple saved routes — this is the core
+  Shipaton submission mechanic, not just a planned one.
 
 ## Target Use Cases
 
@@ -46,4 +48,4 @@ the least-validated Pro feature rather than its core value driver.
 
 ---
 _Focus on patterns and purpose, not exhaustive feature lists_
-_Last synced with codebase: 2026-08-06 (kiro-steering sync — see `.kiro/specs/seat-signal/` and `docs/pm/review-seatsignal-idea-2026-08-04.md`)_
+_Last synced with codebase: 2026-08-11 (kiro-steering sync — see `.kiro/specs/seat-signal/` and `docs/pm/review-seatsignal-idea-2026-08-04.md`)_

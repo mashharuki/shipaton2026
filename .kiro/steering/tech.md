@@ -42,11 +42,14 @@ pnpm workspace monorepo (`pnpm-workspace.yaml`: `apps/*`, `packages/*` — real 
   analytics events) — schemas live once in `packages/shared/src/schemas/` and are the source of
   truth for both backend routes and frontend; schemas needing OpenAPI `$ref`s use zod4's
   `.meta({id})` (see `ErrorResponse`/`OkResponse`) instead of inlining
-- Monetization: RevenueCat SDK is the intended purchase/entitlement layer for the Shipaton
-  submission (`.kiro/specs/seat-signal/tasks.md` phase 6) but is **not yet added to either app** —
-  `packages/shared` already defines `PRO_ENTITLEMENT_ID` and free-tier plan-limit constants as the
-  shared contract for it, and the free-tier search/comparison/detail flow (phase 5) is built and
-  ungated ahead of it
+- Monetization: `react-native-purchases` / `react-native-purchases-ui` are added to
+  `apps/frontend` and wired through `src/features/subscription/` (`purchases-client.ts` wraps the
+  SDK behind a port, `subscription-gate.ts` / `use-paywall-gate.ts` / `usage-limiter.ts` /
+  `use-purchases.ts` implement the entitlement-check and free-tier-limit logic), gating the
+  `paywall.tsx` screen. `packages/shared`'s `PRO_ENTITLEMENT_ID` and plan-limit constants are the
+  shared contract both this gate and the RevenueCat dashboard config (project "SeatSignal":
+  iOS/Android apps, `pro` entitlement, `default` offering with `$rc_monthly`/`$rc_annual`
+  packages) agree on
 
 ## Development Standards
 
@@ -141,9 +144,10 @@ per-workspace typecheck + `pnpm --filter <ws> test` + `pnpm --filter frontend e2
   API shapes — chosen specifically because the product's core value (ESM) must be computed
   identically wherever it's shown, and because a hackathon timeline favors sharing over an API
   round-trip for pure functions.
-- **RevenueCat for monetization** is the assumed direction (per Shipaton hackathon rules) but not
-  yet wired into either app — `packages/shared`'s plan-limit constants exist as the future
-  contract, treat actual SDK integration as pending (`.kiro/specs/seat-signal/tasks.md` phase 6).
+- **RevenueCat for monetization** (per Shipaton hackathon rules) is wired into `apps/frontend` —
+  see `src/features/subscription/` and the RevenueCat dashboard project "SeatSignal". `packages/shared`'s
+  plan-limit constants remain the single contract so free-tier limits can't drift between the gate
+  logic and the dashboard-side entitlement/offering config.
 - **Cron Triggers configured but not dispatched**: `wrangler.jsonc` declares a daily (feedback
   aggregation) and 5-minute (commuter notification) cron schedule, and both batch jobs
   (`cron/aggregate-feedback.ts`, `cron/notify-commuters.ts`) are implemented and tested as
@@ -160,4 +164,4 @@ per-workspace typecheck + `pnpm --filter <ws> test` + `pnpm --filter frontend e2
 
 ---
 _Document standards and patterns, not every dependency_
-_Last synced with codebase: 2026-08-06 (kiro-steering sync)_
+_Last synced with codebase: 2026-08-11 (kiro-steering sync)_
