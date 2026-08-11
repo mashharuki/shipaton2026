@@ -1,6 +1,7 @@
 ---
 name: transitland
 description: Use for designing, building, and testing systems that consume or work with Transitland — Interline's transit-data platform that aggregates GTFS, GTFS-RT, GBFS, and MDS feeds from transit operators worldwide into a queryable REST/GraphQL API, bulk datasets, and the DMFR feed registry (transitland-atlas). Trigger whenever the user mentions Transitland, transit.land, a GTFS feed registry or aggregator, Onestop IDs, DMFR, looking up transit stops/routes/operators/agencies/feeds via an API, bulk transit stop/route datasets, or self-hosting a GTFS feed-fetch/import/validate pipeline — even if they just say "transit data API," "GTFS source," or "where do I get GTFS feeds for X city" without naming Transitland explicitly. Also covers transitland-lib (the current Go CLI/library/server — transitland-server is archived, don't point users there), the REST API v2, the paid-tier-gated GraphQL API, and Interline's related OSM GeoJSONL extracts product.
+model: opus
 ---
 
 # Transitland
@@ -17,6 +18,16 @@ source of bad advice:
 
 A request to "get transit data for a city" might want #1 (call the hosted API); a request to "run
 our own feed registry / validation pipeline" wants #2. Figure out which before reaching for code.
+
+## If the project also involves MobilityData / the Mobility Database
+
+Both Transitland and MobilityData (see this repo's `mobilitydata` skill if present) are transit
+feed registries built on GTFS/GTFS-RT/GBFS, and it's easy to reach for whichever one you used last
+without thinking about why. Short version: MobilityData literally governs the GTFS/GBFS specs and
+ships the canonical validators (pick it when spec-authoritative validation matters); Transitland is
+a commercial aggregator with no formal spec authority but offers a paid GraphQL layer and Interline's
+broader product ecosystem (pick it when GraphQL or bulk cross-agency aggregation matters more). See
+`mobilitydata/SKILL.md`'s "MobilityData vs. Transitland" section for the fuller comparison table.
 
 ## Before you rely on any specific detail
 

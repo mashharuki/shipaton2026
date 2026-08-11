@@ -1,6 +1,7 @@
 ---
 name: opentripplanner
 description: Use for designing, configuring, deploying, and testing systems built on OpenTripPlanner (OTP) — the open-source Java multi-modal trip planning server that routes over GTFS/NeTEx transit data, OpenStreetMap streets, GBFS bike/scooter share, and real-time GTFS-RT/SIRI feeds. Trigger whenever the user mentions OpenTripPlanner, OTP, a trip-planning or journey-planning server, building a transit routing graph, GTFS graph builds, multi-modal route planning APIs, or wants to stand up or integrate a backend that answers "how do I get from A to B by transit/bike/walk" — even if they just say "routing engine," "trip planner," or "GTFS server" without naming OTP explicitly. Also use when reviewing or debugging an existing OTP deployment (build-config.json / router-config.json / otp-config.json), writing GraphQL queries against OTP's GTFS GraphQL or Transmodel APIs, wiring real-time updaters, or writing tests for OTP itself or for a service that calls it.
+model: opus
 ---
 
 # OpenTripPlanner (OTP)
