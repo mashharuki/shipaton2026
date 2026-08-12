@@ -24,6 +24,7 @@ export {
   type IconProps,
 } from "@/components/ui/icon";
 export { Meter, type MeterProps } from "@/components/ui/meter";
+export { OptionCard } from "@/components/ui/option-card";
 export {
   ProBlurGate,
   type ProBlurGateProps,
