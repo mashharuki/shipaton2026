@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest";
 import type { TimetableDatasetPayload } from "@/features/dataset/dataset-store";
 import {
   hasTimetableFor,
+  isSearchFormComplete,
   listDepartureTimes,
   listSelectableStations,
   nextWeekdayServiceDate,
+  type SearchFormValue,
+  selectableDestinations,
+  selectDepartureTime,
+  selectFromStation,
+  selectToStation,
 } from "@/features/search/search-form";
 import timetableFixture from "../../../../backend/fixtures/datasets/timetable.json";
 
@@ -219,5 +225,174 @@ describe("listDepartureTimes (sorting regression)", () => {
 
     // Must be sorted: [06:00, 12:00, 19:00], not [19:00, 12:00, 06:00]
     expect(times).toEqual(["06:00", "12:00", "19:00"]);
+  });
+});
+
+const emptyValue: SearchFormValue = {
+  fromStationId: null,
+  toStationId: null,
+  departureTime: null,
+};
+
+describe("selectFromStation", () => {
+  it("should clear the destination when it equals the newly picked origin", () => {
+    const next = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      },
+      "STA_TOKYO",
+    );
+
+    expect(next).toEqual({
+      fromStationId: "STA_TOKYO",
+      toStationId: null,
+      departureTime: null,
+    });
+  });
+
+  it("should preserve the destination when it differs from the newly picked origin", () => {
+    const next = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      },
+      "STA_YOTSUYA",
+    );
+
+    expect(next).toEqual({
+      fromStationId: "STA_YOTSUYA",
+      toStationId: "STA_TOKYO",
+      departureTime: null,
+    });
+  });
+
+  it("should always clear the departure time, whether or not the destination is cleared", () => {
+    const clearedDestination = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      },
+      "STA_TOKYO",
+    );
+    const preservedDestination = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      },
+      "STA_YOTSUYA",
+    );
+
+    expect(clearedDestination.departureTime).toBeNull();
+    expect(preservedDestination.departureTime).toBeNull();
+  });
+});
+
+describe("selectToStation", () => {
+  it("should set the destination and clear the departure time", () => {
+    const next = selectToStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: null,
+        departureTime: "07:00",
+      },
+      "STA_TOKYO",
+    );
+
+    expect(next).toEqual({
+      fromStationId: "STA_SHINJUKU",
+      toStationId: "STA_TOKYO",
+      departureTime: null,
+    });
+  });
+
+  it("should not change the origin", () => {
+    const next = selectToStation(
+      { ...emptyValue, fromStationId: "STA_SHINJUKU" },
+      "STA_TOKYO",
+    );
+
+    expect(next.fromStationId).toBe("STA_SHINJUKU");
+  });
+});
+
+describe("selectDepartureTime", () => {
+  it("should set the departure time without touching origin or destination", () => {
+    const value: SearchFormValue = {
+      fromStationId: "STA_SHINJUKU",
+      toStationId: "STA_TOKYO",
+      departureTime: null,
+    };
+
+    expect(selectDepartureTime(value, "07:00")).toEqual({
+      fromStationId: "STA_SHINJUKU",
+      toStationId: "STA_TOKYO",
+      departureTime: "07:00",
+    });
+  });
+});
+
+describe("selectableDestinations", () => {
+  const stations = [
+    { id: "STA_SHINJUKU" },
+    { id: "STA_YOTSUYA" },
+    { id: "STA_TOKYO" },
+  ];
+
+  it("should exclude the currently chosen origin", () => {
+    expect(selectableDestinations(stations, "STA_YOTSUYA")).toEqual([
+      { id: "STA_SHINJUKU" },
+      { id: "STA_TOKYO" },
+    ]);
+  });
+
+  it("should return every station when no origin is chosen yet", () => {
+    expect(selectableDestinations(stations, null)).toEqual(stations);
+  });
+});
+
+describe("isSearchFormComplete", () => {
+  it("should be false when the origin is null", () => {
+    expect(
+      isSearchFormComplete({
+        fromStationId: null,
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      }),
+    ).toBe(false);
+  });
+
+  it("should be false when the destination is null", () => {
+    expect(
+      isSearchFormComplete({
+        fromStationId: "STA_SHINJUKU",
+        toStationId: null,
+        departureTime: "07:00",
+      }),
+    ).toBe(false);
+  });
+
+  it("should be false when the departure time is null", () => {
+    expect(
+      isSearchFormComplete({
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: null,
+      }),
+    ).toBe(false);
+  });
+
+  it("should be true when all three fields are set", () => {
+    expect(
+      isSearchFormComplete({
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      }),
+    ).toBe(true);
   });
 });

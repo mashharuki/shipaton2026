@@ -8,14 +8,16 @@ import { GradientButton } from "@/components/ui/gradient-button";
 import { OptionCard } from "@/components/ui/option-card";
 import { Colors, Fonts, Spacing } from "@/constants/theme";
 import type { TimetableDatasetPayload } from "@/features/dataset/dataset-store";
+import {
+  isSearchFormComplete,
+  type SearchFormValue,
+  selectableDestinations,
+  selectDepartureTime,
+  selectFromStation,
+  selectToStation,
+} from "@/features/search/search-form";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import type { SupportedLocale } from "@/lib/i18n";
-
-export type SearchFormValue = {
-  fromStationId: string | null;
-  toStationId: string | null;
-  departureTime: string | null;
-};
 
 type OpenPicker = "from" | "to" | "time" | null;
 
@@ -55,30 +57,20 @@ export function SearchForm({
 
   const fromStation = stations.find((s) => s.id === value.fromStationId);
   const toStation = stations.find((s) => s.id === value.toStationId);
-  const isComplete =
-    value.fromStationId !== null &&
-    value.toStationId !== null &&
-    value.departureTime !== null;
+  const isComplete = isSearchFormComplete(value);
 
-  // Selecting a new origin invalidates a destination that is no longer
-  // downstream of it, and any previously picked time (the option list is
-  // derived from the pair).
   const handleFromPress = (stationId: string) => {
-    onChange({
-      fromStationId: stationId,
-      toStationId: value.toStationId === stationId ? null : value.toStationId,
-      departureTime: null,
-    });
+    onChange(selectFromStation(value, stationId));
     setOpen(null);
   };
 
   const handleToPress = (stationId: string) => {
-    onChange({ ...value, toStationId: stationId, departureTime: null });
+    onChange(selectToStation(value, stationId));
     setOpen(null);
   };
 
   const handleTimePress = (time: string) => {
-    onChange({ ...value, departureTime: time });
+    onChange(selectDepartureTime(value, time));
     setOpen(null);
   };
 
@@ -117,16 +109,16 @@ export function SearchForm({
           onPress={() => setOpen(open === "to" ? null : "to")}
         />
         {open === "to"
-          ? stations
-              .filter((station) => station.id !== value.fromStationId)
-              .map((station) => (
+          ? selectableDestinations(stations, value.fromStationId).map(
+              (station) => (
                 <OptionCard
                   key={station.id}
                   label={stationName(station, locale)}
                   onPress={() => handleToPress(station.id)}
                   testID={`search-to-${station.id}`}
                 />
-              ))
+              ),
+            )
           : null}
 
         <FieldRow

@@ -3,6 +3,61 @@ import { type DayType, isErr } from "shared";
 import type { TimetableDatasetPayload } from "@/features/dataset/dataset-store";
 import { searchRoutes } from "./route-search-engine";
 
+export type SearchFormValue = {
+  fromStationId: string | null;
+  toStationId: string | null;
+  departureTime: string | null;
+};
+
+// Picking a new origin invalidates a destination that is no longer
+// downstream of it, and any previously picked time (the time-option list
+// is derived from the from/to pair, so it must be re-picked either way).
+export function selectFromStation(
+  value: SearchFormValue,
+  stationId: string,
+): SearchFormValue {
+  return {
+    fromStationId: stationId,
+    toStationId: value.toStationId === stationId ? null : value.toStationId,
+    departureTime: null,
+  };
+}
+
+// Picking a destination always clears the time: the departure-time list is
+// derived from the from/to pair, so a stale time is never valid here.
+export function selectToStation(
+  value: SearchFormValue,
+  stationId: string,
+): SearchFormValue {
+  return { ...value, toStationId: stationId, departureTime: null };
+}
+
+export function selectDepartureTime(
+  value: SearchFormValue,
+  time: string,
+): SearchFormValue {
+  return { ...value, departureTime: time };
+}
+
+// The destination picker must never offer the currently chosen origin.
+export function selectableDestinations<T extends { id: string }>(
+  stations: T[],
+  fromStationId: string | null,
+): T[] {
+  if (fromStationId === null) {
+    return stations;
+  }
+  return stations.filter((station) => station.id !== fromStationId);
+}
+
+export function isSearchFormComplete(value: SearchFormValue): boolean {
+  return (
+    value.fromStationId !== null &&
+    value.toStationId !== null &&
+    value.departureTime !== null
+  );
+}
+
 // 3.1: the station picker offers exactly what the synced timetable covers,
 // in physical line order, so an out-of-area selection is impossible from
 // the UI (route-search-engine still returns out_of_area for saved routes
