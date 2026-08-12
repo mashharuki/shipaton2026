@@ -60,6 +60,64 @@ export async function waitForSearchResults(page: Page): Promise<void> {
   await expect(resultsList).toBeVisible({ timeout: 10000 });
 }
 
+// 3.1: a genuinely fresh context's Home screen races the same sync
+// useDatasetSync kicks off against its OWN one-shot read of the local store
+// (index.tsx's `datasetsQuery`, queryKey ["home-datasets"]): react-query
+// gives that read a default staleTime of 0, but nothing ever asks it to
+// actually refetch once the sync (a separate query, a separate mount)
+// finishes -- and Expo Router's tab navigator keeps Home mounted (not
+// remounted) across tab switches, so no natural remount comes along to
+// trigger react-query's own refetch-on-mount either. Confirmed live: on a
+// fresh context, waiting 25+ real seconds with the from-picker open never
+// populates it (station list, and therefore also the "no timetable today"
+// banner -- both derive from the same `datasetsQuery.data` -- stay
+// permanently empty/absent), but a single page.reload() once the sync has
+// (by then) already succeeded in the background immediately fixes both,
+// because a reload is a genuine remount that re-reads the by-then-populated
+// local store. Needed at most once per test -- once the query has data it
+// keeps it, so every later call sees it immediately without reloading
+// again. STA_SHINJUKU is used as the readiness probe regardless of which
+// station a scenario actually wants: it's in the fixture on every dayType,
+// so its presence signals "the query resolved" independent of whatever the
+// weekday/weekend outcome is.
+export async function waitForDatasetsSynced(page: Page): Promise<void> {
+  await page.getByTestId("search-from-trigger").click();
+  const probe = page.getByTestId("search-from-STA_SHINJUKU");
+  const readyOnFirstTry = await probe
+    .waitFor({ state: "visible", timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!readyOnFirstTry) {
+    await page.reload();
+    await expect(page.getByTestId("home-screen")).toBeVisible();
+    await page.getByTestId("search-from-trigger").click();
+    await expect(probe).toBeVisible({ timeout: 15000 });
+  }
+  // Leave the form in its resting (closed-picker) state for the caller.
+  await page.getByTestId("search-from-trigger").click();
+}
+
+// 3.1: the home screen's search form needs three selections before it can
+// submit. Every scenario that just needs "a search happened" goes through
+// this; search-form.spec.ts is the one that asserts the form itself.
+export async function performSearch(
+  page: Page,
+  options: { from?: string; to?: string; time?: string } = {},
+): Promise<void> {
+  const from = options.from ?? "STA_SHINJUKU";
+  const to = options.to ?? "STA_TOKYO";
+  const time = options.time ?? "0730";
+
+  await waitForDatasetsSynced(page);
+  await page.getByTestId("search-from-trigger").click();
+  await page.getByTestId(`search-from-${from}`).click();
+  await page.getByTestId("search-to-trigger").click();
+  await page.getByTestId(`search-to-${to}`).click();
+  await page.getByTestId("search-time-trigger").click();
+  await page.getByTestId(`search-time-${time}`).click();
+  await page.getByTestId("search-submit").click();
+}
+
 // 10.2/design.md: "課金は SubscriptionGate のモック（Preview API Mode 相当）
 // で Free / Pro 両状態を切り替えて検証する" -- forces isPro() on the web
 // target via subscription-gate.ts's e2eProOverride(). Must run via

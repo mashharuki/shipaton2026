@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   completeOnboarding,
   freezeToWeekday,
+  performSearch,
   waitForSearchResults,
 } from "./helpers";
 
@@ -14,7 +15,7 @@ test("searches, compares 3 routes with the comfort diff, and opens route detail"
   await page.goto("/");
   await completeOnboarding(page);
 
-  await page.getByTestId("home-demo-search").click();
+  await performSearch(page);
   await expect(page.getByTestId("results-screen")).toBeVisible();
   await waitForSearchResults(page);
 
