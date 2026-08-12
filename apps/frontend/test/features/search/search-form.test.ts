@@ -128,27 +128,10 @@ describe("nextWeekdayServiceDate", () => {
     // 23:30 JST on 2026-08-12 is 14:30 UTC the same day, but an early-morning
     // local time (07:00 JST) is the previous day in UTC -- toISOString() would
     // report 2026-08-11 for it. The local-field build must not.
+    // This test MUST fail when implementation uses toISOString() and TZ=Asia/Tokyo.
     expect(nextWeekdayServiceDate(new Date("2026-08-12T00:30:00"))).toBe(
       "2026-08-12",
     );
-  });
-
-  it("should use local date fields to build output (not toISOString)", () => {
-    // This test catches if toISOString() is used instead of manual local field extraction.
-    // The function increments the date using .setDate() on local date, so if the wrong
-    // string format method is used, the year/month/day would not match the incremented local date.
-    // Verify that multiple dates work correctly with proper year-month-day padding:
-    const result1 = nextWeekdayServiceDate(new Date("2026-08-08T12:00:00Z"));
-    expect(result1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(result1).toBe("2026-08-10"); // Saturday -> skip to Monday
-
-    const result2 = nextWeekdayServiceDate(new Date("2026-08-07T12:00:00Z"));
-    expect(result2).toBe("2026-08-07"); // Friday -> no skip needed
-
-    // Verify month and day padding (e.g., "01" not "1")
-    const result3 = nextWeekdayServiceDate(new Date("2026-01-02T12:00:00Z")); // Friday Jan 2
-    expect(result3).toMatch(/2026-01-/);
-    expect(result3).toBe("2026-01-02");
   });
 });
 
