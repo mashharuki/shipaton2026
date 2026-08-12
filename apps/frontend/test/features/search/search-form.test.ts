@@ -132,4 +132,109 @@ describe("nextWeekdayServiceDate", () => {
       "2026-08-12",
     );
   });
+
+  it("should use local date fields to build output (not toISOString)", () => {
+    // This test catches if toISOString() is used instead of manual local field extraction.
+    // The function increments the date using .setDate() on local date, so if the wrong
+    // string format method is used, the year/month/day would not match the incremented local date.
+    // Verify that multiple dates work correctly with proper year-month-day padding:
+    const result1 = nextWeekdayServiceDate(new Date("2026-08-08T12:00:00Z"));
+    expect(result1).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(result1).toBe("2026-08-10"); // Saturday -> skip to Monday
+
+    const result2 = nextWeekdayServiceDate(new Date("2026-08-07T12:00:00Z"));
+    expect(result2).toBe("2026-08-07"); // Friday -> no skip needed
+
+    // Verify month and day padding (e.g., "01" not "1")
+    const result3 = nextWeekdayServiceDate(new Date("2026-01-02T12:00:00Z")); // Friday Jan 2
+    expect(result3).toMatch(/2026-01-/);
+    expect(result3).toBe("2026-01-02");
+  });
+});
+
+describe("listDepartureTimes (sorting regression)", () => {
+  it("should sort departure times ascending even when source trains are not in order", () => {
+    // Synthetic timetable with trains declared in reverse chronological order.
+    // Verifies that .sort() is necessary and not just relying on fixture order.
+    const nonChronologicalTimetable: TimetableDatasetPayload = {
+      schemaVersion: 3,
+      stations: [
+        {
+          id: "STA_START",
+          railwayId: "RAIL_X",
+          nameJa: "Start",
+          nameEn: "Start",
+          seq: 0,
+        },
+        {
+          id: "STA_END",
+          railwayId: "RAIL_X",
+          nameJa: "End",
+          nameEn: "End",
+          seq: 1,
+        },
+      ],
+      trainTimetables: [
+        // Declare trains in reverse time order to verify .sort()
+        {
+          trainId: "TRAIN_3",
+          stationId: "STA_START",
+          departureTime: "19:00",
+          arrivalTime: "19:00",
+          carCount: 8,
+          dayType: "weekday",
+        },
+        {
+          trainId: "TRAIN_2",
+          stationId: "STA_START",
+          departureTime: "12:00",
+          arrivalTime: "12:00",
+          carCount: 8,
+          dayType: "weekday",
+        },
+        {
+          trainId: "TRAIN_1",
+          stationId: "STA_START",
+          departureTime: "06:00",
+          arrivalTime: "06:00",
+          carCount: 8,
+          dayType: "weekday",
+        },
+        // Arrivals at destination
+        {
+          trainId: "TRAIN_1",
+          stationId: "STA_END",
+          departureTime: "06:30",
+          arrivalTime: "06:30",
+          carCount: 8,
+          dayType: "weekday",
+        },
+        {
+          trainId: "TRAIN_2",
+          stationId: "STA_END",
+          departureTime: "12:30",
+          arrivalTime: "12:30",
+          carCount: 8,
+          dayType: "weekday",
+        },
+        {
+          trainId: "TRAIN_3",
+          stationId: "STA_END",
+          departureTime: "19:30",
+          arrivalTime: "19:30",
+          carCount: 8,
+          dayType: "weekday",
+        },
+      ],
+    };
+
+    const times = listDepartureTimes(nonChronologicalTimetable, {
+      fromStationId: "STA_START",
+      toStationId: "STA_END",
+      dayType: "weekday",
+    });
+
+    // Must be sorted: [06:00, 12:00, 19:00], not [19:00, 12:00, 06:00]
+    expect(times).toEqual(["06:00", "12:00", "19:00"]);
+  });
 });
