@@ -11,6 +11,8 @@ export type GradientButtonProps = {
   onPress: () => void;
   variant?: "solid" | "outline";
   right?: ReactNode;
+  /** When true, the button does not fire `onPress` and renders de-emphasised. Default `false`. */
+  disabled?: boolean;
   testID?: string;
 };
 
@@ -20,18 +22,30 @@ export function GradientButton({
   onPress,
   variant = "solid",
   right,
+  disabled = false,
   testID,
 }: GradientButtonProps) {
   const scheme = useAppColorScheme();
   const c = Colors[scheme];
 
+  const handlePress = () => {
+    if (disabled) return;
+    onPress();
+  };
+
   if (variant === "outline") {
     return (
       <AppPressable
         accessibilityRole="button"
-        onPress={onPress}
+        accessibilityState={{ disabled }}
+        onPress={handlePress}
+        disabled={disabled}
         testID={testID}
-        style={[styles.outline, { borderColor: c.hairline }]}
+        style={[
+          styles.outline,
+          { borderColor: c.hairline },
+          disabled && styles.disabled,
+        ]}
       >
         <Text style={[styles.label, { color: c.text }]}>{label}</Text>
       </AppPressable>
@@ -41,9 +55,11 @@ export function GradientButton({
   return (
     <AppPressable
       accessibilityRole="button"
-      onPress={onPress}
+      accessibilityState={{ disabled }}
+      onPress={handlePress}
+      disabled={disabled}
       testID={testID}
-      style={Shadows.accent}
+      style={[Shadows.accent, disabled && styles.disabled]}
     >
       <LinearGradient
         colors={Gradients[scheme].signal}
@@ -76,4 +92,5 @@ const styles = StyleSheet.create({
   },
   label: { fontFamily: Fonts.jpBold, fontSize: 16, lineHeight: 16 },
   right: { marginLeft: 4 },
+  disabled: { opacity: 0.4 },
 });
