@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { TimetableDatasetPayload } from "@/features/dataset/dataset-store";
-import { intermediateStationIds } from "@/lib/station-utils";
+import {
+  intermediateStationIds,
+  resolveStationName,
+} from "@/lib/station-utils";
 
 const timetable: TimetableDatasetPayload = {
   schemaVersion: 1,
@@ -13,6 +16,29 @@ const timetable: TimetableDatasetPayload = {
   ],
   trainTimetables: [],
 };
+
+describe("resolveStationName", () => {
+  const stations = [
+    { id: "STA_SHINJUKU", nameJa: "新宿", nameEn: "Shinjuku" },
+    { id: "STA_TOKYO", nameJa: "東京", nameEn: "Tokyo" },
+  ];
+
+  it("should return nameJa for a found station under the ja locale", () => {
+    expect(resolveStationName(stations, "STA_SHINJUKU", "ja")).toBe("新宿");
+  });
+
+  it("should return nameEn for a found station under the en locale", () => {
+    expect(resolveStationName(stations, "STA_SHINJUKU", "en")).toBe("Shinjuku");
+  });
+
+  it("should return null when the station id is not in the list", () => {
+    expect(resolveStationName(stations, "STA_NOWHERE", "ja")).toBeNull();
+  });
+
+  it("should return null when the stations array is empty", () => {
+    expect(resolveStationName([], "STA_SHINJUKU", "ja")).toBeNull();
+  });
+});
 
 describe("intermediateStationIds", () => {
   it("should return the stations strictly between from and to, in travel order", () => {

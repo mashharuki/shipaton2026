@@ -55,7 +55,7 @@ import { recordSearch } from "@/features/subscription/usage-limiter";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { getDb } from "@/lib/db";
-import type { SupportedLocale } from "@/lib/i18n";
+import { resolveStationName } from "@/lib/station-utils";
 
 // 9.1: the form has no day-of-week field yet, so a saved route defaults to
 // the standard 5-day commute. Editing which weekdays a route covers is a
@@ -63,6 +63,10 @@ import type { SupportedLocale } from "@/lib/i18n";
 const DEFAULT_SAVED_WEEKDAYS: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
 
 const WEEKDAY_BAR_COUNT = 5;
+
+// Task 6 fix round 1: shown instead of a raw STA_* id when the id isn't (yet)
+// resolvable against the synced station list.
+const UNKNOWN_STATION_LABEL = "—";
 
 // Splits a translated sentence around the (already-interpolated) numeric
 // tokens it contains, so only the numbers themselves can be styled -- the
@@ -233,15 +237,18 @@ export default function HomeScreen() {
   const maxBarMinutes = Math.max(1, ...weekdayBars.map((day) => day.minutes));
   const todayDateOnly = new Date().toISOString().slice(0, 10);
 
-  const stationLabel = (stationId: string): string => {
-    const station = stations.find((s) => s.id === stationId);
-    if (!station) {
-      return stationId;
-    }
-    return (i18n.language as SupportedLocale) === "ja"
-      ? station.nameJa
-      : station.nameEn;
-  };
+  // Task 6 fix round 1: a raw STA_* id must never reach the screen.
+  // `stations` derives from datasetsQuery.data, which is empty until the
+  // async dataset sync resolves (or stays empty forever if it errored) --
+  // saved routes and recent searches load from their own independent
+  // stores, so this id-not-found case is the default first frame, not a
+  // rare race. Fall back to a neutral placeholder instead of the id.
+  const stationLabel = (stationId: string): string =>
+    resolveStationName(
+      stations,
+      stationId,
+      i18n.language === "ja" ? "ja" : "en",
+    ) ?? UNKNOWN_STATION_LABEL;
 
   // 12.1/12.2: design.md's "無料枠チェック→検索→3案選定" flow -- guard()
   // first (Free's 4th attempt never reaches the search), recordSearch()
