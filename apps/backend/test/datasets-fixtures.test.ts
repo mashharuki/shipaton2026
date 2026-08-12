@@ -18,21 +18,21 @@ import timetableFixture from "../fixtures/datasets/timetable.json";
  */
 describe("dataset fixtures match the contract schema", () => {
   it("timetable.json: payload conforms to timetableDatasetPayloadSchema", () => {
-    expect(timetableFixture.version).toBe("2");
+    expect(timetableFixture.version).toBe("3");
     expect(() =>
       timetableDatasetPayloadSchema.parse(timetableFixture.payload),
     ).not.toThrow();
   });
 
   it("congestion.json: payload conforms to congestionDatasetPayloadSchema", () => {
-    expect(congestionFixture.version).toBe("2");
+    expect(congestionFixture.version).toBe("3");
     expect(() =>
       congestionDatasetPayloadSchema.parse(congestionFixture.payload),
     ).not.toThrow();
   });
 
   it("correction.json: payload conforms to correctionDatasetPayloadSchema (empty seed)", () => {
-    expect(correctionFixture.version).toBe("2");
+    expect(correctionFixture.version).toBe("3");
     const parsed = correctionDatasetPayloadSchema.parse(
       correctionFixture.payload,
     );
@@ -44,9 +44,25 @@ describe("dataset fixtures match the contract schema", () => {
       timetableFixture.payload.stations.map((s) => s.railwayId),
     );
     expect(railwayIds.size).toBe(1);
-    const legKeys = new Set(
+  });
+});
+
+describe("congestion fixture leg coverage", () => {
+  it("covers every forward station pair in the timetable", () => {
+    const stations = [...timetableFixture.payload.stations].sort(
+      (a, b) => a.seq - b.seq,
+    );
+    const expectedLegKeys = new Set<string>();
+    for (let i = 0; i < stations.length; i++) {
+      for (let j = i + 1; j < stations.length; j++) {
+        expectedLegKeys.add(`${stations[i].id}-${stations[j].id}`);
+      }
+    }
+
+    const actualLegKeys = new Set(
       congestionFixture.payload.profiles.map((p) => p.legKey),
     );
-    expect(legKeys.size).toBe(1);
+
+    expect(actualLegKeys).toEqual(expectedLegKeys);
   });
 });

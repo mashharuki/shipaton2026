@@ -31,7 +31,7 @@ const RAILWAY_ID = "RAIL_CHUO";
 const SCHEMA_VERSION = 1;
 // Bump whenever a committed fixture changes so already-installed clients
 // replace their SQLite copy on the next sync.
-const DATASET_VERSION = "2";
+const DATASET_VERSION = "3";
 
 // Real JR Chuo Rapid stops between Shinjuku and Tokyo -- fixture station
 // identifiers, not live operational data.
@@ -140,30 +140,40 @@ function buildTimetable(): TrainTimetableEntry[] {
  *
  * Covers every weekday departure window the timetable dataset offers
  * (morning + evening) -- requirements.md 5.8 requires profile-based
- * prediction across "対象区間の全提供時間帯", not just a subset of it.
+ * prediction across "対象区間の全提供時間帯", not just a subset of it --
+ * for EVERY forward station pair, not only the full Shinjuku-to-Tokyo run.
+ * The search form lets users pick any pair, and predictLeg() matches
+ * legKey exactly, so a missing pair surfaces as an insufficient_data error
+ * rather than a prediction.
  */
 function buildCongestionProfiles(): CongestionProfileEntry[] {
-  const legKey = `${STATIONS[0].id}-${STATIONS[STATIONS.length - 1].id}`;
+  const ordered = [...STATIONS].sort((a, b) => a.seq - b.seq);
   const profiles: CongestionProfileEntry[] = [];
   const timeBuckets = [
     ...WEEKDAY_MORNING_DEPARTURES,
     ...WEEKDAY_EVENING_DEPARTURES,
   ];
-  for (const timeBucket of timeBuckets) {
-    for (let carNumber = 1; carNumber <= CAR_COUNT; carNumber++) {
-      profiles.push({
-        railwayId: RAILWAY_ID,
-        legKey,
-        timeBucket,
-        dayType: "weekday",
-        carNumber,
-        loadScore: Math.min(
-          1,
-          (DEMO_BASE_LOAD_BY_DEPARTURE[timeBucket] ?? 0.3) +
-            (carNumber - 1) * 0.03,
-        ),
-        sampleSize: 0,
-      });
+
+  for (let i = 0; i < ordered.length; i++) {
+    for (let j = i + 1; j < ordered.length; j++) {
+      const legKey = `${ordered[i].id}-${ordered[j].id}`;
+      for (const timeBucket of timeBuckets) {
+        for (let carNumber = 1; carNumber <= CAR_COUNT; carNumber++) {
+          profiles.push({
+            railwayId: RAILWAY_ID,
+            legKey,
+            timeBucket,
+            dayType: "weekday",
+            carNumber,
+            loadScore: Math.min(
+              1,
+              (DEMO_BASE_LOAD_BY_DEPARTURE[timeBucket] ?? 0.3) +
+                (carNumber - 1) * 0.03,
+            ),
+            sampleSize: 0,
+          });
+        }
+      }
     }
   }
   return profiles;
