@@ -20,20 +20,39 @@ pnpm workspace monorepo (`pnpm-workspace.yaml`: `apps/*`, `packages/*`):
 - `apps/backend/` — Cloudflare Workers API on Hono. See its own `CLAUDE.md`.
 - `packages/shared/` — shared TypeScript domain package (`workspace:*` dep of both apps): Result
   type, `AppError`/error codes, prediction scoring pure functions, zod schemas for the API/dataset/
-  analytics-events contracts, plan-limit constants. Has the only real test suite in the repo today
-  (vitest, `packages/shared/test/`).
+  analytics-events contracts, plan-limit constants (vitest, `packages/shared/test/`).
 - `.kiro/specs/seat-signal/` — approved requirements/design/tasks for the product.
   `.kiro/steering/` — product/tech/structure steering docs, **currently stale** (describe a
   pre-SeatSignal scaffold state; refresh via the `kiro-steering` skill before trusting them).
-- `.github/workflows/ci.yaml` — Biome check, per-workspace typecheck, per-workspace vitest
-  (`--if-present`, so only `shared` runs today).
+- `.github/workflows/ci.yaml` — Biome check, per-workspace typecheck (incl. `cf-typegen` for
+  backend), per-workspace vitest (`shared`/`backend`/`frontend` all have real `test` scripts now),
+  Playwright E2E against Expo web (seeds local D1 + KV fixtures first).
 
 ## Implementation status
 
-Only Phase 1 of `.kiro/specs/seat-signal/tasks.md` is done (`packages/shared` foundation + CI).
-`apps/backend/src/index.ts` is still the unmodified Hono starter route; `apps/frontend/src/app/`
-is still the Expo template screen. Don't assume SeatSignal routes, screens, or Cloudflare bindings
-exist beyond what's implemented in `packages/shared`.
+Phases 1–9 of `.kiro/specs/seat-signal/tasks.md` are substantially implemented and verified
+(shared foundation, backend API/aggregation/notifications, frontend app shell, core search/predict/
+compare/detail loop, subscription/Paywall, Live Comfort Coach, saved routes/notifications/report,
+onboarding/settings) — this is **not** a scaffold anymore. Verified directly (2026-08-12): backend
+`typecheck` is clean and `pnpm --filter backend test` passes 65/65 (real D1/KV via
+`vitest-pool-workers`); `pnpm --filter shared test` passes 68/68. Don't trust tasks.md's `[x]`
+checkboxes blindly, but don't assume the "unmodified Hono starter" state either — read the actual
+route/feature files before claiming something is missing.
+
+Known real gaps, not assumptions:
+- **No station-picker search UI.** `apps/frontend/src/app/(tabs)/index.tsx`'s search button always
+  fires one hardcoded `DEMO_QUERY` (Shinjuku→Tokyo, fixed date/time); saved routes reuse the same
+  query. The search/prediction engine itself (`apps/frontend/src/features/search/`,
+  `packages/shared/src/prediction/scoring.ts`) is real and tested, not mocked — `results.tsx` reads
+  arbitrary query params, so a picker UI is the only missing piece, not the engine.
+- **Datasets are synthetic demo data, on purpose.** Real ODPT 中央線 timetable data is
+  Challenge-only licensed and was deliberately not adopted (see `design.md`'s "Out of Boundary" and
+  project memory `odpt-timetable-challenge-license-2026-08.md`). The bundled fixture covers 5
+  stations / 1 line / weekday-only.
+- **10.3 (real-device E2E) and 10.4 (sandbox purchase E2E) are unstarted**, blocked on a human with
+  a physical device / real Apple ID sandbox account — see `docs/qa/10.3-10.4-manual-e2e-runbook.md`.
+- Feedback aggregation's `delta_score`/`mae_standing_min` use a provisional heuristic (categorical
+  `vsExpected` mapped to ±0.1), not a real measured standing-time error — see tasks.md's 3.4 note.
 
 ## Commands (from repo root)
 
@@ -42,9 +61,9 @@ pnpm format                              # Biome format --write, whole repo
 pnpm check                               # Biome lint, whole repo
 pnpm knip                                # unused files/exports/deps, whole repo
 pnpm --filter <shared|backend|frontend> run typecheck
-pnpm --filter shared test                # vitest — the only workspace with real tests today
-pnpm --filter frontend start|ios|android|web|lint
-pnpm --filter backend dev|deploy|cf-typegen
+pnpm --filter <shared|backend|frontend> test    # vitest — all three workspaces have real suites
+pnpm --filter frontend start|ios|android|web|lint|e2e
+pnpm --filter backend dev|deploy|cf-typegen|run setup:local
 ```
 
 `pnpm --filter <name>` works directly (workspace globs are real) — prefer it over `cd`/`pnpm --dir`.
