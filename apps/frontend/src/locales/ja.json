@@ -47,12 +47,23 @@
   },
   "home": {
     "title": "SeatSignal",
-    "placeholder": "検索機能は近日公開予定です",
-    "demoSearch": "新宿→東京を検索（デモ）",
-    "demoFromStation": "新宿",
-    "demoToStation": "東京",
     "headline": "今朝は {{extra}} 分遅く出ると立ち時間が {{reduced}} 分減ります",
     "weeklySavedSummary": "合計 {{minutes}} 分の立ち時間を削減しました"
+  },
+  "search": {
+    "title": "ルートを検索",
+    "fromLabel": "出発駅",
+    "toLabel": "到着駅",
+    "timeLabel": "出発時刻",
+    "selectFrom": "出発駅を選ぶ",
+    "selectTo": "到着駅を選ぶ",
+    "selectTime": "出発時刻を選ぶ",
+    "submit": "この条件で検索",
+    "noDepartures": "この区間の運行時刻がありません",
+    "noTimetableToday": "本日のダイヤデータがありません",
+    "weekdayFallbackNotice": "平日ダイヤの候補を表示しています",
+    "recentTitle": "最近の検索",
+    "recentEmpty": "最近の検索はありません"
   },
   "savedRoutes": {
     "title": "保存したルート",
@@ -68,7 +79,7 @@
     "missingQuery": "検索条件を読み込めませんでした。ホームからもう一度検索してください。",
     "noRoutes": "この日時・区間では利用できるルートが見つかりませんでした。",
     "backToHome": "ホームに戻る",
-    "demoSchedule": "デモ用ダイヤ：{{date}}（平日）",
+    "weekdayFallback": "平日ダイヤ（{{date}}）で表示中",
     "fastest": "最速",
     "balanced": "バランス",
     "comfort": "最も快適",

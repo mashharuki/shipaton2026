@@ -47,12 +47,23 @@
   },
   "home": {
     "title": "SeatSignal",
-    "placeholder": "Search is coming soon",
-    "demoSearch": "Search Shinjuku → Tokyo (demo)",
-    "demoFromStation": "Shinjuku",
-    "demoToStation": "Tokyo",
     "headline": "Leave {{extra}} min later this morning to cut standing time by {{reduced}} min",
     "weeklySavedSummary": "You saved {{minutes}} min of standing time in total"
+  },
+  "search": {
+    "title": "Find a route",
+    "fromLabel": "From",
+    "toLabel": "To",
+    "timeLabel": "Departure",
+    "selectFrom": "Choose a departure station",
+    "selectTo": "Choose an arrival station",
+    "selectTime": "Choose a departure time",
+    "submit": "Search with these settings",
+    "noDepartures": "No departures run on this section",
+    "noTimetableToday": "No timetable data for today",
+    "weekdayFallbackNotice": "Showing weekday departures instead",
+    "recentTitle": "Recent searches",
+    "recentEmpty": "No recent searches yet"
   },
   "savedRoutes": {
     "title": "Saved routes",
@@ -68,7 +79,7 @@
     "missingQuery": "We couldn't read your search. Please try again from Home.",
     "noRoutes": "No routes are available for this time and trip.",
     "backToHome": "Back to Home",
-    "demoSchedule": "Demo timetable: {{date}} (weekday)",
+    "weekdayFallback": "Showing the weekday timetable ({{date}})",
     "fastest": "Fastest",
     "balanced": "Balanced",
     "comfort": "Most comfortable",
