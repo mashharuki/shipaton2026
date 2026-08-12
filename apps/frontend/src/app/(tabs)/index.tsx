@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Image,
@@ -10,12 +12,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { isErr } from "shared";
+import { isErr, toDayType } from "shared";
 import { standingMinutesPoint } from "@/components/route-card";
+import { SearchForm } from "@/components/search-form";
 import { AppPressable } from "@/components/ui/app-pressable";
 import { GradientBorderCard } from "@/components/ui/gradient-border";
-import { GradientButton } from "@/components/ui/gradient-button";
 import { Icon } from "@/components/ui/icon";
+import { OptionCard } from "@/components/ui/option-card";
 import { SectionLabel } from "@/components/ui/section-label";
 import {
   BottomTabInset,
@@ -27,33 +30,37 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
+import {
+  getCongestionData,
+  getCorrectionData,
+  getTimetableData,
+} from "@/features/dataset/dataset-repository";
+import { createSqliteDatasetStore } from "@/features/dataset/dataset-store";
 import { usePreferenceStore } from "@/features/preferences/preference-store";
 import { useWeeklyReport } from "@/features/report/use-weekly-report";
 import type { Weekday } from "@/features/saved-routes/saved-routes-store";
 import { useSavedRoutes } from "@/features/saved-routes/use-saved-routes";
-import { useRouteSearch } from "@/features/search/use-route-search";
+import { getRecentSearches } from "@/features/search/recent-searches";
+import { rankRoutes } from "@/features/search/route-ranker";
+import { searchRoutes } from "@/features/search/route-search-engine";
+import {
+  hasTimetableFor,
+  isSearchFormComplete,
+  listDepartureTimes,
+  listSelectableStations,
+  nextWeekdayServiceDate,
+  type SearchFormValue,
+} from "@/features/search/search-form";
 import { recordSearch } from "@/features/subscription/usage-limiter";
 import { usePaywallGate } from "@/features/subscription/use-paywall-gate";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
+import { getDb } from "@/lib/db";
+import type { SupportedLocale } from "@/lib/i18n";
 
-// 07:30 lands inside the only two populated congestion windows in the
-// current single-railway fixture (07:00-08:00 / 18:00-19:00) -- a full
-// station-picker search form is a separate, not-yet-scheduled piece of UI
-// work; this task's own scope is the results/comparison screen, so this is
-// a minimal, honest trigger to actually reach it end-to-end.
-const DEMO_QUERY = {
-  fromStationId: "STA_SHINJUKU",
-  toStationId: "STA_TOKYO",
-  departureTime: "07:30",
-  // The bundled dataset currently contains weekday timetables only. Keep the
-  // demonstration available on weekends by explicitly searching this Tuesday.
-  serviceDate: "2026-08-04",
-};
-
-// 9.1: no station-picker/day-of-week form exists yet (same gap DEMO_QUERY
-// already documents for search) -- saving reuses the one demo commute as its
-// route, weekdays default to the standard 5-day commute.
-const DEMO_WEEKDAYS: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
+// 9.1: the form has no day-of-week field yet, so a saved route defaults to
+// the standard 5-day commute. Editing which weekdays a route covers is a
+// separate, not-yet-scheduled piece of UI.
+const DEFAULT_SAVED_WEEKDAYS: Weekday[] = ["mon", "tue", "wed", "thu", "fri"];
 
 const WEEKDAY_BAR_COUNT = 5;
 
@@ -78,25 +85,13 @@ function splitHighlighted(
     .map((part) => ({ text: part, highlight: uniqueTokens.includes(part) }));
 }
 
-function StationMarker({ color1, color2 }: { color1: string; color2: string }) {
-  return (
-    <View style={styles.markerColumn}>
-      <View style={[styles.markerDotOutline, { borderColor: color1 }]} />
-      <LinearGradient colors={[color1, color2]} style={styles.markerLine} />
-      <View style={[styles.markerDotFilled, { backgroundColor: color2 }]} />
-    </View>
-  );
-}
-
 export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const scheme = useAppColorScheme();
   const c = Colors[scheme];
   const paywallGate = usePaywallGate();
-  const comfortPriority = usePreferenceStore(
-    (state) => state.preference.speedComfortBalance,
-  );
+  const preference = usePreferenceStore((state) => state.preference);
   const {
     routes,
     pendingRemovalIds,
@@ -105,13 +100,103 @@ export default function HomeScreen() {
     undoRemove,
     selectRoute,
   } = useSavedRoutes();
-  const { data: demoResult } = useRouteSearch(DEMO_QUERY);
   const { current: weeklyMetrics } = useWeeklyReport(0);
 
-  const demoRoutes = demoResult && !isErr(demoResult) ? demoResult.data : [];
-  const comfortRoute = demoRoutes.find((route) => route.type === "comfort");
+  const [form, setForm] = useState<SearchFormValue>({
+    fromStationId: null,
+    toStationId: null,
+    departureTime: null,
+  });
+
+  const datasetsQuery = useQuery({
+    queryKey: ["home-datasets"],
+    queryFn: async () => {
+      const db = await getDb();
+      const store = createSqliteDatasetStore(db);
+      const [timetable, congestion, correction] = await Promise.all([
+        getTimetableData(store),
+        getCongestionData(store),
+        getCorrectionData(store),
+      ]);
+      if (isErr(timetable) || isErr(congestion) || isErr(correction)) {
+        return null;
+      }
+      return {
+        timetable: timetable.data,
+        congestion: congestion.data,
+        correction: correction.data,
+      };
+    },
+  });
+
+  const recentQuery = useQuery({
+    queryKey: ["recent-searches"],
+    queryFn: getRecentSearches,
+  });
+
+  const timetable = datasetsQuery.data?.timetable ?? null;
+  const dayType = toDayType(new Date());
+  const hasTodayTimetable = timetable
+    ? hasTimetableFor(timetable, dayType)
+    : true;
+  const fallbackServiceDate = hasTodayTimetable
+    ? undefined
+    : nextWeekdayServiceDate(new Date());
+  const searchDayType = hasTodayTimetable ? dayType : "weekday";
+
+  const stations = useMemo(
+    () => (timetable ? listSelectableStations(timetable) : []),
+    [timetable],
+  );
+
+  const departureTimes = useMemo(() => {
+    if (!timetable || !form.fromStationId || !form.toStationId) {
+      return [];
+    }
+    return listDepartureTimes(timetable, {
+      fromStationId: form.fromStationId,
+      toStationId: form.toStationId,
+      dayType: searchDayType,
+    });
+  }, [timetable, form.fromStationId, form.toStationId, searchDayType]);
+
+  // Preview for the hero line and the saved-route badge. Deliberately NOT
+  // useRouteSearch: that hook's queryFn fires analytics and records a recent
+  // search, which must only happen for a search the user actually ran (see
+  // the spec's "ホーム画面の副作用を持たない計算").
+  const previewRoutes = useMemo(() => {
+    const data = datasetsQuery.data;
+    if (
+      !data ||
+      !form.fromStationId ||
+      !form.toStationId ||
+      !form.departureTime
+    ) {
+      return [];
+    }
+    const candidates = searchRoutes(data.timetable, {
+      fromStationId: form.fromStationId,
+      toStationId: form.toStationId,
+      departureTime: form.departureTime,
+      dayType: searchDayType,
+    });
+    if (isErr(candidates)) {
+      return [];
+    }
+    const ranked = rankRoutes(
+      candidates.data,
+      data.timetable,
+      data.congestion,
+      data.correction,
+      preference,
+      searchDayType,
+    );
+    return isErr(ranked) ? [] : ranked.data;
+  }, [datasetsQuery.data, form, searchDayType, preference]);
+
+  const comfortRoute = previewRoutes.find((route) => route.type === "comfort");
   const fastestRoute =
-    demoRoutes.find((route) => route.type === "fastest") ?? demoRoutes[0];
+    previewRoutes.find((route) => route.type === "fastest") ?? previewRoutes[0];
   const comfortEsm = comfortRoute
     ? Math.round(standingMinutesPoint(comfortRoute.prediction.standingMinutes))
     : undefined;
@@ -148,25 +233,46 @@ export default function HomeScreen() {
   const maxBarMinutes = Math.max(1, ...weekdayBars.map((day) => day.minutes));
   const todayDateOnly = new Date().toISOString().slice(0, 10);
 
+  const stationLabel = (stationId: string): string => {
+    const station = stations.find((s) => s.id === stationId);
+    if (!station) {
+      return stationId;
+    }
+    return (i18n.language as SupportedLocale) === "ja"
+      ? station.nameJa
+      : station.nameEn;
+  };
+
   // 12.1/12.2: design.md's "無料枠チェック→検索→3案選定" flow -- guard()
   // first (Free's 4th attempt never reaches the search), recordSearch()
   // only on an actually-allowed attempt so a blocked attempt doesn't itself
   // count against tomorrow's/today's limit.
   const handleSearch = () => {
-    if (!paywallGate({ type: "search_limit" })) {
+    if (!isSearchFormComplete(form) || !paywallGate({ type: "search_limit" })) {
       return;
     }
     recordSearch();
-    router.push({ pathname: "/results", params: DEMO_QUERY });
+    router.push({
+      pathname: "/results",
+      params: {
+        fromStationId: form.fromStationId,
+        toStationId: form.toStationId,
+        departureTime: form.departureTime,
+        ...(fallbackServiceDate ? { serviceDate: fallbackServiceDate } : {}),
+      },
+    });
   };
 
   const handleSaveRoute = () => {
+    if (!isSearchFormComplete(form)) {
+      return;
+    }
     saveRoute({
-      fromStationId: DEMO_QUERY.fromStationId,
-      toStationId: DEMO_QUERY.toStationId,
-      departureTime: DEMO_QUERY.departureTime,
-      weekdays: DEMO_WEEKDAYS,
-      comfortPriority,
+      fromStationId: form.fromStationId,
+      toStationId: form.toStationId,
+      departureTime: form.departureTime,
+      weekdays: DEFAULT_SAVED_WEEKDAYS,
+      comfortPriority: preference.speedComfortBalance,
     });
   };
 
@@ -221,29 +327,26 @@ export default function HomeScreen() {
             ) : null}
           </View>
 
-          <GradientBorderCard>
-            <View style={styles.searchRow}>
-              <StationMarker color1={c.rail} color2={c.seat} />
-              <View style={styles.searchTextCol}>
-                <Text style={[styles.searchStation, { color: c.text }]}>
-                  {t("home.demoFromStation")}{" "}
-                  <Text style={{ color: c.textSecondary }}>
-                    {DEMO_QUERY.departureTime}発
-                  </Text>
-                </Text>
-                <Text style={[styles.searchStation, { color: c.text }]}>
-                  {t("home.demoToStation")}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.searchCta}>
-              <GradientButton
-                label={t("home.demoSearch")}
-                onPress={handleSearch}
-                testID="home-demo-search"
-              />
-            </View>
-          </GradientBorderCard>
+          {!hasTodayTimetable ? (
+            <GradientBorderCard>
+              <Text
+                style={[styles.emptyText, { color: c.textSecondary }]}
+                testID="search-no-timetable-today"
+              >
+                {t("search.noTimetableToday")}
+              </Text>
+              <Text style={[styles.emptyText, { color: c.textSecondary }]}>
+                {t("search.weekdayFallbackNotice")}
+              </Text>
+            </GradientBorderCard>
+          ) : null}
+          <SearchForm
+            stations={stations}
+            departureTimes={departureTimes}
+            value={form}
+            onChange={setForm}
+            onSubmit={handleSearch}
+          />
 
           <View style={styles.section} testID="saved-routes-section">
             <SectionLabel>{t("savedRoutes.title")}</SectionLabel>
@@ -263,22 +366,22 @@ export default function HomeScreen() {
               >
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => selectRoute(route)}
+                  onPress={() => selectRoute(route, fallbackServiceDate)}
                   style={styles.savedRouteMain}
                 >
                   <Text style={[styles.savedRouteText, { color: c.text }]}>
-                    {route.fromStationId} → {route.toStationId} (
-                    {route.departureTime})
+                    {stationLabel(route.fromStationId)} →{" "}
+                    {stationLabel(route.toStationId)} ({route.departureTime})
                   </Text>
                 </Pressable>
                 <View style={styles.savedRouteRight}>
-                  {/* comfortEsm is a single value from the one demo search
-                  above, not a per-route estimate -- only valid for the row
-                  that actually matches that query. */}
+                  {/* comfortEsm is a single value from the current form
+                  preview, not a per-route estimate -- only valid for the row
+                  that actually matches the form's current query. */}
                   {comfortEsm !== undefined &&
-                  route.fromStationId === DEMO_QUERY.fromStationId &&
-                  route.toStationId === DEMO_QUERY.toStationId &&
-                  route.departureTime === DEMO_QUERY.departureTime ? (
+                  route.fromStationId === form.fromStationId &&
+                  route.toStationId === form.toStationId &&
+                  route.departureTime === form.departureTime ? (
                     <Text style={styles.savedRouteEsm}>
                       <Text
                         style={{ color: c.seat, fontFamily: Fonts.numBold }}
@@ -337,6 +440,29 @@ export default function HomeScreen() {
                 {t("savedRoutes.save")}
               </Text>
             </Pressable>
+          </View>
+
+          <View style={styles.section} testID="recent-searches-section">
+            <SectionLabel>{t("search.recentTitle")}</SectionLabel>
+            {(recentQuery.data ?? []).length === 0 ? (
+              <Text style={[styles.emptyText, { color: c.textSecondary }]}>
+                {t("search.recentEmpty")}
+              </Text>
+            ) : null}
+            {(recentQuery.data ?? []).map((entry) => (
+              <OptionCard
+                key={`${entry.fromStationId}-${entry.toStationId}`}
+                label={`${stationLabel(entry.fromStationId)} → ${stationLabel(entry.toStationId)}`}
+                onPress={() =>
+                  setForm({
+                    fromStationId: entry.fromStationId,
+                    toStationId: entry.toStationId,
+                    departureTime: null,
+                  })
+                }
+                testID={`recent-search-${entry.fromStationId}-${entry.toStationId}`}
+              />
+            ))}
           </View>
 
           <View style={styles.section}>
@@ -435,42 +561,6 @@ const styles = StyleSheet.create({
     ...Typography.h1,
     fontSize: 27,
     lineHeight: 27 * 1.35,
-  },
-  searchRow: {
-    flexDirection: "row",
-    gap: Spacing.three,
-  },
-  searchTextCol: {
-    flex: 1,
-    justifyContent: "space-between",
-    gap: Spacing.one,
-  },
-  searchStation: {
-    fontFamily: Fonts.jpBold,
-    fontSize: 16,
-  },
-  searchCta: {
-    marginTop: Spacing.four,
-  },
-  markerColumn: {
-    alignItems: "center",
-    width: 12,
-  },
-  markerDotOutline: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-  },
-  markerLine: {
-    width: 2,
-    flex: 1,
-    minHeight: 24,
-  },
-  markerDotFilled: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
   section: {
     gap: Spacing.two,

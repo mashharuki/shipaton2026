@@ -50,7 +50,15 @@ export function selectableDestinations<T extends { id: string }>(
   return stations.filter((station) => station.id !== fromStationId);
 }
 
-export function isSearchFormComplete(value: SearchFormValue): boolean {
+export type CompleteSearchFormValue = {
+  fromStationId: string;
+  toStationId: string;
+  departureTime: string;
+};
+
+export function isSearchFormComplete(
+  value: SearchFormValue,
+): value is CompleteSearchFormValue {
   return (
     value.fromStationId !== null &&
     value.toStationId !== null &&

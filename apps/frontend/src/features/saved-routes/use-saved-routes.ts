@@ -15,11 +15,6 @@ import {
   scheduleUndoableRemoval,
 } from "./saved-routes-store";
 
-// Until the station/date picker is available, every route exposed by this
-// MVP is the bundled Shinjuku-to-Tokyo demonstration. Use its populated
-// weekday timetable for saved-route re-searches too.
-const DEMO_SERVICE_DATE = "2026-08-04";
-
 // 9.1-9.6: the React-facing half of saved routes -- thin glue over
 // saved-routes-store.ts's testable decision functions, matching
 // use-paywall-gate.ts/use-feedback.ts's precedent of leaving hooks untested
@@ -108,8 +103,11 @@ export function useSavedRoutes() {
   // saved route's own comfortPriority is applied there *before* navigating --
   // otherwise a route saved with a different priority than the user's
   // current live preference would silently search with the wrong one.
+  // `serviceDate` is supplied by the caller only while the home screen is in
+  // its weekday-fallback state (today's dayType has no timetable); a normal
+  // tap omits it so the search uses today, same as the search form.
   const selectRoute = useCallback(
-    (route: SavedRoute) => {
+    (route: SavedRoute, serviceDate?: string) => {
       usePreferenceStore
         .getState()
         .setPreference({ speedComfortBalance: route.comfortPriority });
@@ -119,7 +117,7 @@ export function useSavedRoutes() {
           fromStationId: route.fromStationId,
           toStationId: route.toStationId,
           departureTime: route.departureTime,
-          serviceDate: DEMO_SERVICE_DATE,
+          ...(serviceDate ? { serviceDate } : {}),
         },
       });
     },
