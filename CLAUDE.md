@@ -33,11 +33,12 @@ pnpm workspace monorepo (`pnpm-workspace.yaml`: `apps/*`, `packages/*`):
 Phases 1–9 of `.kiro/specs/seat-signal/tasks.md` are substantially implemented and verified
 (shared foundation, backend API/aggregation/notifications, frontend app shell, core search/predict/
 compare/detail loop, subscription/Paywall, Live Comfort Coach, saved routes/notifications/report,
-onboarding/settings) — this is **not** a scaffold anymore. Verified directly (2026-08-12): backend
-`typecheck` is clean and `pnpm --filter backend test` passes 65/65 (real D1/KV via
-`vitest-pool-workers`); `pnpm --filter shared test` passes 68/68. Don't trust tasks.md's `[x]`
-checkboxes blindly, but don't assume the "unmodified Hono starter" state either — read the actual
-route/feature files before claiming something is missing.
+onboarding/settings) — this is **not** a scaffold anymore. Verified directly (2026-08-13): every
+workspace typechecks clean, `pnpm --filter shared test` passes 68/68, `pnpm --filter backend test`
+passes 70/70 (real D1/KV via `vitest-pool-workers`), `pnpm --filter frontend test` passes 198/198,
+and the Playwright E2E suite passes 15/15. Don't trust tasks.md's `[x]` checkboxes blindly, but
+don't assume the "unmodified Hono starter" state either — read the actual route/feature files
+before claiming something is missing.
 
 Known real gaps, not assumptions:
 - **Station-picker search UI exists and is data-driven.** `apps/frontend/src/app/(tabs)/index.tsx`
