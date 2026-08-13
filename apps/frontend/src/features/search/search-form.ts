@@ -10,15 +10,33 @@ export type SearchFormValue = {
 };
 
 // Picking a new origin invalidates a destination that is no longer
-// downstream of it, and any previously picked time (the time-option list
-// is derived from the from/to pair, so it must be re-picked either way).
-export function selectFromStation(
+// strictly downstream of it (compared by station `seq`), and any
+// previously picked time (the time-option list is derived from the
+// from/to pair, so it must be re-picked either way).
+//
+// Unknown-station behaviour: if the new origin or the current destination
+// is not found in `stations` (e.g. a stale saved route or deep link
+// referencing a station the synced timetable no longer has), this fails
+// closed and clears the destination. There is no safe seq to compare
+// against, and silently keeping a possibly-unreachable pair selected is
+// exactly the bug this function exists to prevent.
+export function selectFromStation<T extends { id: string; seq: number }>(
   value: SearchFormValue,
   stationId: string,
+  stations: T[],
 ): SearchFormValue {
+  const nextOrigin = stations.find((station) => station.id === stationId);
+  const currentDestination = stations.find(
+    (station) => station.id === value.toStationId,
+  );
+  const isDestinationStillDownstream =
+    nextOrigin !== undefined &&
+    currentDestination !== undefined &&
+    currentDestination.seq > nextOrigin.seq;
+
   return {
     fromStationId: stationId,
-    toStationId: value.toStationId === stationId ? null : value.toStationId,
+    toStationId: isDestinationStillDownstream ? value.toStationId : null,
     departureTime: null,
   };
 }

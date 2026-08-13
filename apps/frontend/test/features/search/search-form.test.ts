@@ -235,6 +235,15 @@ const emptyValue: SearchFormValue = {
 };
 
 describe("selectFromStation", () => {
+  // seq order: SHINJUKU(0) - YOTSUYA(1) - OCHANOMIZU(2) - KANDA(3) - TOKYO(4)
+  const stations = [
+    { id: "STA_SHINJUKU", seq: 0 },
+    { id: "STA_YOTSUYA", seq: 1 },
+    { id: "STA_OCHANOMIZU", seq: 2 },
+    { id: "STA_KANDA", seq: 3 },
+    { id: "STA_TOKYO", seq: 4 },
+  ];
+
   it("should clear the destination when it equals the newly picked origin", () => {
     const next = selectFromStation(
       {
@@ -243,6 +252,7 @@ describe("selectFromStation", () => {
         departureTime: "07:00",
       },
       "STA_TOKYO",
+      stations,
     );
 
     expect(next).toEqual({
@@ -252,7 +262,28 @@ describe("selectFromStation", () => {
     });
   });
 
-  it("should preserve the destination when it differs from the newly picked origin", () => {
+  it("should clear the destination when the new origin is no longer strictly upstream of it", () => {
+    // Regression for the reachable bad state: destination Yotsuya (seq 1),
+    // origin moves to Kanda (seq 3) -- the destination is now behind the
+    // origin, so it must be cleared rather than silently kept invalid.
+    const next = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_YOTSUYA",
+        departureTime: "07:00",
+      },
+      "STA_KANDA",
+      stations,
+    );
+
+    expect(next).toEqual({
+      fromStationId: "STA_KANDA",
+      toStationId: null,
+      departureTime: null,
+    });
+  });
+
+  it("should preserve the destination when it is still downstream of the newly picked origin", () => {
     const next = selectFromStation(
       {
         fromStationId: "STA_SHINJUKU",
@@ -260,11 +291,53 @@ describe("selectFromStation", () => {
         departureTime: "07:00",
       },
       "STA_YOTSUYA",
+      stations,
     );
 
     expect(next).toEqual({
       fromStationId: "STA_YOTSUYA",
       toStationId: "STA_TOKYO",
+      departureTime: null,
+    });
+  });
+
+  it("should clear the destination when the newly picked origin is not in the station list", () => {
+    // Fail closed: an unknown origin (e.g. a stale deep link) has no seq to
+    // compare against, so keeping the destination would risk re-creating
+    // the bug this function exists to prevent.
+    const next = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_TOKYO",
+        departureTime: "07:00",
+      },
+      "STA_REMOVED",
+      stations,
+    );
+
+    expect(next).toEqual({
+      fromStationId: "STA_REMOVED",
+      toStationId: null,
+      departureTime: null,
+    });
+  });
+
+  it("should clear the destination when the current destination is not in the station list", () => {
+    // Same fail-closed rule, other side: a stale saved route can reference
+    // a destination the synced timetable no longer has.
+    const next = selectFromStation(
+      {
+        fromStationId: "STA_SHINJUKU",
+        toStationId: "STA_REMOVED",
+        departureTime: "07:00",
+      },
+      "STA_YOTSUYA",
+      stations,
+    );
+
+    expect(next).toEqual({
+      fromStationId: "STA_YOTSUYA",
+      toStationId: null,
       departureTime: null,
     });
   });
@@ -277,6 +350,7 @@ describe("selectFromStation", () => {
         departureTime: "07:00",
       },
       "STA_TOKYO",
+      stations,
     );
     const preservedDestination = selectFromStation(
       {
@@ -285,6 +359,7 @@ describe("selectFromStation", () => {
         departureTime: "07:00",
       },
       "STA_YOTSUYA",
+      stations,
     );
 
     expect(clearedDestination.departureTime).toBeNull();

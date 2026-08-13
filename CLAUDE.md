@@ -40,11 +40,15 @@ checkboxes blindly, but don't assume the "unmodified Hono starter" state either 
 route/feature files before claiming something is missing.
 
 Known real gaps, not assumptions:
-- **No station-picker search UI.** `apps/frontend/src/app/(tabs)/index.tsx`'s search button always
-  fires one hardcoded `DEMO_QUERY` (Shinjuku→Tokyo, fixed date/time); saved routes reuse the same
-  query. The search/prediction engine itself (`apps/frontend/src/features/search/`,
-  `packages/shared/src/prediction/scoring.ts`) is real and tested, not mocked — `results.tsx` reads
-  arbitrary query params, so a picker UI is the only missing piece, not the engine.
+- **Station-picker search UI exists and is data-driven.** `apps/frontend/src/app/(tabs)/index.tsx`
+  renders `SearchForm` (`apps/frontend/src/components/search-form.tsx`), which offers exactly the
+  stations/times the synced timetable covers (`features/search/search-form.ts`'s
+  `listSelectableStations`/`listDepartureTimes`), so an out-of-area or no-such-train selection is
+  not reachable from the UI. The search/prediction engine itself
+  (`apps/frontend/src/features/search/`, `packages/shared/src/prediction/scoring.ts`) is real and
+  tested, not mocked — `results.tsx` reads arbitrary query params, and `route-search-engine`/
+  `scoring.ts` still guard against out-of-area or stale-station inputs (e.g. saved routes, deep
+  links) that don't come through the picker.
 - **Datasets are synthetic demo data, on purpose.** Real ODPT 中央線 timetable data is
   Challenge-only licensed and was deliberately not adopted (see `design.md`'s "Out of Boundary" and
   project memory `odpt-timetable-challenge-license-2026-08.md`). The bundled fixture covers 5

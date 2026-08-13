@@ -60,7 +60,7 @@ export function SearchForm({
   const isComplete = isSearchFormComplete(value);
 
   const handleFromPress = (stationId: string) => {
-    onChange(selectFromStation(value, stationId));
+    onChange(selectFromStation(value, stationId, stations));
     setOpen(null);
   };
 

@@ -65,4 +65,37 @@ describe("congestion fixture leg coverage", () => {
 
     expect(actualLegKeys).toEqual(expectedLegKeys);
   });
+
+  it("gives every legKey the same complete timeBucket x carNumber matrix", () => {
+    // The set-equality check above only proves every legKey is present --
+    // it would still pass if a regression silently dropped some
+    // timeBucket/carNumber combinations for one leg while keeping others
+    // full. Derive the expected combination set from the data itself
+    // (rather than hardcoding the generator's current 10 buckets x 10 cars)
+    // so this stays correct if those counts ever change.
+    const profiles = congestionFixture.payload.profiles;
+    const allTimeBuckets = new Set(profiles.map((p) => p.timeBucket));
+    const allCarNumbers = new Set(profiles.map((p) => p.carNumber));
+    const expectedCombos = new Set<string>();
+    for (const timeBucket of allTimeBuckets) {
+      for (const carNumber of allCarNumbers) {
+        expectedCombos.add(`${timeBucket}|${carNumber}`);
+      }
+    }
+
+    const combosByLegKey = new Map<string, Set<string>>();
+    for (const profile of profiles) {
+      const combos = combosByLegKey.get(profile.legKey) ?? new Set<string>();
+      combos.add(`${profile.timeBucket}|${profile.carNumber}`);
+      combosByLegKey.set(profile.legKey, combos);
+    }
+
+    for (const [legKey, combos] of combosByLegKey) {
+      expect(combos, `legKey ${legKey} combo set`).toEqual(expectedCombos);
+      expect(
+        [...profiles].filter((p) => p.legKey === legKey).length,
+        `legKey ${legKey} entry count (guards against duplicate entries)`,
+      ).toBe(expectedCombos.size);
+    }
+  });
 });
