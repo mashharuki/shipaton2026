@@ -437,14 +437,52 @@ export async function listAllPushRegistrations(
   });
 }
 
-export async function markPushRegistrationSent(
+/**
+ * Atomically reserves today's notification slot for one registration.
+ * Returns true when THIS call won the claim, false when the row was already
+ * claimed for `sentDate` by someone else.
+ *
+ * The conditional UPDATE is the whole point: `notify-commuters` previously
+ * read `last_sent_date`, sent, then wrote, so a duplicate delivery of the
+ * same cron event (schedulers are generally at-least-once) let two runs both
+ * observe "not sent yet" and both push. SQLite applies this statement
+ * atomically, so exactly one run sees `meta.changes === 1`.
+ *
+ * Reuses the existing `last_sent_date` column as the claim rather than
+ * introducing a separate claims table -- the value written is the same one
+ * the dedup check already reads.
+ */
+export async function claimPushRegistrationSend(
   db: D1Database,
   params: { id: string; sentDate: string },
+): Promise<Result<boolean, AppError>> {
+  return runQuery("claimPushRegistrationSend", async () => {
+    const result = await db
+      .prepare(
+        `UPDATE push_registrations
+            SET last_sent_date = ?
+          WHERE id = ?
+            AND (last_sent_date IS NULL OR last_sent_date <> ?)`,
+      )
+      .bind(params.sentDate, params.id, params.sentDate)
+      .run();
+    return (result.meta.changes ?? 0) > 0;
+  });
+}
+
+/**
+ * Undoes a claim so a later run can retry, restoring whatever
+ * `last_sent_date` held before (often null, or an older date) instead of
+ * blanking it -- blanking would discard a genuine earlier send.
+ */
+export async function releasePushRegistrationSend(
+  db: D1Database,
+  params: { id: string; previousDate: string | null },
 ): Promise<Result<void, AppError>> {
-  return runQuery("markPushRegistrationSent", async () => {
+  return runQuery("releasePushRegistrationSend", async () => {
     await db
       .prepare("UPDATE push_registrations SET last_sent_date = ? WHERE id = ?")
-      .bind(params.sentDate, params.id)
+      .bind(params.previousDate, params.id)
       .run();
   });
 }

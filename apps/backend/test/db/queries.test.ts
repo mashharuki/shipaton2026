@@ -2,6 +2,7 @@ import { applyD1Migrations, type D1Migration, env } from "cloudflare:test";
 import { isErr, isOk } from "shared";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  claimPushRegistrationSend,
   deletePushRegistration,
   getCorrectionStats,
   getMetric,
@@ -10,6 +11,7 @@ import {
   listAnalyticsEventsSince,
   listFeedbackForAggregation,
   listPushRegistrationsForWindow,
+  releasePushRegistrationSend,
   upsertCorrectionStats,
   upsertMetric,
   upsertPushRegistration,
@@ -219,5 +221,100 @@ describe("push_registrations queries", () => {
     if (isOk(afterDelete)) {
       expect(afterDelete.data).toEqual([]);
     }
+  });
+
+  async function seedClaimable(id: string, lastSentDate: string | null) {
+    await upsertPushRegistration(env.DB, {
+      id,
+      expoPushToken: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+      fromStationId: "STA_SHINJUKU",
+      toStationId: "STA_TOKYO",
+      weekdays: ["mon", "tue", "wed", "thu", "fri"],
+      notifyAt: "07:45",
+      leadMinutes: 20,
+      locale: "ja",
+      lastSentDate,
+    });
+  }
+
+  async function readLastSentDate(id: string): Promise<string | null> {
+    const row = await env.DB.prepare(
+      "SELECT last_sent_date FROM push_registrations WHERE id = ?",
+    )
+      .bind(id)
+      .first<{ last_sent_date: string | null }>();
+    return row?.last_sent_date ?? null;
+  }
+
+  it("grants the send claim exactly once for a given date", async () => {
+    await seedClaimable("push-claim", null);
+
+    const first = await claimPushRegistrationSend(env.DB, {
+      id: "push-claim",
+      sentDate: "2026-08-13",
+    });
+    const second = await claimPushRegistrationSend(env.DB, {
+      id: "push-claim",
+      sentDate: "2026-08-13",
+    });
+
+    expect(isOk(first)).toBe(true);
+    expect(isOk(second)).toBe(true);
+    if (isOk(first) && isOk(second)) {
+      // The whole point: a second run over the same row for the same day must
+      // lose, so a duplicate cron delivery cannot push twice.
+      expect(first.data).toBe(true);
+      expect(second.data).toBe(false);
+    }
+    expect(await readLastSentDate("push-claim")).toBe("2026-08-13");
+  });
+
+  it("grants the claim again on a later date", async () => {
+    await seedClaimable("push-claim-newday", "2026-08-12");
+
+    const result = await claimPushRegistrationSend(env.DB, {
+      id: "push-claim-newday",
+      sentDate: "2026-08-13",
+    });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.data).toBe(true);
+    }
+  });
+
+  it("restores the previous date when a claim is released", async () => {
+    await seedClaimable("push-release", "2026-08-11");
+    await claimPushRegistrationSend(env.DB, {
+      id: "push-release",
+      sentDate: "2026-08-13",
+    });
+    expect(await readLastSentDate("push-release")).toBe("2026-08-13");
+
+    const release = await releasePushRegistrationSend(env.DB, {
+      id: "push-release",
+      previousDate: "2026-08-11",
+    });
+
+    expect(isOk(release)).toBe(true);
+    // Restores the earlier send rather than blanking it -- blanking would
+    // discard the record of a genuine previous notification.
+    expect(await readLastSentDate("push-release")).toBe("2026-08-11");
+  });
+
+  it("restores a null previous date when a claim is released", async () => {
+    await seedClaimable("push-release-null", null);
+    await claimPushRegistrationSend(env.DB, {
+      id: "push-release-null",
+      sentDate: "2026-08-13",
+    });
+
+    const release = await releasePushRegistrationSend(env.DB, {
+      id: "push-release-null",
+      previousDate: null,
+    });
+
+    expect(isOk(release)).toBe(true);
+    expect(await readLastSentDate("push-release-null")).toBeNull();
   });
 });

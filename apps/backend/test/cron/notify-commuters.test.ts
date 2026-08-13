@@ -279,6 +279,57 @@ describe("runNotifyCommuters", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it("sends only once when the same cron event is delivered twice concurrently", async () => {
+    await upsertPushRegistration(env.DB, {
+      id: "push-concurrent",
+      expoPushToken: "ExponentPushToken[xxx]",
+      fromStationId: "STA_A",
+      toStationId: "STA_B",
+      weekdays: ["wed"],
+      notifyAt: "07:45",
+      leadMinutes: 20,
+      locale: "ja",
+      lastSentDate: null,
+    });
+    await upsertCorrectionStats(env.DB, {
+      railwayId: "RAIL_CHUO",
+      legKey: LEG,
+      timeBucket: "07:45",
+      dayType: "weekday",
+      deltaScore: 0.1,
+      sampleN: 8,
+      computedAt: NOW.toISOString(),
+    });
+
+    let sends = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+      sends++;
+      return expoPushResponse();
+    });
+
+    // Both runs get the identical `now`, i.e. the same scheduledTime -- the
+    // at-least-once delivery case. Whichever way the two interleave, the
+    // atomic claim must let exactly one of them reach the push API.
+    const [first, second] = await Promise.all([
+      runNotifyCommuters(env.DB, env.STATUS_CACHE, NOW),
+      runNotifyCommuters(env.DB, env.STATUS_CACHE, NOW),
+    ]);
+
+    expect(isOk(first)).toBe(true);
+    expect(isOk(second)).toBe(true);
+    expect(sends).toBe(1);
+    if (isOk(first) && isOk(second)) {
+      expect(first.data.notified + second.data.notified).toBe(1);
+    }
+
+    const row = await env.DB.prepare(
+      "SELECT last_sent_date FROM push_registrations WHERE id = ?",
+    )
+      .bind("push-concurrent")
+      .first<{ last_sent_date: string }>();
+    expect(row?.last_sent_date).toBe("2026-08-05");
+  });
+
   it("propagates a push-send failure without marking the registration as sent", async () => {
     await upsertPushRegistration(env.DB, {
       id: "push-fail",
