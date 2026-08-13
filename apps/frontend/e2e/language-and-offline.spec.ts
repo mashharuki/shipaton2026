@@ -29,6 +29,14 @@ test("switches language immediately without a reload", async ({ page }) => {
 // waitForSearchResults for why: a real network outage on an *already
 // synced* device wouldn't error at all, per 15.2's offline-viewing
 // requirement -- this scenario is deliberately the never-synced case).
+//
+// Deliberately NOT performSearch(page) here: the search form's station
+// pickers are populated from the very dataset sync this test blocks, so
+// with the route aborted the home screen's from/to option lists stay
+// permanently empty and there is nothing for the form to select. Navigating
+// straight to /results with the same params exercises the exact same
+// error/retry path, because results.tsx reads its query straight from the
+// URL params, independent of whether the home screen ever synced anything.
 test("shows a retryable error when the dataset sync never succeeds", async ({
   page,
 }) => {
@@ -38,7 +46,9 @@ test("shows a retryable error when the dataset sync never succeeds", async ({
   await page.goto("/");
   await completeOnboarding(page);
 
-  await page.getByTestId("home-demo-search").click();
+  await page.goto(
+    "/results?fromStationId=STA_SHINJUKU&toStationId=STA_TOKYO&departureTime=07%3A30",
+  );
   await expect(page.getByTestId("results-screen")).toBeVisible();
   await expect(page.getByTestId("error-state")).toBeVisible();
   const retryButton = page.getByTestId("error-state-retry");

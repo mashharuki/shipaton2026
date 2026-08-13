@@ -77,7 +77,7 @@ export default function ResultsScreen() {
           </ThemedText>
           {query?.serviceDate ? (
             <ThemedText type="small" themeColor="textSecondary">
-              {t("results.demoSchedule", { date: query.serviceDate })}
+              {t("results.weekdayFallback", { date: query.serviceDate })}
             </ThemedText>
           ) : null}
         </ThemedView>

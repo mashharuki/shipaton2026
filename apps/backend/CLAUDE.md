@@ -89,3 +89,12 @@ pnpm knip     # find unused files/exports/deps across the monorepo
   that flag is added in `wrangler.jsonc`.
 - `openapi.yaml` is generated from the route definitions (`pnpm --filter backend run openapi`) and
   a drift test (`test/openapi-drift.test.ts`) keeps the committed file in sync with the code.
+- `src/index.ts`'s default export is `Object.assign(app, { scheduled })` — the same `OpenAPIHono`
+  instance (so `scripts/generate-openapi.ts`/`test/openapi-drift.test.ts` can still call
+  `app.getOpenAPIDocument()` on it) with a `scheduled` handler attached, dispatching
+  `wrangler.jsonc`'s two `triggers.crons` entries by exact cron-string match to
+  `cron/aggregate-feedback.ts` (`"0 18 * * *"`) and `cron/notify-commuters.ts` (`"*/5 * * * *"`).
+  Both receive `now` from `event.scheduledTime`, never the wall clock. Test it with
+  `createExecutionContext()`/`waitOnExecutionContext()` + a direct `worker.scheduled(...)` call
+  (see `test/scheduled.test.ts`) — `SELF.scheduled(...)` throws a `DataCloneError` because
+  `createScheduledController()`'s result can't cross `SELF`'s RPC boundary.

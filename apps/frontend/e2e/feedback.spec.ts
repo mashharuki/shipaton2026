@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   completeOnboarding,
   freezeToWeekday,
+  performSearch,
   setProOverride,
   waitForSearchResults,
 } from "./helpers";
@@ -19,7 +20,7 @@ test("submits feedback in a single tap for the seated-from-start outcome", async
   await page.goto("/");
   await completeOnboarding(page);
 
-  await page.getByTestId("home-demo-search").click();
+  await performSearch(page);
   await waitForSearchResults(page);
   await page.getByTestId("route-card-comfort").click();
   await expect(page.getByTestId("route-detail-screen")).toBeVisible();
@@ -47,7 +48,7 @@ test("submits feedback in two taps for the seated-from-middle outcome", async ({
   await page.goto("/");
   await completeOnboarding(page);
 
-  await page.getByTestId("home-demo-search").click();
+  await performSearch(page);
   await waitForSearchResults(page);
   await page.getByTestId("route-card-comfort").click();
   await expect(page.getByTestId("route-detail-screen")).toBeVisible();

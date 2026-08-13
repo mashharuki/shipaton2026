@@ -60,6 +60,36 @@ export async function waitForSearchResults(page: Page): Promise<void> {
   await expect(resultsList).toBeVisible({ timeout: 10000 });
 }
 
+// 3.1: the home screen's search form needs three selections before it can
+// submit. Every scenario that just needs "a search happened" goes through
+// this; search-form.spec.ts is the one that asserts the form itself.
+//
+// Fix round 1 (Task 7): this used to need a page.reload() fallback here
+// because index.tsx's `home-datasets` read could permanently lose its race
+// against useDatasetSync's background sync (no code anywhere ever asked
+// that read to look again once the sync landed). That race is now closed on
+// the product side -- use-dataset-sync.ts invalidates the `home-datasets`
+// query key once every sync attempt settles -- so a plain visibility wait
+// for the option this call actually wants is enough; no reload, no retry
+// loop, no separate always-present probe station needed.
+export async function performSearch(
+  page: Page,
+  options: { from?: string; to?: string; time?: string } = {},
+): Promise<void> {
+  const from = options.from ?? "STA_SHINJUKU";
+  const to = options.to ?? "STA_TOKYO";
+  const time = options.time ?? "0730";
+
+  await page.getByTestId("search-from-trigger").click();
+  await expect(page.getByTestId(`search-from-${from}`)).toBeVisible();
+  await page.getByTestId(`search-from-${from}`).click();
+  await page.getByTestId("search-to-trigger").click();
+  await page.getByTestId(`search-to-${to}`).click();
+  await page.getByTestId("search-time-trigger").click();
+  await page.getByTestId(`search-time-${time}`).click();
+  await page.getByTestId("search-submit").click();
+}
+
 // 10.2/design.md: "課金は SubscriptionGate のモック（Preview API Mode 相当）
 // で Free / Pro 両状態を切り替えて検証する" -- forces isPro() on the web
 // target via subscription-gate.ts's e2eProOverride(). Must run via

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   completeOnboarding,
   freezeToWeekday,
+  performSearch,
   setProOverride,
   waitForSearchResults,
 } from "./helpers";
@@ -17,7 +18,7 @@ test("shows the paywall on a Free user's 4th search of the day", async ({
 
   // 12.1: 3 searches/day are allowed on Free.
   for (let i = 0; i < 3; i++) {
-    await page.getByTestId("home-demo-search").click();
+    await performSearch(page);
     await expect(page.getByTestId("results-screen")).toBeVisible();
     await waitForSearchResults(page);
     await page.getByTestId("results-back").click();
@@ -25,7 +26,7 @@ test("shows the paywall on a Free user's 4th search of the day", async ({
   }
 
   // 12.2: the 4th attempt is blocked before it ever reaches results.tsx.
-  await page.getByTestId("home-demo-search").click();
+  await performSearch(page);
   await expect(page.getByTestId("paywall-screen")).toBeVisible();
 });
 
@@ -38,7 +39,7 @@ test("never shows the paywall for a Pro-mocked user regardless of search count",
   await completeOnboarding(page);
 
   for (let i = 0; i < 4; i++) {
-    await page.getByTestId("home-demo-search").click();
+    await performSearch(page);
     await expect(page.getByTestId("results-screen")).toBeVisible();
     await waitForSearchResults(page);
     await page.getByTestId("results-back").click();

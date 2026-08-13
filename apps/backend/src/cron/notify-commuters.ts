@@ -9,10 +9,11 @@ import {
   toAppError,
 } from "shared";
 import {
+  claimPushRegistrationSend,
   listAllPushRegistrations,
   listCorrectionStatsForLeg,
-  markPushRegistrationSent,
   type PushRegistrationRow,
+  releasePushRegistrationSend,
 } from "../db/queries";
 import {
   type AlternativeCandidate,
@@ -293,30 +294,61 @@ export async function runNotifyCommuters(
     });
   }
 
-  if (toSend.length > 0) {
+  // Claim before sending, not after. The previous order (read -> send ->
+  // write) let a duplicate delivery of the same cron event have two runs both
+  // observe "not sent today" and both push. claimPushRegistrationSend's
+  // conditional UPDATE is atomic, so exactly one run wins each registration.
+  //
+  // Deliberate trade-off in this ordering: a crash between claiming and
+  // sending drops today's notification for that registration instead of
+  // sending it twice. A duplicate push is user-visible; a miss is not.
+  const claimed: typeof toSend = [];
+  for (const entry of toSend) {
+    const claimResult = await claimPushRegistrationSend(db, {
+      id: entry.registration.id,
+      sentDate: todayKey,
+    });
+    if (isErr(claimResult)) {
+      return claimResult;
+    }
+    if (claimResult.data) {
+      claimed.push(entry);
+      continue;
+    }
+    // Lost the claim -- another run already owns today's send for this row.
+    skippedAlreadySent++;
+  }
+
+  if (claimed.length > 0) {
     const sendResult = await sendExpoPushNotifications(
-      toSend.map(({ registration, alternative, reasonFactor }) =>
+      claimed.map(({ registration, alternative, reasonFactor }) =>
         buildPushMessage(registration, alternative, reasonFactor),
       ),
     );
     if (isErr(sendResult)) {
-      return sendResult;
-    }
-
-    for (const { registration } of toSend) {
-      const markResult = await markPushRegistrationSent(db, {
-        id: registration.id,
-        sentDate: todayKey,
-      });
-      if (isErr(markResult)) {
-        return markResult;
+      // Nothing was delivered, so hand every claim back for the next run.
+      for (const { registration } of claimed) {
+        const releaseResult = await releasePushRegistrationSend(db, {
+          id: registration.id,
+          previousDate: registration.lastSentDate,
+        });
+        if (isErr(releaseResult)) {
+          // Keep releasing the rest; this row just stays claimed and loses
+          // today's notification. Logged (code only) so it's diagnosable.
+          console.error(
+            "notify-commuters: failed to release claim",
+            registration.id,
+            releaseResult.error.code,
+          );
+        }
       }
+      return sendResult;
     }
   }
 
   return ok({
     windowMatched: matched.length,
-    notified: toSend.length,
+    notified: claimed.length,
     skippedAlreadySent,
   });
 }

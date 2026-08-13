@@ -7,6 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { isErr, type VS_EXPECTED_OUTCOMES } from "shared";
 
+import { OptionCard } from "@/components/ui/option-card";
 import {
   BottomTabInset,
   Colors,
@@ -48,32 +49,6 @@ const VS_EXPECTED_VALUES: readonly VsExpected[] = [
   "as_expected",
   "more_crowded_than_expected",
 ];
-
-function OptionCard({
-  label,
-  onPress,
-  testID,
-}: {
-  label: string;
-  onPress: () => void;
-  testID: string;
-}) {
-  const scheme = useAppColorScheme();
-  const c = Colors[scheme];
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      testID={testID}
-      style={[
-        styles.option,
-        { backgroundColor: c.surfaceMuted, borderColor: c.hairline },
-      ]}
-    >
-      <Text style={[styles.optionText, { color: c.text }]}>{label}</Text>
-    </Pressable>
-  );
-}
 
 // 7.3/8.1-8.6: reached from coach.tsx's "end ride" button. Outcome selection
 // (+ station tap when needed) is what actually submits -- the 2-tap
@@ -389,17 +364,6 @@ const styles = StyleSheet.create({
   prompt: {
     fontFamily: Fonts.jp,
     fontSize: 15,
-  },
-  option: {
-    minHeight: 60,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    padding: Spacing.three,
-    justifyContent: "center",
-  },
-  optionText: {
-    fontFamily: Fonts.jp,
-    fontSize: 14,
   },
   sectionLabel: {
     fontFamily: Fonts.jp,

@@ -10,5 +10,10 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["test/**/*.test.ts"],
+    // Pin timezone to Asia/Tokyo (JST) to catch timezone-dependent regressions
+    // in nextWeekdayServiceDate. Under UTC, local date fields == UTC date fields,
+    // so toISOString() would be indistinguishable from getFullYear/getMonth/getDate.
+    // JST offset ensures tests fail if implementation switches to toISOString().
+    env: { TZ: "Asia/Tokyo" },
   },
 });
