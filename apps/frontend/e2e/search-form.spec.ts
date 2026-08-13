@@ -3,7 +3,6 @@ import {
   completeOnboarding,
   freezeToWeekday,
   performSearch,
-  waitForDatasetsSynced,
   waitForSearchResults,
 } from "./helpers";
 
@@ -61,8 +60,8 @@ test("excludes the origin station from the destination picker", async ({
   await page.goto("/");
   await completeOnboarding(page);
 
-  await waitForDatasetsSynced(page);
   await page.getByTestId("search-from-trigger").click();
+  await expect(page.getByTestId("search-from-STA_SHINJUKU")).toBeVisible();
   await page.getByTestId("search-from-STA_SHINJUKU").click();
   await page.getByTestId("search-to-trigger").click();
 

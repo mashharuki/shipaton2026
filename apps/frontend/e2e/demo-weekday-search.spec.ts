@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 import {
   completeOnboarding,
   performSearch,
-  waitForDatasetsSynced,
   waitForSearchResults,
 } from "./helpers";
 
@@ -20,7 +19,16 @@ test("offers the weekday timetable when today has no schedule data", async ({
   await page.clock.setFixedTime(new Date("2026-08-08T07:00:00"));
   await page.goto("/");
   await completeOnboarding(page);
-  await waitForDatasetsSynced(page);
+
+  // `search-no-timetable-today` and the from-picker's station list both
+  // derive from the same `datasetsQuery.data` (see index.tsx) -- while that
+  // query is still pending it defaults `hasTodayTimetable` to true, so the
+  // banner would be absent rather than merely late. Opening the from-picker
+  // and waiting for a station option is the readiness signal that the query
+  // has actually resolved before asserting on the banner it also drives.
+  await page.getByTestId("search-from-trigger").click();
+  await expect(page.getByTestId("search-from-STA_SHINJUKU")).toBeVisible();
+  await page.getByTestId("search-from-trigger").click();
 
   await expect(page.getByTestId("search-no-timetable-today")).toBeVisible();
 

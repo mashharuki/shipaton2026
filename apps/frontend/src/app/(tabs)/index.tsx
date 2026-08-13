@@ -30,6 +30,7 @@ import {
   Spacing,
   Typography,
 } from "@/constants/theme";
+import { HOME_DATASETS_QUERY_KEY } from "@/features/dataset/dataset-query-keys";
 import {
   getCongestionData,
   getCorrectionData,
@@ -113,7 +114,7 @@ export default function HomeScreen() {
   });
 
   const datasetsQuery = useQuery({
-    queryKey: ["home-datasets"],
+    queryKey: HOME_DATASETS_QUERY_KEY,
     queryFn: async () => {
       const db = await getDb();
       const store = createSqliteDatasetStore(db);
