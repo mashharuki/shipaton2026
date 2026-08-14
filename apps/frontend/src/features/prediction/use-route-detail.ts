@@ -46,7 +46,7 @@ export type LegBoardingDetail = {
 // synced dataset -- deliberately recomputed rather than passed through
 // navigation params, since PredictionEngine's own invariant (design.md:
 // "同一入力＋同一データセット版 → 同一出力") makes this safe and it avoids
-// serializing PredictionResult/BoardingAdvice objects through the router.
+// serializing ComfortEstimate/BoardingAdvice objects through the router.
 export function useRouteDetail(legs: RouteLeg[] | null) {
   return useQuery({
     queryKey: ["route-detail", legs],

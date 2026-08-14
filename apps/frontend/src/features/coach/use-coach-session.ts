@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { type AppError, err, isErr, ok, type Result, toDayType } from "shared";
+import {
+  type AppError,
+  type ComfortEstimate,
+  err,
+  isErr,
+  ok,
+  type Result,
+  toDayType,
+} from "shared";
 
 import {
   getCongestionData,
@@ -13,13 +21,11 @@ import {
   createSqliteDatasetStore,
   type TimetableDatasetPayload,
 } from "@/features/dataset/dataset-store";
-import { predictLeg } from "@/features/prediction/prediction-engine";
-import type { PredictionResult } from "@/features/prediction/types";
+import { createModeledStrategy } from "@/features/prediction/strategies/modeled-strategy";
 import type { Station } from "@/features/prediction/use-route-detail";
 import type { RouteLeg } from "@/features/search/route-search-engine";
-import { floorToTimeBucket, minutesOfDay } from "@/lib/clock-time";
+import { floorToTimeBucket } from "@/lib/clock-time";
 import { getDb } from "@/lib/db";
-import { intermediateStationIds } from "@/lib/station-utils";
 import {
   buildStopSequence,
   deriveCoachProgress,
@@ -37,7 +43,7 @@ export type CoachSnapshot = {
   currentLeg: RouteLeg;
   legKey: string;
   boardedAt: string;
-  prediction: PredictionResult;
+  prediction: ComfortEstimate;
   aheadStationProbabilities: ReadonlyArray<{
     station: Station;
     probability: number;
@@ -90,33 +96,36 @@ function computeSnapshot(
     return null;
   }
 
+  // Not a congestion lookup key -- this is the leg identifier the feedback
+  // API is keyed by (see use-feedback.ts), carried on the snapshot for
+  // coach.tsx's feedback hand-off.
   const legKey = `${leg.fromStationId}-${leg.toStationId}`;
   const boardedAt = floorToTimeBucket(leg.departureTime);
-  const tripMinutes =
-    minutesOfDay(leg.arrivalTime) - minutesOfDay(leg.departureTime);
   const dayType = toDayType(new Date());
 
-  const predicted = predictLeg(congestion, correction, {
-    railwayId: currentStation.railwayId,
-    legKey,
-    timeBucket: boardedAt,
+  const strategy = createModeledStrategy({ timetable, congestion, correction });
+  const predicted = strategy.estimate({
+    fromStationId: leg.fromStationId,
+    toStationId: leg.toStationId,
+    departureTime: leg.departureTime,
+    arrivalTime: leg.arrivalTime,
     dayType,
-    tripMinutes,
-    intermediateStationIds: intermediateStationIds(
-      timetable,
-      leg.fromStationId,
-      leg.toStationId,
-    ),
     delayMinutes,
   });
   if (isErr(predicted)) {
     return null;
   }
 
-  const aheadStationProbabilities = predicted.data.perStationSeatProbability
-    .map(({ stationId, probability }) => {
-      const station = stationsById.get(stationId);
-      return station ? { station, probability } : undefined;
+  // segments[0] starts at the boarding station, so skip it and take each
+  // later segment's origin -- the intermediate stops, with the probability
+  // in effect on arriving there.
+  const aheadStationProbabilities = predicted.data.segments
+    .slice(1)
+    .map((segment) => {
+      const station = stationsById.get(segment.fromStopId);
+      return station
+        ? { station, probability: segment.seatProbability }
+        : undefined;
     })
     .filter(
       (entry): entry is { station: Station; probability: number } =>
@@ -140,20 +149,20 @@ function computeSnapshot(
 }
 
 // 7.1/7.2: composes the (untested, native-runtime-only) dataset fetch with
-// coach-session.ts's pure progression/delay logic and prediction-engine.ts's
-// existing predictLeg -- same "thin hook, tested pure core" split this
-// codebase already uses for use-route-detail.ts/use-route-search.ts. Each
-// leg's prediction is computed against its ORIGINAL boarding/alighting
-// station pair (the only pair the congestion dataset is actually keyed by --
-// recomputing from an intermediate "current" station would look up a legKey
-// with no matching profile and fail with insufficient_data), then
-// re-displayed as the rider's position advances through it -- a redisplay of
-// that static per-leg prediction, not a live per-position recompute of the
-// underlying score. `computeSnapshot` below is called on every render
-// (cheap and idempotent, so this is not gated on delay/tick actually
-// changing); what changes the DISPLAYED values is `delayMinutes` feeding
-// into `predictLeg`'s `delayMinutes` field (7.2) or `tick`/dataset forcing a
-// re-render in the first place.
+// coach-session.ts's pure progression/delay logic and the CongestionStrategy
+// -- same "thin hook, tested pure core" split this codebase already uses for
+// use-route-detail.ts/use-route-search.ts. Each leg's prediction is computed
+// against its ORIGINAL boarding/alighting station pair (the only pair the
+// synthetic congestion dataset is actually keyed by -- estimating from an
+// intermediate "current" station would resolve to a profile that does not
+// exist and fail with insufficient_data), then re-displayed as the rider's
+// position advances through it -- a redisplay of that static per-leg
+// estimate, not a live per-position recompute of the underlying score.
+// `computeSnapshot` below is called on every render (cheap and idempotent,
+// so this is not gated on delay/tick actually changing); what changes the
+// DISPLAYED values is `delayMinutes` feeding into EstimateInput's
+// `delayMinutes` field (7.2) or `tick`/dataset forcing a re-render in the
+// first place.
 export function useCoachSession(legs: RouteLeg[] | null) {
   const [tick, setTick] = useState(0);
   useEffect(() => {

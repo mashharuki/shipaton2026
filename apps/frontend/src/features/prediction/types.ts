@@ -5,11 +5,13 @@ import type {
   StandingMinutesEstimate,
 } from "shared";
 
-// design.md's PredictionEngine Service Interface (PredictionResult) --
-// seatedMinutes/seatProbability/perStationSeatProbability/comfortScore are
-// derived here (not part of shared's scorePrediction(), which only owns the
-// standingMinutes/confidence/factors formula shared with the backend).
-export type PredictionResult = {
+// ModeledStrategy が shared の ComfortEstimate へ変換するための中間表現。
+// アプリの他の層はこの型を見ない -- 混雑推定の契約は ComfortEstimate であり、
+// この型は prediction-engine.ts と modeled-strategy.ts の間だけで閉じている。
+// seatedMinutes/seatProbability/perStationSeatProbability/comfortScore は
+// ここで導出される（shared の scorePrediction() は backend と共有する
+// standingMinutes/confidence/factors の算出式だけを持つ）。
+export type LegPrediction = {
   standingMinutes: StandingMinutesEstimate;
   seatedMinutes: number;
   seatProbability: number;
