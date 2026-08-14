@@ -157,4 +157,62 @@ describe("createModeledStrategy", () => {
       expect(result.data.byCarriage?.length).toBeGreaterThan(0);
     }
   });
+
+  it("should return validation_error when arrivalTime equals departureTime", () => {
+    const result = strategy.estimate({
+      ...baseInput,
+      arrivalTime: baseInput.departureTime,
+    });
+
+    expect(isErr(result)).toBe(true);
+    if (isErr(result)) {
+      expect(result.error.code).toBe("validation_error");
+    }
+  });
+
+  it("should normalize an overnight leg (arrivalTime earlier than departureTime) to a positive duration", () => {
+    // No congestion profile exists for this exact time bucket in the
+    // fixture, so this only needs to prove resolveTripMinutes runs before
+    // predictLeg's own profile lookup -- an insufficient_data result (not
+    // validation_error) means the negative-duration guard did not reject
+    // it, i.e. midnight-crossing was normalized rather than treated as
+    // invalid input.
+    const result = strategy.estimate({
+      ...baseInput,
+      departureTime: "23:50",
+      arrivalTime: "00:10",
+    });
+
+    expect(isErr(result)).toBe(true);
+    if (isErr(result)) {
+      expect(result.error.code).not.toBe("validation_error");
+    }
+  });
+
+  it("should keep segment minutes positive and summing to 20 for an overnight leg with matching profiles", () => {
+    // WEEKDAY_EVENING_DEPARTURES includes "19:00" in the fixture generator,
+    // covering STA_SHINJUKU-STA_TOKYO -- reusing it lets this leg actually
+    // reach buildSegments (not just resolveTripMinutes) for an overnight
+    // span, so the assertion below exercises the exact code path the bug
+    // report named: minutesPerSegment must not be negative or zero.
+    const result = strategy.estimate({
+      fromStationId: "STA_SHINJUKU",
+      toStationId: "STA_TOKYO",
+      departureTime: "19:00",
+      arrivalTime: "00:00",
+      dayType: "weekday",
+    });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      for (const segment of result.data.segments) {
+        expect(segment.minutes).toBeGreaterThan(0);
+      }
+      const total = result.data.segments.reduce(
+        (sum, segment) => sum + segment.minutes,
+        0,
+      );
+      expect(total).toBeCloseTo(300, 5);
+    }
+  });
 });

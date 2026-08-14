@@ -1,5 +1,5 @@
 import type { AppError, ComfortEstimate, ComfortSegment, Result } from "shared";
-import { isErr, ok } from "shared";
+import { createAppError, err, isErr, ok } from "shared";
 
 import type {
   CongestionDatasetPayload,
@@ -19,6 +19,30 @@ type ModeledStrategyDeps = {
   congestion: CongestionDatasetPayload;
   correction: CorrectionDatasetPayload;
 };
+
+const MINUTES_PER_DAY = 24 * 60;
+
+/**
+ * departureTime/arrivalTime は日付を持たない "HH:mm" のペアなので、単純な
+ * 引き算では深夜またぎ（例: 23:50発→00:10着）が負の所要時間になる。
+ * 差が負なら日をまたいだとみなし 24 時間分を足して復元する。差がちょうど
+ * 0（同時刻）は復元しようがない不正入力として predictLeg に渡す前に弾く
+ * -- buildSegments の minutesPerSegment が 0 や負になり、区間の所要時間が
+ * 意味を失うのを防ぐ。
+ */
+function resolveTripMinutes(input: EstimateInput): Result<number, AppError> {
+  const rawMinutes =
+    minutesOfDay(input.arrivalTime) - minutesOfDay(input.departureTime);
+  if (rawMinutes === 0) {
+    return err(
+      createAppError(
+        "validation_error",
+        "arrivalTime must differ from departureTime",
+      ),
+    );
+  }
+  return ok(rawMinutes < 0 ? rawMinutes + MINUTES_PER_DAY : rawMinutes);
+}
 
 /**
  * 合成デモデータセット用の戦略。データが実測ではないため provenance は
@@ -84,8 +108,11 @@ export function createModeledStrategy(
 
     estimate(input: EstimateInput): Result<ComfortEstimate, AppError> {
       const key = lookupKey(input);
-      const tripMinutes =
-        minutesOfDay(input.arrivalTime) - minutesOfDay(input.departureTime);
+      const tripMinutesResult = resolveTripMinutes(input);
+      if (isErr(tripMinutesResult)) {
+        return tripMinutesResult;
+      }
+      const tripMinutes = tripMinutesResult.data;
 
       const predicted = predictLeg(congestion, correction, {
         ...key,
