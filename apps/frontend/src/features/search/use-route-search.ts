@@ -7,6 +7,7 @@ import {
   getTimetableData,
 } from "@/features/dataset/dataset-repository";
 import { createSqliteDatasetStore } from "@/features/dataset/dataset-store";
+import { createModeledStrategy } from "@/features/prediction/strategies/modeled-strategy";
 import { usePreferenceStore } from "@/features/preferences/preference-store";
 import { analyticsClient } from "@/lib/analytics";
 import { floorToTimeBucket } from "@/lib/clock-time";
@@ -88,11 +89,15 @@ export function useRouteSearch(query: RouteSearchQuery | null) {
         return err(searchResult.error);
       }
 
+      const strategy = createModeledStrategy({
+        timetable: timetableResult.data,
+        congestion: congestionResult.data,
+        correction: correctionResult.data,
+      });
+
       const ranked = rankRoutes(
         searchResult.data,
-        timetableResult.data,
-        congestionResult.data,
-        correctionResult.data,
+        strategy,
         preference,
         dayType,
       );

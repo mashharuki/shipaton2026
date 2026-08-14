@@ -37,6 +37,7 @@ import {
   getTimetableData,
 } from "@/features/dataset/dataset-repository";
 import { createSqliteDatasetStore } from "@/features/dataset/dataset-store";
+import { createModeledStrategy } from "@/features/prediction/strategies/modeled-strategy";
 import { usePreferenceStore } from "@/features/preferences/preference-store";
 import { useWeeklyReport } from "@/features/report/use-weekly-report";
 import type { Weekday } from "@/features/saved-routes/saved-routes-store";
@@ -188,11 +189,14 @@ export default function HomeScreen() {
     if (isErr(candidates)) {
       return [];
     }
+    const strategy = createModeledStrategy({
+      timetable: data.timetable,
+      congestion: data.congestion,
+      correction: data.correction,
+    });
     const ranked = rankRoutes(
       candidates.data,
-      data.timetable,
-      data.congestion,
-      data.correction,
+      strategy,
       preference,
       searchDayType,
     );

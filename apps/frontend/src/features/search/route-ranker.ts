@@ -1,22 +1,17 @@
 import {
   type AppError,
+  type ComfortEstimate,
   createAppError,
   type DayType,
   err,
+  isErr,
   ok,
   type Result,
 } from "shared";
 
-import type {
-  CongestionDatasetPayload,
-  CorrectionDatasetPayload,
-  TimetableDatasetPayload,
-} from "@/features/dataset/dataset-store";
-import { predictLeg } from "@/features/prediction/prediction-engine";
-import type { PredictionResult } from "@/features/prediction/types";
+import type { CongestionStrategy } from "@/features/prediction/strategies/types";
 import type { ComfortPreference } from "@/features/preferences/preference-store";
-import { floorToTimeBucket, minutesOfDay } from "@/lib/clock-time";
-import { intermediateStationIds } from "@/lib/station-utils";
+import { minutesOfDay } from "@/lib/clock-time";
 import type { RouteCandidate } from "./route-search-engine";
 
 export const RANKED_ROUTE_TYPES = ["fastest", "balanced", "comfort"] as const;
@@ -29,13 +24,13 @@ export type RankedRoute = {
   totalMinutes: number;
   diffFromFastestMinutes: number;
   transferCount: number;
-  prediction: PredictionResult;
+  prediction: ComfortEstimate;
 };
 
 type EvaluatedCandidate = {
   candidate: RouteCandidate;
   totalMinutes: number;
-  prediction: PredictionResult;
+  prediction: ComfortEstimate;
 };
 
 const BALANCE_STANDING_WEIGHT = 1;
@@ -56,34 +51,26 @@ function candidateSpan(candidate: RouteCandidate): {
   };
 }
 
+// `dayType` は引数で受け取り素通しする。ここで現在時刻から導出すると
+// design.md の Invariant「同一入力＋同一データセット版 → 同一出力」が壊れる。
 function evaluate(
   candidate: RouteCandidate,
-  timetable: TimetableDatasetPayload,
-  congestion: CongestionDatasetPayload,
-  correction: CorrectionDatasetPayload,
+  strategy: CongestionStrategy,
   dayType: DayType,
 ): EvaluatedCandidate | undefined {
   const span = candidateSpan(candidate);
   const totalMinutes =
     minutesOfDay(span.arrivalTime) - minutesOfDay(span.departureTime);
-  const railwayId =
-    timetable.stations.find((station) => station.id === span.fromStationId)
-      ?.railwayId ?? "";
 
-  const predicted = predictLeg(congestion, correction, {
-    railwayId,
-    legKey: `${span.fromStationId}-${span.toStationId}`,
-    timeBucket: floorToTimeBucket(span.departureTime),
+  const predicted = strategy.estimate({
+    fromStationId: span.fromStationId,
+    toStationId: span.toStationId,
+    departureTime: span.departureTime,
+    arrivalTime: span.arrivalTime,
     dayType,
-    tripMinutes: totalMinutes,
-    intermediateStationIds: intermediateStationIds(
-      timetable,
-      span.fromStationId,
-      span.toStationId,
-    ),
   });
 
-  if (!predicted.ok) {
+  if (isErr(predicted)) {
     return undefined;
   }
 
@@ -121,9 +108,7 @@ function blendedScore(
 // failing the whole ranking, unless NONE can be scored.
 export function rankRoutes(
   candidates: RouteCandidate[],
-  timetable: TimetableDatasetPayload,
-  congestion: CongestionDatasetPayload,
-  correction: CorrectionDatasetPayload,
+  strategy: CongestionStrategy,
   preference: ComfortPreference,
   dayType: DayType,
 ): Result<RankedRoute[], AppError> {
@@ -132,9 +117,7 @@ export function rankRoutes(
   }
 
   const evaluated = candidates
-    .map((candidate) =>
-      evaluate(candidate, timetable, congestion, correction, dayType),
-    )
+    .map((candidate) => evaluate(candidate, strategy, dayType))
     .filter((entry): entry is EvaluatedCandidate => entry !== undefined);
 
   if (evaluated.length === 0) {
