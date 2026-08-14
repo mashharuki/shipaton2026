@@ -6,8 +6,8 @@ import type {
   CorrectionDatasetPayload,
   TimetableDatasetPayload,
 } from "@/features/dataset/dataset-store";
-import type { ComfortPreference } from "@/features/preferences/preference-store";
 import { createModeledStrategy } from "@/features/prediction/strategies/modeled-strategy";
+import type { ComfortPreference } from "@/features/preferences/preference-store";
 import { rankRoutes } from "@/features/search/route-ranker";
 import type { RouteCandidate } from "@/features/search/route-search-engine";
 
