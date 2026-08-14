@@ -21,6 +21,7 @@ import {
 } from "@/features/dataset/dataset-store";
 import type { RouteLeg } from "@/features/search/route-search-engine";
 import { getDb } from "@/lib/db";
+import { deriveBoardingAdvice } from "./boarding-advice";
 import { createModeledStrategy } from "./strategies/modeled-strategy";
 import type { BoardingAdvice } from "./types";
 
@@ -109,9 +110,14 @@ export function useRouteDetail(legs: RouteLeg[] | null) {
           return err(predicted.error);
         }
 
-        const boarding = strategy.recommendBoarding(estimateInput);
-        if (isErr(boarding)) {
-          return err(boarding.error);
+        const boardingAdvice = deriveBoardingAdvice(predicted.data);
+        if (!boardingAdvice) {
+          return err(
+            createAppError(
+              "insufficient_data",
+              "No per-carriage congestion data for this leg",
+            ),
+          );
         }
 
         // segments[0] starts at the boarding station, so its own fromStopId
@@ -136,7 +142,7 @@ export function useRouteDetail(legs: RouteLeg[] | null) {
           fromStation,
           toStation,
           prediction: predicted.data,
-          boardingAdvice: boarding.data,
+          boardingAdvice,
           perStationProbabilities,
         });
       }

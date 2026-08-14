@@ -157,13 +157,4 @@ describe("createModeledStrategy", () => {
       expect(result.data.byCarriage?.length).toBeGreaterThan(0);
     }
   });
-
-  it("should recommend a boarding car without the caller building any lookup key", () => {
-    const result = strategy.recommendBoarding(baseInput);
-
-    expect(isOk(result)).toBe(true);
-    if (isOk(result)) {
-      expect(result.data.recommendedCarNumber).toBeGreaterThan(0);
-    }
-  });
 });

@@ -10,7 +10,6 @@ import {
   predictLeg,
   recommendBoarding as recommendBoardingFromProfiles,
 } from "@/features/prediction/prediction-engine";
-import type { BoardingAdvice } from "@/features/prediction/types";
 import { floorToTimeBucket, minutesOfDay } from "@/lib/clock-time";
 import { intermediateStationIds } from "@/lib/station-utils";
 import type { CongestionStrategy, EstimateInput } from "./types";
@@ -102,6 +101,12 @@ export function createModeledStrategy(
         return predicted;
       }
 
+      // predictLeg と recommendBoardingFromProfiles は congestion.profiles を
+      // 同一の4条件（railwayId/legKey/timeBucket/dayType）で filter するため、
+      // 直前の predictLeg が成功した時点でこの呼び出しが insufficient_data に
+      // なることはない。それでも Result 型として扱う（呼び出し不能をアサート
+      // で握り潰さない）ため isErr 分岐は残るが、undefined になる実行経路は
+      // ModeledStrategy には存在しない。
       const boarding = recommendBoardingFromProfiles(congestion, key);
 
       return ok({
@@ -126,10 +131,6 @@ export function createModeledStrategy(
         factors: predicted.data.factors,
         comfortScore: predicted.data.comfortScore,
       });
-    },
-
-    recommendBoarding(input: EstimateInput): Result<BoardingAdvice, AppError> {
-      return recommendBoardingFromProfiles(congestion, lookupKey(input));
     },
   };
 }
