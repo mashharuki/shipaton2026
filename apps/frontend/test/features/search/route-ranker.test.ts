@@ -61,6 +61,42 @@ function slowCandidate(): RouteCandidate {
   };
 }
 
+// departureTime/arrivalTime are bare "HH:mm" with no date -- arrivalTime
+// earlier than departureTime means the leg crosses midnight, not that it
+// took negative time.
+function overnightCandidate(): RouteCandidate {
+  return {
+    legs: [
+      {
+        trainId: "TRAIN_OVERNIGHT",
+        fromStationId: "STA_A",
+        toStationId: "STA_D",
+        departureTime: "23:50",
+        arrivalTime: "00:10",
+      },
+    ],
+  };
+}
+
+function overnightCongestion(): CongestionDatasetPayload {
+  return {
+    schemaVersion: 1,
+    profiles: [
+      {
+        railwayId: "RAIL_X",
+        legKey: "STA_A-STA_D",
+        // floorToTimeBucket("23:50") -- must match, or the strategy fails
+        // with insufficient_data before totalMinutes is ever computed.
+        timeBucket: "23:45",
+        dayType: "weekday",
+        carNumber: 1,
+        loadScore: 0.5,
+        sampleSize: 10,
+      },
+    ],
+  };
+}
+
 function congestionFor(
   loadScoreByTrain: Record<string, number>,
 ): CongestionDatasetPayload {
@@ -289,6 +325,26 @@ describe("rankRoutes", () => {
     expect(isErr(result)).toBe(true);
     if (isErr(result)) {
       expect(result.error.code).toBe("insufficient_data");
+    }
+  });
+
+  it("should report a positive totalMinutes for a candidate whose leg crosses midnight", () => {
+    const result = rankRoutes(
+      [overnightCandidate()],
+      strategyFor(overnightCongestion()),
+      DEFAULT_PREFERENCE,
+      "weekday",
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.data.length).toBeGreaterThan(0);
+      // 23:50 -> 00:10 is a 20-minute trip, not -1420 -- a raw
+      // minutesOfDay(arrival) - minutesOfDay(departure) would have produced
+      // the latter and made this candidate falsely dominate "fastest".
+      for (const route of result.data) {
+        expect(route.totalMinutes).toBeCloseTo(20, 5);
+      }
     }
   });
 });

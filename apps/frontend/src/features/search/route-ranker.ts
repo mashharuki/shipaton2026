@@ -11,7 +11,6 @@ import {
 
 import type { CongestionStrategy } from "@/features/prediction/strategies/types";
 import type { ComfortPreference } from "@/features/preferences/preference-store";
-import { minutesOfDay } from "@/lib/clock-time";
 import type { RouteCandidate } from "./route-search-engine";
 
 export const RANKED_ROUTE_TYPES = ["fastest", "balanced", "comfort"] as const;
@@ -59,8 +58,6 @@ function evaluate(
   dayType: DayType,
 ): EvaluatedCandidate | undefined {
   const span = candidateSpan(candidate);
-  const totalMinutes =
-    minutesOfDay(span.arrivalTime) - minutesOfDay(span.departureTime);
 
   const predicted = strategy.estimate({
     fromStationId: span.fromStationId,
@@ -73,6 +70,16 @@ function evaluate(
   if (isErr(predicted)) {
     return undefined;
   }
+
+  // departureTime/arrivalTime は日付を持たない "HH:mm" なので、ここで
+  // minutesOfDay の単純な引き算をすると深夜またぎ（23:50→00:10 等）が
+  // 負の所要時間になる。strategy.estimate() は同じ入力から既に
+  // 正規化・検証済みの所要時間を segments に分割しているので、その
+  // 合計を単一の真実源として使う -- 正規化ロジックをここに複製しない。
+  const totalMinutes = predicted.data.segments.reduce(
+    (sum, segment) => sum + segment.minutes,
+    0,
+  );
 
   return { candidate, totalMinutes, prediction: predicted.data };
 }
