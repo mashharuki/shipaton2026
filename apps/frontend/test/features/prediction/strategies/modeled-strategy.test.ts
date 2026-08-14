@@ -59,6 +59,42 @@ describe("createModeledStrategy", () => {
     }
   });
 
+  it("should carry the same per-station probabilities as the legacy field, in order", () => {
+    // segments[0] starts at the boarding station, so it is not an
+    // intermediate stop -- use-route-detail.ts and use-coach-session.ts
+    // both skip it via segments.slice(1) to recover exactly the set of
+    // intermediate stops perStationSeatProbability used to report. This
+    // pins that readout against the legacy field directly, since neither
+    // consumer has its own unit test for the mapping.
+    const viaStrategy = strategy.estimate(baseInput);
+    const viaLegacy = predictLeg(congestion, correction, {
+      railwayId: "RAIL_CHUO",
+      legKey: "STA_SHINJUKU-STA_TOKYO",
+      timeBucket: "07:00",
+      dayType: "weekday",
+      tripMinutes: 16,
+      intermediateStationIds: intermediateStationIds(
+        timetable,
+        "STA_SHINJUKU",
+        "STA_TOKYO",
+      ),
+    });
+
+    expect(isOk(viaStrategy)).toBe(true);
+    expect(isOk(viaLegacy)).toBe(true);
+    if (isOk(viaStrategy) && isOk(viaLegacy)) {
+      expect(viaLegacy.data.perStationSeatProbability.length).toBeGreaterThan(
+        0,
+      );
+      expect(
+        viaStrategy.data.segments.slice(1).map((segment) => ({
+          stationId: segment.fromStopId,
+          probability: segment.seatProbability,
+        })),
+      ).toEqual(viaLegacy.data.perStationSeatProbability);
+    }
+  });
+
   it("should emit one segment per hop, covering boarding to alighting in order", () => {
     const result = strategy.estimate(baseInput);
 
