@@ -28,55 +28,45 @@ export type RouteSearchQuery = {
   dayType: DayType;
 };
 
-type TimetableStop = TimetableDatasetPayload["trainTimetables"][number];
+type StopTime = TimetableDatasetPayload["trips"][number]["stopTimes"][number];
 
 type TrainStops = {
   trainId: string;
-  // Sorted into this train's own physical stop order -- comparing *index*
-  // within this array (not raw station `seq`) is what determines "before/
-  // after" on a given train, since `seq` is only meaningful for ordering
-  // stations that share a railway, and two different trains being compared
-  // against each other (transfer search) may not.
-  stops: TimetableStop[];
+  // この便自身の stopSequence 順。路線全体の駅連番からは独立している --
+  // 折返し・逆方向便は物理的な停車順が路線全体の連番と逆になるため、
+  // 便ごとに閉じた順序情報が必須。
+  stops: StopTime[];
 };
 
 function stopsByTrain(
   timetable: TimetableDatasetPayload,
   dayType: DayType,
-  seqByStation: Map<string, number>,
+  knownStationIds: Set<string>,
 ): TrainStops[] {
-  const grouped = new Map<string, TimetableStop[]>();
-  for (const entry of timetable.trainTimetables) {
-    if (entry.dayType !== dayType || !seqByStation.has(entry.stationId)) {
+  const trains: TrainStops[] = [];
+  for (const trip of timetable.trips) {
+    if (trip.dayType !== dayType) {
       continue;
     }
-    const existing = grouped.get(entry.trainId) ?? [];
-    existing.push(entry);
-    grouped.set(entry.trainId, existing);
+    const stops = trip.stopTimes
+      .filter((stopTime) => knownStationIds.has(stopTime.stopId))
+      .sort((a, b) => a.stopSequence - b.stopSequence);
+    if (stops.length > 0) {
+      trains.push({ trainId: trip.tripId, stops });
+    }
   }
-  return [...grouped.entries()].map(([trainId, stops]) => ({
-    trainId,
-    stops: [...stops].sort(
-      (a, b) =>
-        (seqByStation.get(a.stationId) ?? 0) -
-        (seqByStation.get(b.stationId) ?? 0),
-    ),
-  }));
+  return trains;
 }
 
 function stopIndex(train: TrainStops, stationId: string): number {
-  return train.stops.findIndex((stop) => stop.stationId === stationId);
+  return train.stops.findIndex((stop) => stop.stopId === stationId);
 }
 
-function buildLeg(
-  train: TrainStops,
-  from: TimetableStop,
-  to: TimetableStop,
-): RouteLeg {
+function buildLeg(train: TrainStops, from: StopTime, to: StopTime): RouteLeg {
   return {
     trainId: train.trainId,
-    fromStationId: from.stationId,
-    toStationId: to.stationId,
+    fromStationId: from.stopId,
+    toStationId: to.stopId,
     departureTime: from.departureTime,
     arrivalTime: to.arrivalTime,
   };
@@ -90,12 +80,12 @@ export function searchRoutes(
   timetable: TimetableDatasetPayload,
   query: RouteSearchQuery,
 ): Result<RouteCandidate[], AppError> {
-  const seqByStation = new Map(
-    timetable.stations.map((station) => [station.id, station.seq]),
+  const knownStationIds = new Set(
+    timetable.stations.map((station) => station.id),
   );
   if (
-    !seqByStation.has(query.fromStationId) ||
-    !seqByStation.has(query.toStationId)
+    !knownStationIds.has(query.fromStationId) ||
+    !knownStationIds.has(query.toStationId)
   ) {
     return err(
       createAppError(
@@ -105,7 +95,7 @@ export function searchRoutes(
     );
   }
 
-  const trains = stopsByTrain(timetable, query.dayType, seqByStation);
+  const trains = stopsByTrain(timetable, query.dayType, knownStationIds);
 
   const direct: RouteCandidate[] = [];
   for (const train of trains) {
@@ -144,7 +134,7 @@ export function searchRoutes(
       transferIdx++
     ) {
       const transferStop = first.stops[transferIdx];
-      if (transferStop.stationId === query.toStationId) {
+      if (transferStop.stopId === query.toStationId) {
         continue;
       }
 
@@ -152,7 +142,7 @@ export function searchRoutes(
         if (second.trainId === first.trainId) {
           continue;
         }
-        const connectIdx = stopIndex(second, transferStop.stationId);
+        const connectIdx = stopIndex(second, transferStop.stopId);
         const alightIdx = stopIndex(second, query.toStationId);
         if (connectIdx === -1 || alightIdx === -1 || connectIdx >= alightIdx) {
           continue;
