@@ -73,6 +73,71 @@ describe("buildStopSequence", () => {
     ]);
     expect(stops).toEqual([]);
   });
+
+  it("should resolve a return-direction trip's stop order from its own stopSequence, not the line-wide station.seq order (P1/P2 regression)", () => {
+    // 物理的にはC→B→Aの順に走る（駅連番 seq: A=0,B=1,C=2 の昇順とは逆）。
+    // route-search-engine.test.ts's reverseDirectionTimetable fixture has
+    // the same shape/scenario -- buildStopSequence had the identical
+    // structural bug (line-wide station.seq sort instead of this trip's own
+    // stopSequence) and was fixed the same way. Every other test above uses
+    // the bundled demo fixture, which is outbound-only (trip order always
+    // matches ascending station.seq), so none of them would fail under the
+    // old buggy implementation -- this test is the one that actually
+    // discriminates.
+    const reverseDirectionTimetable: TimetableDatasetPayload = {
+      schemaVersion: 1,
+      stations: [
+        { id: "STA_A", railwayId: "RAIL_X", nameJa: "A", nameEn: "A", seq: 0 },
+        { id: "STA_B", railwayId: "RAIL_X", nameJa: "B", nameEn: "B", seq: 1 },
+        { id: "STA_C", railwayId: "RAIL_X", nameJa: "C", nameEn: "C", seq: 2 },
+      ],
+      trips: [
+        {
+          tripId: "TRAIN_INBOUND",
+          dayType: "weekday",
+          carCount: 8,
+          stopTimes: [
+            {
+              stopId: "STA_C",
+              stopSequence: 0,
+              arrivalTime: "08:00",
+              departureTime: "08:00",
+            },
+            {
+              stopId: "STA_B",
+              stopSequence: 1,
+              arrivalTime: "08:05",
+              departureTime: "08:05",
+            },
+            {
+              stopId: "STA_A",
+              stopSequence: 2,
+              arrivalTime: "08:10",
+              departureTime: "08:10",
+            },
+          ],
+        },
+      ],
+    };
+
+    const inboundLeg: RouteLeg = {
+      trainId: "TRAIN_INBOUND",
+      fromStationId: "STA_C",
+      toStationId: "STA_A",
+      departureTime: "08:00",
+      arrivalTime: "08:10",
+    };
+
+    const stops = buildStopSequence(reverseDirectionTimetable, [inboundLeg]);
+
+    expect(stops.map((stop) => stop.stationId)).toEqual([
+      "STA_C",
+      "STA_B",
+      "STA_A",
+    ]);
+    expect(stops[0]?.departureTime).toBe("08:00");
+    expect(stops.at(-1)?.arrivalTime).toBe("08:10");
+  });
 });
 
 describe("deriveCoachProgress", () => {
