@@ -4,56 +4,88 @@ import {
   correctionDatasetPayloadSchema,
   createDatasetResponseSchema,
   timetableDatasetPayloadSchema,
+  tripSchema,
 } from "../../src/schemas/dataset.schema";
 
 describe("timetableDatasetPayloadSchema", () => {
-  const validPayload = {
-    schemaVersion: 1,
-    stations: [
-      {
-        id: "STA_SHINJUKU",
-        railwayId: "RAIL_CHUO",
-        nameJa: "新宿",
-        nameEn: "Shinjuku",
-        seq: 3,
-      },
-    ],
-    trainTimetables: [
-      {
-        trainId: "TRAIN_0732",
-        stationId: "STA_SHINJUKU",
-        departureTime: "07:32",
-        arrivalTime: "07:31",
-        carCount: 10,
-        dayType: "weekday",
-      },
-    ],
-  };
-
-  it("should accept a representative timetable payload", () => {
-    expect(timetableDatasetPayloadSchema.safeParse(validPayload).success).toBe(
-      true,
-    );
-  });
-
-  it("should reject an unknown top-level field", () => {
-    const result = timetableDatasetPayloadSchema.safeParse({
-      ...validPayload,
-      extra: "field",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("should reject an invalid dayType value", () => {
-    const invalid = {
-      ...validPayload,
-      trainTimetables: [
-        { ...validPayload.trainTimetables[0], dayType: "holiday" },
+  it("should accept a payload whose trips each carry their own stopTimes", () => {
+    const payload = {
+      schemaVersion: 1,
+      stations: [
+        {
+          id: "STA_SHINJUKU",
+          railwayId: "RAIL_CHUO",
+          nameJa: "新宿",
+          nameEn: "Shinjuku",
+          seq: 0,
+        },
+        {
+          id: "STA_TOKYO",
+          railwayId: "RAIL_CHUO",
+          nameJa: "東京",
+          nameEn: "Tokyo",
+          seq: 1,
+        },
+      ],
+      trips: [
+        {
+          tripId: "TRAIN_0732",
+          dayType: "weekday",
+          carCount: 10,
+          stopTimes: [
+            {
+              stopId: "STA_SHINJUKU",
+              stopSequence: 0,
+              arrivalTime: "07:32",
+              departureTime: "07:32",
+            },
+            {
+              stopId: "STA_TOKYO",
+              stopSequence: 1,
+              arrivalTime: "07:48",
+              departureTime: "07:48",
+            },
+          ],
+        },
       ],
     };
-    expect(timetableDatasetPayloadSchema.safeParse(invalid).success).toBe(
-      false,
-    );
+
+    expect(() => timetableDatasetPayloadSchema.parse(payload)).not.toThrow();
+  });
+
+  it("should reject a trip whose stopTimes have duplicate stopSequence values", () => {
+    const trip = {
+      tripId: "TRAIN_BAD",
+      dayType: "weekday",
+      carCount: 10,
+      stopTimes: [
+        {
+          stopId: "STA_SHINJUKU",
+          stopSequence: 0,
+          arrivalTime: "07:32",
+          departureTime: "07:32",
+        },
+        {
+          stopId: "STA_TOKYO",
+          stopSequence: 0,
+          arrivalTime: "07:48",
+          departureTime: "07:48",
+        },
+      ],
+    };
+
+    expect(() => tripSchema.parse(trip)).toThrow();
+  });
+
+  it("should reject a trip with no stopTimes", () => {
+    const trip = {
+      tripId: "TRAIN_EMPTY",
+      dayType: "weekday",
+      carCount: 10,
+      stopTimes: [],
+    };
+
+    expect(() => tripSchema.parse(trip)).toThrow();
   });
 });
 

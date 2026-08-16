@@ -84,9 +84,10 @@ export {
   datasetNameSchema,
   dayTypeSchema,
   stationSchema,
+  stopTimeSchema,
   timeBucketSchema,
   timetableDatasetPayloadSchema,
-  trainTimetableEntrySchema,
+  tripSchema,
 } from "./schemas/dataset.schema";
 export type { DayType } from "./utils/time";
 export { toDayType, toTimeBucket } from "./utils/time";
