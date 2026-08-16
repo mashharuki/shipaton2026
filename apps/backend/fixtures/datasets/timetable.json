@@ -39,406 +39,376 @@
         "seq": 4
       }
     ],
-    "trainTimetables": [
+    "trips": [
       {
-        "trainId": "TRAIN_WEEKDAY_0700",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "07:00",
-        "arrivalTime": "07:00",
+        "tripId": "TRAIN_WEEKDAY_0700",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "07:00",
+            "departureTime": "07:00"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "07:05",
+            "departureTime": "07:06"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "07:10",
+            "departureTime": "07:11"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "07:13",
+            "departureTime": "07:14"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "07:16",
+            "departureTime": "07:16"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0700",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "07:06",
-        "arrivalTime": "07:05",
+        "tripId": "TRAIN_WEEKDAY_0715",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "07:15",
+            "departureTime": "07:15"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "07:20",
+            "departureTime": "07:21"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "07:25",
+            "departureTime": "07:26"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "07:28",
+            "departureTime": "07:29"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "07:31",
+            "departureTime": "07:31"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0700",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "07:11",
-        "arrivalTime": "07:10",
+        "tripId": "TRAIN_WEEKDAY_0730",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "07:30",
+            "departureTime": "07:30"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "07:35",
+            "departureTime": "07:36"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "07:40",
+            "departureTime": "07:41"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "07:43",
+            "departureTime": "07:44"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "07:46",
+            "departureTime": "07:46"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0700",
-        "stationId": "STA_KANDA",
-        "departureTime": "07:14",
-        "arrivalTime": "07:13",
+        "tripId": "TRAIN_WEEKDAY_0745",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "07:45",
+            "departureTime": "07:45"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "07:51",
+            "departureTime": "07:52"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "07:57",
+            "departureTime": "07:58"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "08:00",
+            "departureTime": "08:02"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "08:04",
+            "departureTime": "08:04"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0700",
-        "stationId": "STA_TOKYO",
-        "departureTime": "07:16",
-        "arrivalTime": "07:16",
+        "tripId": "TRAIN_WEEKDAY_0800",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "08:00",
+            "departureTime": "08:00"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "08:08",
+            "departureTime": "08:09"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "08:15",
+            "departureTime": "08:17"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "08:20",
+            "departureTime": "08:21"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "08:24",
+            "departureTime": "08:24"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0715",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "07:15",
-        "arrivalTime": "07:15",
+        "tripId": "TRAIN_WEEKDAY_1800",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "18:00",
+            "departureTime": "18:00"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "18:05",
+            "departureTime": "18:06"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "18:10",
+            "departureTime": "18:11"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "18:13",
+            "departureTime": "18:14"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "18:16",
+            "departureTime": "18:16"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0715",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "07:21",
-        "arrivalTime": "07:20",
+        "tripId": "TRAIN_WEEKDAY_1815",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "18:15",
+            "departureTime": "18:15"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "18:20",
+            "departureTime": "18:21"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "18:25",
+            "departureTime": "18:26"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "18:28",
+            "departureTime": "18:29"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "18:31",
+            "departureTime": "18:31"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0715",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "07:26",
-        "arrivalTime": "07:25",
+        "tripId": "TRAIN_WEEKDAY_1830",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "18:30",
+            "departureTime": "18:30"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "18:35",
+            "departureTime": "18:36"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "18:40",
+            "departureTime": "18:41"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "18:43",
+            "departureTime": "18:44"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "18:46",
+            "departureTime": "18:46"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0715",
-        "stationId": "STA_KANDA",
-        "departureTime": "07:29",
-        "arrivalTime": "07:28",
+        "tripId": "TRAIN_WEEKDAY_1845",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "18:45",
+            "departureTime": "18:45"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "18:50",
+            "departureTime": "18:51"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "18:55",
+            "departureTime": "18:56"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "18:58",
+            "departureTime": "18:59"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "19:01",
+            "departureTime": "19:01"
+          }
+        ]
       },
       {
-        "trainId": "TRAIN_WEEKDAY_0715",
-        "stationId": "STA_TOKYO",
-        "departureTime": "07:31",
-        "arrivalTime": "07:31",
+        "tripId": "TRAIN_WEEKDAY_1900",
+        "dayType": "weekday",
         "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0730",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "07:30",
-        "arrivalTime": "07:30",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0730",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "07:36",
-        "arrivalTime": "07:35",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0730",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "07:41",
-        "arrivalTime": "07:40",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0730",
-        "stationId": "STA_KANDA",
-        "departureTime": "07:44",
-        "arrivalTime": "07:43",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0730",
-        "stationId": "STA_TOKYO",
-        "departureTime": "07:46",
-        "arrivalTime": "07:46",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0745",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "07:45",
-        "arrivalTime": "07:45",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0745",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "07:52",
-        "arrivalTime": "07:51",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0745",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "07:58",
-        "arrivalTime": "07:57",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0745",
-        "stationId": "STA_KANDA",
-        "departureTime": "08:02",
-        "arrivalTime": "08:00",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0745",
-        "stationId": "STA_TOKYO",
-        "departureTime": "08:04",
-        "arrivalTime": "08:04",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0800",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "08:00",
-        "arrivalTime": "08:00",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0800",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "08:09",
-        "arrivalTime": "08:08",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0800",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "08:17",
-        "arrivalTime": "08:15",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0800",
-        "stationId": "STA_KANDA",
-        "departureTime": "08:21",
-        "arrivalTime": "08:20",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_0800",
-        "stationId": "STA_TOKYO",
-        "departureTime": "08:24",
-        "arrivalTime": "08:24",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1800",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "18:00",
-        "arrivalTime": "18:00",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1800",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "18:06",
-        "arrivalTime": "18:05",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1800",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "18:11",
-        "arrivalTime": "18:10",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1800",
-        "stationId": "STA_KANDA",
-        "departureTime": "18:14",
-        "arrivalTime": "18:13",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1800",
-        "stationId": "STA_TOKYO",
-        "departureTime": "18:16",
-        "arrivalTime": "18:16",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1815",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "18:15",
-        "arrivalTime": "18:15",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1815",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "18:21",
-        "arrivalTime": "18:20",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1815",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "18:26",
-        "arrivalTime": "18:25",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1815",
-        "stationId": "STA_KANDA",
-        "departureTime": "18:29",
-        "arrivalTime": "18:28",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1815",
-        "stationId": "STA_TOKYO",
-        "departureTime": "18:31",
-        "arrivalTime": "18:31",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1830",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "18:30",
-        "arrivalTime": "18:30",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1830",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "18:36",
-        "arrivalTime": "18:35",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1830",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "18:41",
-        "arrivalTime": "18:40",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1830",
-        "stationId": "STA_KANDA",
-        "departureTime": "18:44",
-        "arrivalTime": "18:43",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1830",
-        "stationId": "STA_TOKYO",
-        "departureTime": "18:46",
-        "arrivalTime": "18:46",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1845",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "18:45",
-        "arrivalTime": "18:45",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1845",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "18:51",
-        "arrivalTime": "18:50",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1845",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "18:56",
-        "arrivalTime": "18:55",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1845",
-        "stationId": "STA_KANDA",
-        "departureTime": "18:59",
-        "arrivalTime": "18:58",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1845",
-        "stationId": "STA_TOKYO",
-        "departureTime": "19:01",
-        "arrivalTime": "19:01",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1900",
-        "stationId": "STA_SHINJUKU",
-        "departureTime": "19:00",
-        "arrivalTime": "19:00",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1900",
-        "stationId": "STA_YOTSUYA",
-        "departureTime": "19:06",
-        "arrivalTime": "19:05",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1900",
-        "stationId": "STA_OCHANOMIZU",
-        "departureTime": "19:11",
-        "arrivalTime": "19:10",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1900",
-        "stationId": "STA_KANDA",
-        "departureTime": "19:14",
-        "arrivalTime": "19:13",
-        "carCount": 10,
-        "dayType": "weekday"
-      },
-      {
-        "trainId": "TRAIN_WEEKDAY_1900",
-        "stationId": "STA_TOKYO",
-        "departureTime": "19:16",
-        "arrivalTime": "19:16",
-        "carCount": 10,
-        "dayType": "weekday"
+        "stopTimes": [
+          {
+            "stopId": "STA_SHINJUKU",
+            "stopSequence": 0,
+            "arrivalTime": "19:00",
+            "departureTime": "19:00"
+          },
+          {
+            "stopId": "STA_YOTSUYA",
+            "stopSequence": 1,
+            "arrivalTime": "19:05",
+            "departureTime": "19:06"
+          },
+          {
+            "stopId": "STA_OCHANOMIZU",
+            "stopSequence": 2,
+            "arrivalTime": "19:10",
+            "departureTime": "19:11"
+          },
+          {
+            "stopId": "STA_KANDA",
+            "stopSequence": 3,
+            "arrivalTime": "19:13",
+            "departureTime": "19:14"
+          },
+          {
+            "stopId": "STA_TOKYO",
+            "stopSequence": 4,
+            "arrivalTime": "19:16",
+            "departureTime": "19:16"
+          }
+        ]
       }
     ]
   }

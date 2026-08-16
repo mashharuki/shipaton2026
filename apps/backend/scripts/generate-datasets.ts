@@ -19,12 +19,12 @@ import {
   type DayType,
   type stationSchema,
   timetableDatasetPayloadSchema,
-  type trainTimetableEntrySchema,
+  type tripSchema,
 } from "shared";
 import type { z } from "zod";
 
 type StationEntry = Omit<z.infer<typeof stationSchema>, "railwayId">;
-type TrainTimetableEntry = z.infer<typeof trainTimetableEntrySchema>;
+type Trip = z.infer<typeof tripSchema>;
 type CongestionProfileEntry = z.infer<typeof congestionProfileEntrySchema>;
 
 const RAILWAY_ID = "RAIL_CHUO";
@@ -98,8 +98,8 @@ function addMinutes(hhmm: string, minutes: number): string {
   return `${hh}:${mm}`;
 }
 
-function buildTimetable(): TrainTimetableEntry[] {
-  const entries: TrainTimetableEntry[] = [];
+function buildTimetable(): Trip[] {
+  const trips: Trip[] = [];
   const departureSets: Array<{ departures: string[]; dayType: DayType }> = [
     { departures: WEEKDAY_MORNING_DEPARTURES, dayType: "weekday" },
     { departures: WEEKDAY_EVENING_DEPARTURES, dayType: "weekday" },
@@ -108,27 +108,30 @@ function buildTimetable(): TrainTimetableEntry[] {
   for (const { departures, dayType } of departureSets) {
     for (const departure of departures) {
       const tripMinutes = DEMO_TRIP_MINUTES_BY_DEPARTURE[departure] ?? 16;
-      const trainId = `TRAIN_${dayType.toUpperCase()}_${departure.replace(":", "")}`;
-      for (let i = 0; i < STATIONS.length; i++) {
-        const { arr, dep } = LEG_OFFSETS_MIN[i];
-        entries.push({
-          trainId,
-          stationId: STATIONS[i].id,
-          arrivalTime: addMinutes(
-            departure,
-            Math.round((arr * tripMinutes) / 16),
-          ),
-          departureTime: addMinutes(
-            departure,
-            Math.round((dep * tripMinutes) / 16),
-          ),
-          carCount: CAR_COUNT,
-          dayType,
-        });
-      }
+      const tripId = `TRAIN_${dayType.toUpperCase()}_${departure.replace(":", "")}`;
+      trips.push({
+        tripId,
+        dayType,
+        carCount: CAR_COUNT,
+        stopTimes: STATIONS.map((station, i) => {
+          const { arr, dep } = LEG_OFFSETS_MIN[i];
+          return {
+            stopId: station.id,
+            stopSequence: i,
+            arrivalTime: addMinutes(
+              departure,
+              Math.round((arr * tripMinutes) / 16),
+            ),
+            departureTime: addMinutes(
+              departure,
+              Math.round((dep * tripMinutes) / 16),
+            ),
+          };
+        }),
+      });
     }
   }
-  return entries;
+  return trips;
 }
 
 /**
@@ -183,7 +186,7 @@ function main() {
   const timetablePayload = timetableDatasetPayloadSchema.parse({
     schemaVersion: SCHEMA_VERSION,
     stations: STATIONS.map((s) => ({ ...s, railwayId: RAILWAY_ID })),
-    trainTimetables: buildTimetable(),
+    trips: buildTimetable(),
   });
 
   const congestionPayload = congestionDatasetPayloadSchema.parse({
