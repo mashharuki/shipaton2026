@@ -56,13 +56,18 @@ type StationRow = {
   seq: number;
 };
 
-type TrainTimetableRow = {
-  trainId: string;
-  stationId: string;
-  departureTime: string;
-  arrivalTime: string;
-  carCount: number;
+type TripRow = {
+  tripId: string;
   dayType: "weekday" | "weekend";
+  carCount: number;
+};
+
+type StopTimeRow = {
+  tripId: string;
+  stopId: string;
+  stopSequence: number;
+  arrivalTime: string;
+  departureTime: string;
 };
 
 type CongestionProfileRow = {
@@ -120,7 +125,8 @@ export function createSqliteDatasetStore(db: DbPort): DatasetStore {
     async replaceTimetable(version, payload) {
       await db.withExclusiveTransactionAsync(async () => {
         await db.runAsync("DELETE FROM stations;");
-        await db.runAsync("DELETE FROM train_timetables;");
+        await db.runAsync("DELETE FROM timetable_trips;");
+        await db.runAsync("DELETE FROM stop_times;");
         for (const station of payload.stations) {
           await db.runAsync(
             "INSERT INTO stations (id, railway_id, name_ja, name_en, seq) VALUES (?, ?, ?, ?, ?);",
@@ -133,18 +139,23 @@ export function createSqliteDatasetStore(db: DbPort): DatasetStore {
             ],
           );
         }
-        for (const entry of payload.trainTimetables) {
+        for (const trip of payload.trips) {
           await db.runAsync(
-            "INSERT INTO train_timetables (train_id, station_id, dep_time, arr_time, car_count, day_type) VALUES (?, ?, ?, ?, ?, ?);",
-            [
-              entry.trainId,
-              entry.stationId,
-              entry.departureTime,
-              entry.arrivalTime,
-              entry.carCount,
-              entry.dayType,
-            ],
+            "INSERT INTO timetable_trips (trip_id, day_type, car_count) VALUES (?, ?, ?);",
+            [trip.tripId, trip.dayType, trip.carCount],
           );
+          for (const stopTime of trip.stopTimes) {
+            await db.runAsync(
+              "INSERT INTO stop_times (trip_id, stop_id, stop_sequence, arr_time, dep_time) VALUES (?, ?, ?, ?, ?);",
+              [
+                trip.tripId,
+                stopTime.stopId,
+                stopTime.stopSequence,
+                stopTime.arrivalTime,
+                stopTime.departureTime,
+              ],
+            );
+          }
         }
         await upsertMeta(db, "timetable", version, payload.schemaVersion);
       });
@@ -198,13 +209,39 @@ export function createSqliteDatasetStore(db: DbPort): DatasetStore {
       const stations = await db.getAllAsync<StationRow>(
         "SELECT id, railway_id as railwayId, name_ja as nameJa, name_en as nameEn, seq FROM stations;",
       );
-      const trainTimetables = await db.getAllAsync<TrainTimetableRow>(
-        "SELECT train_id as trainId, station_id as stationId, dep_time as departureTime, arr_time as arrivalTime, car_count as carCount, day_type as dayType FROM train_timetables;",
+      const tripRows = await db.getAllAsync<TripRow>(
+        "SELECT trip_id as tripId, day_type as dayType, car_count as carCount FROM timetable_trips;",
       );
+      const stopTimeRows = await db.getAllAsync<StopTimeRow>(
+        "SELECT trip_id as tripId, stop_id as stopId, stop_sequence as stopSequence, arr_time as arrivalTime, dep_time as departureTime FROM stop_times;",
+      );
+
+      const stopTimesByTrip = new Map<
+        string,
+        Array<Omit<StopTimeRow, "tripId">>
+      >();
+      for (const row of stopTimeRows) {
+        const existing = stopTimesByTrip.get(row.tripId) ?? [];
+        existing.push({
+          stopId: row.stopId,
+          stopSequence: row.stopSequence,
+          arrivalTime: row.arrivalTime,
+          departureTime: row.departureTime,
+        });
+        stopTimesByTrip.set(row.tripId, existing);
+      }
+
+      const trips = tripRows.map((trip) => ({
+        tripId: trip.tripId,
+        dayType: trip.dayType,
+        carCount: trip.carCount,
+        stopTimes: stopTimesByTrip.get(trip.tripId) ?? [],
+      }));
+
       return {
         schemaVersion: meta?.schema_version ?? 1,
         stations,
-        trainTimetables,
+        trips,
       };
     },
 
