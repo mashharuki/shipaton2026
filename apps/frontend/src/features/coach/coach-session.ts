@@ -16,50 +16,47 @@ export type CoachProgress = {
   isApproachingDestination: boolean;
 };
 
-// 7.1/7.4: resolves each leg into its real stop-by-stop timetable (a
-// train_timetables entry already carries a per-station arrival/departure
-// time, not just the leg's own boarding/alighting times) into one ordered,
-// ride-wide stop sequence tagged with which leg each stop belongs to. A
-// transfer's boarding stop intentionally duplicates the previous leg's
-// alighting station id (same stationId, two different scheduled times, two
-// different legIndex values) rather than being deduped -- deriveCoachProgress
-// below relies on that duplication to represent "waiting at the transfer
-// station" as a real, elapsed-time-driven state instead of a special case.
+// 7.1/7.4: resolves each leg into its real stop-by-stop timetable (a trip's
+// own stopTimes already carries a per-station arrival/departure time,
+// ordered by that trip's own stopSequence, not just the leg's own
+// boarding/alighting times) into one ordered, ride-wide stop sequence tagged
+// with which leg each stop belongs to. A transfer's boarding stop
+// intentionally duplicates the previous leg's alighting station id (same
+// stationId, two different scheduled times, two different legIndex values)
+// rather than being deduped -- deriveCoachProgress below relies on that
+// duplication to represent "waiting at the transfer station" as a real,
+// elapsed-time-driven state instead of a special case.
 export function buildStopSequence(
   timetable: TimetableDatasetPayload,
   legs: readonly RouteLeg[],
 ): CoachStop[] {
-  const seqByStation = new Map(
-    timetable.stations.map((station) => [station.id, station.seq]),
-  );
-
   const stops: CoachStop[] = [];
   for (const [legIndex, leg] of legs.entries()) {
-    const fromSeq = seqByStation.get(leg.fromStationId);
-    const toSeq = seqByStation.get(leg.toStationId);
-    if (fromSeq === undefined || toSeq === undefined) {
+    const trip = timetable.trips.find((t) => t.tripId === leg.trainId);
+    if (!trip) {
+      return [];
+    }
+
+    const orderedStopTimes = [...trip.stopTimes].sort(
+      (a, b) => a.stopSequence - b.stopSequence,
+    );
+    const fromIdx = orderedStopTimes.findIndex(
+      (stopTime) => stopTime.stopId === leg.fromStationId,
+    );
+    const toIdx = orderedStopTimes.findIndex(
+      (stopTime) => stopTime.stopId === leg.toStationId,
+    );
+    if (fromIdx === -1 || toIdx === -1) {
       return [];
     }
     const [lower, upper] =
-      fromSeq <= toSeq ? [fromSeq, toSeq] : [toSeq, fromSeq];
+      fromIdx <= toIdx ? [fromIdx, toIdx] : [toIdx, fromIdx];
 
-    const legStops = timetable.trainTimetables
-      .filter((entry) => entry.trainId === leg.trainId)
-      .filter((entry) => {
-        const seq = seqByStation.get(entry.stationId);
-        return seq !== undefined && seq >= lower && seq <= upper;
-      })
-      .sort(
-        (a, b) =>
-          (seqByStation.get(a.stationId) ?? 0) -
-          (seqByStation.get(b.stationId) ?? 0),
-      );
-
-    for (const stop of legStops) {
+    for (const stopTime of orderedStopTimes.slice(lower, upper + 1)) {
       stops.push({
-        stationId: stop.stationId,
-        arrivalTime: stop.arrivalTime,
-        departureTime: stop.departureTime,
+        stationId: stopTime.stopId,
+        arrivalTime: stopTime.arrivalTime,
+        departureTime: stopTime.departureTime,
         legIndex,
       });
     }
