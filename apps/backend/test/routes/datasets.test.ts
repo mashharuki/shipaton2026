@@ -30,7 +30,7 @@ describe("GET /v1/datasets/:name", () => {
     await seed("timetable", "3", {
       schemaVersion: 1,
       stations: [],
-      trainTimetables: [],
+      trips: [],
     });
 
     const res = await SELF.fetch(
@@ -41,7 +41,7 @@ describe("GET /v1/datasets/:name", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       version: "3",
-      payload: { schemaVersion: 1, stations: [], trainTimetables: [] },
+      payload: { schemaVersion: 1, stations: [], trips: [] },
     });
   });
 

@@ -163,56 +163,64 @@ describe("listDepartureTimes (sorting regression)", () => {
           seq: 1,
         },
       ],
-      trainTimetables: [
-        // Declare trains in reverse time order to verify .sort()
+      trips: [
+        // Declare trips in reverse time order to verify .sort()
         {
-          trainId: "TRAIN_3",
-          stationId: "STA_START",
-          departureTime: "19:00",
-          arrivalTime: "19:00",
-          carCount: 8,
+          tripId: "TRAIN_3",
           dayType: "weekday",
+          carCount: 8,
+          stopTimes: [
+            {
+              stopId: "STA_START",
+              stopSequence: 0,
+              arrivalTime: "19:00",
+              departureTime: "19:00",
+            },
+            {
+              stopId: "STA_END",
+              stopSequence: 1,
+              arrivalTime: "19:30",
+              departureTime: "19:30",
+            },
+          ],
         },
         {
-          trainId: "TRAIN_2",
-          stationId: "STA_START",
-          departureTime: "12:00",
-          arrivalTime: "12:00",
-          carCount: 8,
+          tripId: "TRAIN_2",
           dayType: "weekday",
+          carCount: 8,
+          stopTimes: [
+            {
+              stopId: "STA_START",
+              stopSequence: 0,
+              arrivalTime: "12:00",
+              departureTime: "12:00",
+            },
+            {
+              stopId: "STA_END",
+              stopSequence: 1,
+              arrivalTime: "12:30",
+              departureTime: "12:30",
+            },
+          ],
         },
         {
-          trainId: "TRAIN_1",
-          stationId: "STA_START",
-          departureTime: "06:00",
-          arrivalTime: "06:00",
-          carCount: 8,
+          tripId: "TRAIN_1",
           dayType: "weekday",
-        },
-        // Arrivals at destination
-        {
-          trainId: "TRAIN_1",
-          stationId: "STA_END",
-          departureTime: "06:30",
-          arrivalTime: "06:30",
           carCount: 8,
-          dayType: "weekday",
-        },
-        {
-          trainId: "TRAIN_2",
-          stationId: "STA_END",
-          departureTime: "12:30",
-          arrivalTime: "12:30",
-          carCount: 8,
-          dayType: "weekday",
-        },
-        {
-          trainId: "TRAIN_3",
-          stationId: "STA_END",
-          departureTime: "19:30",
-          arrivalTime: "19:30",
-          carCount: 8,
-          dayType: "weekday",
+          stopTimes: [
+            {
+              stopId: "STA_START",
+              stopSequence: 0,
+              arrivalTime: "06:00",
+              departureTime: "06:00",
+            },
+            {
+              stopId: "STA_END",
+              stopSequence: 1,
+              arrivalTime: "06:30",
+              departureTime: "06:30",
+            },
+          ],
         },
       ],
     };

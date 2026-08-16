@@ -131,7 +131,7 @@ export function hasTimetableFor(
   timetable: TimetableDatasetPayload,
   dayType: DayType,
 ): boolean {
-  return timetable.trainTimetables.some((entry) => entry.dayType === dayType);
+  return timetable.trips.some((trip) => trip.dayType === dayType);
 }
 
 const SATURDAY = 6;

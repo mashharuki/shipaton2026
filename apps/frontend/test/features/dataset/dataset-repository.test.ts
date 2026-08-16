@@ -26,7 +26,7 @@ function createFakeStore(): FakeStore {
   let timetable: TimetableDatasetPayload = {
     schemaVersion: 1,
     stations: [],
-    trainTimetables: [],
+    trips: [],
   };
   let congestion: CongestionDatasetPayload = { schemaVersion: 1, profiles: [] };
   let correction: CorrectionDatasetPayload = { schemaVersion: 1, stats: [] };
@@ -88,7 +88,7 @@ function timetableWith(
         seq: 0,
       },
     ],
-    trainTimetables: [],
+    trips: [],
   };
 }
 
