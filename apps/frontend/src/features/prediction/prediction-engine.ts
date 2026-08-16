@@ -15,7 +15,7 @@ import type {
 import type {
   BoardingAdvice,
   CarComparison,
-  PredictionResult,
+  LegPrediction,
   PredictLegQuery,
   RecommendBoardingQuery,
 } from "./types";
@@ -38,13 +38,13 @@ function clamp01(value: number): number {
 // per design.md's Invariants: "同一入力＋同一データセット版 → 同一出力")
 // to shared's scorePrediction() for the standingMinutes/confidence/factors
 // formula shared with the backend, then derives the remaining
-// PredictionResult fields (seatProbability, seatedMinutes, comfortScore,
+// LegPrediction fields (seatProbability, seatedMinutes, comfortScore,
 // perStationSeatProbability) that scorePrediction() doesn't own.
 export function predictLeg(
   congestion: CongestionDatasetPayload,
   correction: CorrectionDatasetPayload,
   query: PredictLegQuery,
-): Result<PredictionResult, AppError> {
+): Result<LegPrediction, AppError> {
   const matchingProfiles = congestion.profiles.filter(
     (profile) =>
       profile.railwayId === query.railwayId &&

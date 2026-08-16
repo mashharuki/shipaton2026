@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   type AppError,
+  type ComfortEstimate,
   createAppError,
   err,
   isErr,
@@ -19,11 +20,10 @@ import {
   type TimetableDatasetPayload,
 } from "@/features/dataset/dataset-store";
 import type { RouteLeg } from "@/features/search/route-search-engine";
-import { floorToTimeBucket, minutesOfDay } from "@/lib/clock-time";
 import { getDb } from "@/lib/db";
-import { intermediateStationIds } from "@/lib/station-utils";
-import { predictLeg, recommendBoarding } from "./prediction-engine";
-import type { BoardingAdvice, PredictionResult } from "./types";
+import { deriveBoardingAdvice } from "./boarding-advice";
+import { createModeledStrategy } from "./strategies/modeled-strategy";
+import type { BoardingAdvice } from "./types";
 
 export type Station = TimetableDatasetPayload["stations"][number];
 
@@ -31,11 +31,11 @@ export type LegBoardingDetail = {
   leg: RouteLeg;
   fromStation: Station;
   toStation: Station;
-  prediction: PredictionResult;
+  prediction: ComfortEstimate;
   boardingAdvice: BoardingAdvice;
-  // Same data as prediction.perStationSeatProbability, with each stationId
-  // resolved to its display record (6.2) so route-detail.tsx doesn't need
-  // its own copy of the station lookup.
+  // Derived from prediction.segments, with each intermediate stop resolved
+  // to its display record (6.2) so route-detail.tsx doesn't need its own
+  // copy of the station lookup.
   perStationProbabilities: ReadonlyArray<{
     station: Station;
     probability: number;
@@ -47,7 +47,7 @@ export type LegBoardingDetail = {
 // synced dataset -- deliberately recomputed rather than passed through
 // navigation params, since PredictionEngine's own invariant (design.md:
 // "同一入力＋同一データセット版 → 同一出力") makes this safe and it avoids
-// serializing PredictionResult/BoardingAdvice objects through the router.
+// serializing ComfortEstimate/BoardingAdvice objects through the router.
 export function useRouteDetail(legs: RouteLeg[] | null) {
   return useQuery({
     queryKey: ["route-detail", legs],
@@ -83,6 +83,12 @@ export function useRouteDetail(legs: RouteLeg[] | null) {
         timetable.stations.map((station) => [station.id, station]),
       );
 
+      const strategy = createModeledStrategy({
+        timetable,
+        congestion: congestionResult.data,
+        correction: correctionResult.data,
+      });
+
       const details: LegBoardingDetail[] = [];
       for (const leg of legs) {
         const fromStation = stationsById.get(leg.fromStationId);
@@ -91,45 +97,40 @@ export function useRouteDetail(legs: RouteLeg[] | null) {
           continue;
         }
 
-        const legKey = `${leg.fromStationId}-${leg.toStationId}`;
-        const timeBucket = floorToTimeBucket(leg.departureTime);
-        const tripMinutes =
-          minutesOfDay(leg.arrivalTime) - minutesOfDay(leg.departureTime);
+        const estimateInput = {
+          fromStationId: leg.fromStationId,
+          toStationId: leg.toStationId,
+          departureTime: leg.departureTime,
+          arrivalTime: leg.arrivalTime,
+          dayType,
+        };
 
-        const predicted = predictLeg(
-          congestionResult.data,
-          correctionResult.data,
-          {
-            railwayId: fromStation.railwayId,
-            legKey,
-            timeBucket,
-            dayType,
-            tripMinutes,
-            intermediateStationIds: intermediateStationIds(
-              timetable,
-              leg.fromStationId,
-              leg.toStationId,
-            ),
-          },
-        );
+        const predicted = strategy.estimate(estimateInput);
         if (isErr(predicted)) {
           return err(predicted.error);
         }
 
-        const boarding = recommendBoarding(congestionResult.data, {
-          railwayId: fromStation.railwayId,
-          legKey,
-          timeBucket,
-          dayType,
-        });
-        if (isErr(boarding)) {
-          return err(boarding.error);
+        const boardingAdvice = deriveBoardingAdvice(predicted.data);
+        if (!boardingAdvice) {
+          return err(
+            createAppError(
+              "insufficient_data",
+              "No per-carriage congestion data for this leg",
+            ),
+          );
         }
 
-        const perStationProbabilities = predicted.data.perStationSeatProbability
-          .map(({ stationId, probability }) => {
-            const station = stationsById.get(stationId);
-            return station ? { station, probability } : undefined;
+        // segments[0] starts at the boarding station, so its own fromStopId
+        // is not an intermediate stop -- skip it and take each later
+        // segment's origin, which is exactly the set of intermediate stops
+        // with the seat probability in effect on arriving there.
+        const perStationProbabilities = predicted.data.segments
+          .slice(1)
+          .map((segment) => {
+            const station = stationsById.get(segment.fromStopId);
+            return station
+              ? { station, probability: segment.seatProbability }
+              : undefined;
           })
           .filter(
             (entry): entry is { station: Station; probability: number } =>
@@ -141,7 +142,7 @@ export function useRouteDetail(legs: RouteLeg[] | null) {
           fromStation,
           toStation,
           prediction: predicted.data,
-          boardingAdvice: boarding.data,
+          boardingAdvice,
           perStationProbabilities,
         });
       }

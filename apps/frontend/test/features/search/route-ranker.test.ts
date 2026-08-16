@@ -6,6 +6,7 @@ import type {
   CorrectionDatasetPayload,
   TimetableDatasetPayload,
 } from "@/features/dataset/dataset-store";
+import { createModeledStrategy } from "@/features/prediction/strategies/modeled-strategy";
 import type { ComfortPreference } from "@/features/preferences/preference-store";
 import { rankRoutes } from "@/features/search/route-ranker";
 import type { RouteCandidate } from "@/features/search/route-search-engine";
@@ -60,6 +61,42 @@ function slowCandidate(): RouteCandidate {
   };
 }
 
+// departureTime/arrivalTime are bare "HH:mm" with no date -- arrivalTime
+// earlier than departureTime means the leg crosses midnight, not that it
+// took negative time.
+function overnightCandidate(): RouteCandidate {
+  return {
+    legs: [
+      {
+        trainId: "TRAIN_OVERNIGHT",
+        fromStationId: "STA_A",
+        toStationId: "STA_D",
+        departureTime: "23:50",
+        arrivalTime: "00:10",
+      },
+    ],
+  };
+}
+
+function overnightCongestion(): CongestionDatasetPayload {
+  return {
+    schemaVersion: 1,
+    profiles: [
+      {
+        railwayId: "RAIL_X",
+        legKey: "STA_A-STA_D",
+        // floorToTimeBucket("23:50") -- must match, or the strategy fails
+        // with insufficient_data before totalMinutes is ever computed.
+        timeBucket: "23:45",
+        dayType: "weekday",
+        carNumber: 1,
+        loadScore: 0.5,
+        sampleSize: 10,
+      },
+    ],
+  };
+}
+
 function congestionFor(
   loadScoreByTrain: Record<string, number>,
 ): CongestionDatasetPayload {
@@ -82,13 +119,21 @@ const emptyCorrection: CorrectionDatasetPayload = {
   stats: [],
 };
 
+// rankRoutes no longer takes datasets -- it takes a CongestionStrategy that
+// already owns them. Tests build one per congestion fixture.
+function strategyFor(congestion: CongestionDatasetPayload) {
+  return createModeledStrategy({
+    timetable,
+    congestion,
+    correction: emptyCorrection,
+  });
+}
+
 describe("rankRoutes", () => {
   it("should return an empty ranking when there are no candidates", () => {
     const result = rankRoutes(
       [],
-      timetable,
-      congestionFor({}),
-      emptyCorrection,
+      strategyFor(congestionFor({})),
       DEFAULT_PREFERENCE,
       "weekday",
     );
@@ -99,13 +144,26 @@ describe("rankRoutes", () => {
     }
   });
 
+  it("should rank routes without the caller supplying congestion data", () => {
+    const result = rankRoutes(
+      [fastCandidate()],
+      strategyFor(congestionFor({ "STA_A-STA_D": 0.5 })),
+      DEFAULT_PREFERENCE,
+      "weekday",
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.data[0].prediction.provenance).toBe("modeled");
+    }
+  });
+
   it("should select the minimum-total-time candidate as fastest", () => {
     const congestion = congestionFor({ "STA_A-STA_D": 0.5 });
     const result = rankRoutes(
       [slowCandidate(), fastCandidate()],
-      timetable,
-      congestion,
-      emptyCorrection,
+      strategyFor(congestion),
       DEFAULT_PREFERENCE,
       "weekday",
     );
@@ -140,9 +198,7 @@ describe("rankRoutes", () => {
 
     const result = rankRoutes(
       [fastCandidate(), roomySlow],
-      timetable,
-      congestion,
-      emptyCorrection,
+      strategyFor(congestion),
       { ...DEFAULT_PREFERENCE, maxExtraMinutes: 30 },
       "weekday",
     );
@@ -188,9 +244,7 @@ describe("rankRoutes", () => {
 
     const result = rankRoutes(
       [fastCandidate(), roomySlow, middle],
-      timetable,
-      congestion,
-      emptyCorrection,
+      strategyFor(congestion),
       DEFAULT_PREFERENCE,
       "weekday",
     );
@@ -213,9 +267,7 @@ describe("rankRoutes", () => {
     const congestion = congestionFor({ "STA_A-STA_D": 0.5 });
     const result = rankRoutes(
       [fastCandidate()],
-      timetable,
-      congestion,
-      emptyCorrection,
+      strategyFor(congestion),
       DEFAULT_PREFERENCE,
       "weekday",
     );
@@ -249,9 +301,7 @@ describe("rankRoutes", () => {
 
     const result = rankRoutes(
       [fastCandidate(), noDataCandidate],
-      timetable,
-      congestion,
-      emptyCorrection,
+      strategyFor(congestion),
       DEFAULT_PREFERENCE,
       "weekday",
     );
@@ -267,9 +317,7 @@ describe("rankRoutes", () => {
   it("should return insufficient_data when no candidate has any matching congestion data", () => {
     const result = rankRoutes(
       [fastCandidate()],
-      timetable,
-      congestionFor({}),
-      emptyCorrection,
+      strategyFor(congestionFor({})),
       DEFAULT_PREFERENCE,
       "weekday",
     );
@@ -277,6 +325,26 @@ describe("rankRoutes", () => {
     expect(isErr(result)).toBe(true);
     if (isErr(result)) {
       expect(result.error.code).toBe("insufficient_data");
+    }
+  });
+
+  it("should report a positive totalMinutes for a candidate whose leg crosses midnight", () => {
+    const result = rankRoutes(
+      [overnightCandidate()],
+      strategyFor(overnightCongestion()),
+      DEFAULT_PREFERENCE,
+      "weekday",
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.data.length).toBeGreaterThan(0);
+      // 23:50 -> 00:10 is a 20-minute trip, not -1420 -- a raw
+      // minutesOfDay(arrival) - minutesOfDay(departure) would have produced
+      // the latter and made this candidate falsely dominate "fastest".
+      for (const route of result.data) {
+        expect(route.totalMinutes).toBeCloseTo(20, 5);
+      }
     }
   });
 });

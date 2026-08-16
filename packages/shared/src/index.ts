@@ -24,6 +24,13 @@ export {
   getErrorMessageKey,
 } from "./errors/error-messages";
 export type {
+  CarriageComfort,
+  ComfortEstimate,
+  ComfortProvenance,
+  ComfortSegment,
+} from "./prediction/comfort";
+export { COMFORT_PROVENANCES, isComfortProvenance } from "./prediction/comfort";
+export type {
   PredictionConfidence,
   PredictionFactor,
   PredictionFactorKind,
