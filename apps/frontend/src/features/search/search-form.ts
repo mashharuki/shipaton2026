@@ -96,7 +96,7 @@ export function listSelectableStations(
 
 // 3.1: derives the departure-time options by asking the real search engine
 // for every candidate from midnight onward and collecting each candidate's
-// boarding time. Deliberately NOT a second traversal of trainTimetables:
+// boarding time. Deliberately NOT a second traversal of trips:
 // reusing searchRoutes is what guarantees "every listed time yields at
 // least one route", and keeps direction/dayType/in-area filtering in one
 // place. Transfer candidates board at the same origin, so legs[0] carries
