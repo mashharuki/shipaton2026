@@ -31,7 +31,7 @@ const RAILWAY_ID = "RAIL_CHUO";
 const SCHEMA_VERSION = 1;
 // Bump whenever a committed fixture changes so already-installed clients
 // replace their SQLite copy on the next sync.
-const DATASET_VERSION = "3";
+const DATASET_VERSION = "4";
 
 // Real JR Chuo Rapid stops between Shinjuku and Tokyo -- fixture station
 // identifiers, not live operational data.
