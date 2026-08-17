@@ -99,9 +99,35 @@ export const tripSchema = z
     },
   });
 
+export const dataProvenanceSchema = z.enum(["synthetic", "gtfs_import"]).meta({
+  description:
+    "synthetic: このリポジトリのスクリプトが生成したデモデータ。gtfs_import: 実 GTFS フィードから取り込んだ実データ",
+  example: "synthetic",
+});
+export type DataProvenance = z.infer<typeof dataProvenanceSchema>;
+
+export const feedAttributionSchema = z
+  .strictObject({
+    feedOnestopId: z.string().min(1),
+    licenseSpdx: z.string().min(1),
+    attributionText: z.string().min(1),
+  })
+  .meta({
+    description:
+      "gtfs_import データセットの帰属表示。CC BY 4.0 等の attribution 要件を満たすため UI に表示する",
+    example: {
+      feedOnestopId: "f-xn76-toei",
+      licenseSpdx: "CC-BY-4.0",
+      attributionText:
+        "東京都交通局 (Tokyo Metropolitan Bureau of Transportation)",
+    },
+  });
+
 export const timetableDatasetPayloadSchema = z
   .strictObject({
     schemaVersion: z.number().int().positive(),
+    provenance: dataProvenanceSchema.default("synthetic"),
+    feedAttribution: feedAttributionSchema.optional(),
     stations: z.array(stationSchema),
     trips: z.array(tripSchema),
   })

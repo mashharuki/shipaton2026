@@ -8,6 +8,7 @@ export const ERROR_MESSAGE_KEYS: Record<ErrorCode, string> = {
   dataset_missing: "errors.datasetMissing",
   out_of_area: "errors.outOfArea",
   insufficient_data: "errors.insufficientData",
+  license_incompatible: "errors.licenseIncompatible",
   unknown: "errors.unknown",
 };
 

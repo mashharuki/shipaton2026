@@ -32,6 +32,7 @@ components:
                 - dataset_missing
                 - out_of_area
                 - insufficient_data
+                - license_incompatible
                 - unknown
           required:
             - code
@@ -115,6 +116,37 @@ paths:
                             type: integer
                             minimum: 0
                             exclusiveMinimum: true
+                          provenance:
+                            type: string
+                            enum:
+                              - synthetic
+                              - gtfs_import
+                            default: synthetic
+                            description: "synthetic: このリポジトリのスクリプトが生成したデモデータ。gtfs_import: 実 GTFS
+                              フィードから取り込んだ実データ"
+                            example: synthetic
+                          feedAttribution:
+                            type: object
+                            properties:
+                              feedOnestopId:
+                                type: string
+                                minLength: 1
+                              licenseSpdx:
+                                type: string
+                                minLength: 1
+                              attributionText:
+                                type: string
+                                minLength: 1
+                            required:
+                              - feedOnestopId
+                              - licenseSpdx
+                              - attributionText
+                            additionalProperties: false
+                            description: gtfs_import データセットの帰属表示。CC BY 4.0 等の attribution 要件を満たすため UI に表示する
+                            example:
+                              feedOnestopId: f-xn76-toei
+                              licenseSpdx: CC-BY-4.0
+                              attributionText: 東京都交通局 (Tokyo Metropolitan Bureau of Transportation)
                           stations:
                             type: array
                             items:

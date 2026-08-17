@@ -362,6 +362,54 @@
     build）で sandbox テスターとして実行し、結果を記録する必要がある。手順書:
     `docs/qa/10.3-10.4-manual-e2e-runbook.md`_
 
+- [ ] 11. データ調達の再設計（Acquisition/Estimation 分離）
+  - 設計: `docs/superpowers/specs/2026-08-13-transit-data-sourcing-design.md`（M1〜M5 の移行順序）。
+    requirements.md:24 の「外部データ利用は提供元の利用登録・ライセンス条件確認を前提とする」制約を、
+    人間のレビューではなく機械判定（ライセンスゲート）で満たす
+- [x] 11.1 (M1) 混雑推定の契約を ComfortEstimate に切り替える
+  - `packages/shared/src/prediction/comfort.ts` に `ComfortEstimate`/`ComfortProvenance`/
+    `ComfortSegment`/`CarriageComfort` を導入し、`byCarriage` を optional にして号車別データを
+    持たない地域での degrade を型で表現する
+  - 完了条件: ranker から結合キーの直接組み立てが消える
+  - _Requirements: 5.1, 5.2, 6.2_
+- [x] 11.2 (M2) 時刻表スキーマを GTFS 準拠へ刷新する
+  - `packages/shared/src/schemas/dataset.schema.ts` の `trainTimetables[]` フラット配列を
+    `trips[]`（`tripId` → `stopTimes[].stopSequence`）に置き換える（P3 の解消）。PR #11
+    (`feat/m2-gtfs-timetable-schema`)
+  - 完了条件: 分岐・折返しを含む fixture で経路探索が正しい停車順を返す
+  - _Requirements: 3.1, 3.2_
+- [ ] 11.3 (M3) Transitland ライセンスゲート＋都営 GTFS-JP 取り込みを新設する
+  - `packages/shared/src/transit/feed-license.ts`: Transitland `/feeds` の5ライセンスフラグ
+    （`license_commercial_use_allowed` 等）を判定する `assertLicenseCompatible()`。
+    `unknown`/`exclude_no` は fail closed（ODPT 型の「取り込んでから違反に気づく」事故を防ぐ）
+  - `apps/backend/scripts/ingest/transitland-client.ts`: ライセンスゲートを通過したフィードのみ
+    返す `searchLicenseCompatibleFeeds()`
+  - `apps/backend/scripts/ingest/gtfs-jp-parser.ts`: GTFS zip（stops/routes/trips/stop_times/
+    calendar.txt）を `stationSchema`/`tripSchema` へ変換。分岐・ループ路線（都営大江戸線等）は
+    P1 未解決のため拒否する
+  - `apps/backend/scripts/ingest-toei-gtfs.ts`: 上記を繋ぐ取り込みスクリプト（`pnpm --filter
+    backend run ingest:toei`）。取り込んだデータセットは `provenance: "gtfs_import"` +
+    `feedAttribution`（CC BY 帰属表示、9.3 の帰属表示画面に接続する入力）付きで
+    `fixtures/datasets/timetable.gtfs-import.json` に出力する
+  - GTFS zip 本体は `feed.urls.static_current`（事業者自身のホスティング URL）ではなく
+    Transitland の **Feed Archive**（`GET /feeds/{feed_key}/download_latest_feed_version`、
+    `transitland-client.ts` の `downloadLatestFeedVersion()`）から取得する。事業者 URL は
+    Transitland 自身のフェッチャーが使う内部リンクであり、こちらで直接叩くと可用性・認証方式が
+    保証されない
+  - 完了条件（設計原文）: 東京が実時刻表で動く
+  - _Depends: 11.1, 11.2_
+  - _Boundary: この段階では配信中のデモデータセット（RAIL_CHUO）は差し替えない。取り込んだデータを
+    デフォルト配信に昇格するかは、路線・駅区間の選定、対応する混雑合成データの再生成、
+    `ODPT_RAILWAY_IDS` を含む既存 fixture 群の更新を伴う別判断として扱う（スクリプトのヘッダ
+    コメント参照）_
+  - _Requirements: 3.1, 18.2, 18.3_
+  - _Blocked: このセッションのサンドボックスに外向きネットワークアクセスがなく（`curl`/`wget` は
+    ポリシーで拒否、Transitland/ODPT への実 API 呼び出しは未実施）、コード（ライセンスゲート・
+    Transitland クライアント・GTFS-JP パーサー・取り込みスクリプト）は実装・fixture ベースのテスト
+    (91 backend + 80 shared tests green) 済みだが、実データでの実行は未検証。人間が
+    `TRANSITLAND_API_KEY` を用意し `TRANSITLAND_API_KEY=... pnpm --filter backend run ingest:toei
+    -- --search toei` から開始して実行する必要がある。手順はスクリプト冒頭コメント参照_
+
 ## Implementation Notes
 
 - **10.2**: Before writing any new scenario, verified the existing (already-approved, task 4.6)
@@ -1323,3 +1371,43 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   both the ODPT attribution section and the support-contact section render correctly, including the
   correct empty-state fallback copy when `SUPPORT_EMAIL` (new, empty-by-default env var, same pattern
   as `PRIVACY_POLICY_URL`) is unset.
+- **11.1/11.2 (M1/M2) -- retroactive registration, not new work this session**: these two stages of
+  `docs/superpowers/specs/2026-08-13-transit-data-sourcing-design.md`'s migration were already
+  implemented in prior sessions but were never registered as tasks here (confirmed zero prior
+  mentions of "M1"/"M2"/"Transitland"/"ComfortEstimate" anywhere in this file before this edit).
+  Verified against current code, not against a session transcript: `packages/shared/src/prediction/
+  comfort.ts` already exports `ComfortEstimate`/`ComfortProvenance` with a docblock that
+  self-references "M1"; `packages/shared/src/schemas/dataset.schema.ts` already has `trips[]`/
+  `stopTimes[].stopSequence` (not the old flat `trainTimetables[]`), landed via PR #11
+  (`feat/m2-gtfs-timetable-schema`, merge commit d987c5b). Backfilled here so the task list matches
+  actual implementation state per this repo's own stated policy (root CLAUDE.md: "don't trust
+  tasks.md's `[x]` checkboxes blindly").
+- **11.3 (M3) -- code and fixture-tested, live ingestion NOT run**: implemented the ① Acquisition
+  layer scoped narrowly to what M3's own completion condition requires (a real Tokyo timetable
+  becomes possible), deliberately not the full multi-region `FeedDescriptor`/`OccupancyObservation`
+  abstraction from the design doc's §5.1 -- design principle 6 ("抽象化のための抽象化はしない。2地域目
+  が実際に載るまで一般化を進めない") argues against building that before M4 (Sydney) actually needs it.
+  `assertLicenseCompatible()` fails closed on `unknown`/`exclude_no`, not just `no` -- deliberately
+  stricter than "block only explicit refusals", because the entire point of a machine gate is to not
+  repeat the ODPT incident where an unset/unclear license field was read as permission.
+  `parseGtfsStaticZip()` rejects (rather than silently mis-orders) any trip whose stop_times visit
+  the requested station range in a non-monotonic order, since a branching/looping route (e.g. Toei
+  Oedo Line) can't be represented correctly until P1 (station.seq is a single per-line integer,
+  still unresolved even after M2) is fixed -- callers must pick a simple linear segment, matching the
+  MVP's own "1 line, no transfers" guardrail. Real Toei route_id/stop_id values and Transitland's
+  actual onestop_id for Toei were **not** verified against a live response -- this sandbox has no
+  outbound network (`curl`/`wget` denied by `.claude/settings.json`'s deny list; confirmed by
+  attempting both before writing any ingestion code, not assumed), so
+  `apps/backend/scripts/ingest-toei-gtfs.ts` was written to discover them via a first
+  `--search`-only run rather than hardcoding guessed values. `fflate` was added to
+  `apps/backend/package.json`'s devDependencies (0.8.3, confirmed current via `npm view fflate
+  version` -- the npm registry is reachable even though raw `curl`/`wget` are not) for zip
+  decompression only; CSV parsing is hand-written (no new dependency) since GTFS's format is simple
+  enough not to justify one. All new code lives under `apps/backend/scripts/` (Node-only tooling),
+  not `src/services/` -- apps/backend/CLAUDE.md is explicit that `src/` is the deployed Workers
+  bundle with no `nodejs_compat` flag, and `scripts/generate-datasets.ts` already established that
+  `node:*`-using tooling belongs outside it. Verified: `pnpm --filter shared test` (80/80),
+  `pnpm --filter backend test` (91/91, including the new fixture-zip-based parser tests and
+  mocked-fetch Transitland client tests), both workspaces' `typecheck`, `pnpm check` (Biome), and
+  `pnpm knip` (no new unused exports) all green; `apps/backend/openapi.yaml` regenerated to match
+  the new `license_incompatible` error code and `timetableDatasetPayloadSchema` fields.

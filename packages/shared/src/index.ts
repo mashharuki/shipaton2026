@@ -72,6 +72,7 @@ export {
   VS_EXPECTED_OUTCOMES,
   WEEKDAYS,
 } from "./schemas/api.schema";
+export type { DataProvenance } from "./schemas/dataset.schema";
 export {
   clockTimeSchema,
   congestionDatasetPayloadSchema,
@@ -81,14 +82,25 @@ export {
   createDatasetResponseSchema,
   DATASET_NAMES,
   DAY_TYPES,
+  dataProvenanceSchema,
   datasetNameSchema,
   dayTypeSchema,
+  feedAttributionSchema,
   stationSchema,
   stopTimeSchema,
   timeBucketSchema,
   timetableDatasetPayloadSchema,
   tripSchema,
 } from "./schemas/dataset.schema";
+export type {
+  FeedLicenseInfo,
+  LicenseFlag,
+  LicenseGateResult,
+} from "./transit/feed-license";
+export {
+  assertLicenseCompatible,
+  LICENSE_FLAG_VALUES,
+} from "./transit/feed-license";
 export type { DayType } from "./utils/time";
 export { toDayType, toTimeBucket } from "./utils/time";
 export { parseToResult } from "./utils/validation";

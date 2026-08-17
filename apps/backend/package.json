@@ -11,6 +11,7 @@
     "test": "vitest run",
     "db:migrate:local": "wrangler d1 migrations apply seatsignal-db --local",
     "generate:datasets": "tsx scripts/generate-datasets.ts",
+    "ingest:toei": "tsx scripts/ingest-toei-gtfs.ts",
     "push:datasets": "tsx scripts/push-datasets-to-kv.ts",
     "setup:local": "pnpm run db:migrate:local && pnpm run push:datasets",
     "openapi": "tsx scripts/generate-openapi.ts"
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.20.1",
+    "fflate": "0.8.3",
     "tsx": "4.23.5",
     "vitest": "4.1.10",
     "wrangler": "^4.110.0",

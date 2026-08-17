@@ -6,6 +6,7 @@ export const ERROR_CODES = [
   "dataset_missing",
   "out_of_area",
   "insufficient_data",
+  "license_incompatible",
   "unknown",
 ] as const;
 
