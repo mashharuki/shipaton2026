@@ -90,13 +90,32 @@ const MIGRATIONS: readonly string[] = [
     name_en TEXT NOT NULL,
     seq INTEGER NOT NULL
   );`,
-  `CREATE TABLE IF NOT EXISTS train_timetables (
-    train_id TEXT NOT NULL,
-    station_id TEXT NOT NULL,
-    dep_time TEXT NOT NULL,
+  // Timetable trips/stop_times (GTFS-shaped, per Task 1's shared schema
+  // migration). Named `timetable_trips` rather than the plain `trips` the
+  // task brief for this migration originally specified -- `trips` is
+  // already taken by the ride-history table below (`trip_id PK,
+  // route_json, started_at, ended_at, ...`, per design.md's Physical Data
+  // Model and owned by trip-history-repository.ts). Two `CREATE TABLE IF
+  // NOT EXISTS` statements with the same name but different columns in one
+  // migrations list would silently make the second a no-op -- since this
+  // one runs first (right after `stations`), the ride-history table would
+  // end up with this table's schema instead of its own, breaking
+  // trip-history-repository.ts's INSERT/SELECT of route_json/started_at/
+  // ended_at/feedback_json entirely. Renaming avoids the collision; the
+  // `DatasetStore.replaceTimetable`/`getTimetable` TS signatures this
+  // backs are internal-SQL-only per the task's own interface contract, so
+  // no external caller sees this name.
+  `CREATE TABLE IF NOT EXISTS timetable_trips (
+    trip_id TEXT PRIMARY KEY NOT NULL,
+    day_type TEXT NOT NULL,
+    car_count INTEGER NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS stop_times (
+    trip_id TEXT NOT NULL,
+    stop_id TEXT NOT NULL,
+    stop_sequence INTEGER NOT NULL,
     arr_time TEXT NOT NULL,
-    car_count INTEGER NOT NULL,
-    day_type TEXT NOT NULL
+    dep_time TEXT NOT NULL
   );`,
   `CREATE TABLE IF NOT EXISTS congestion_profile (
     railway_id TEXT NOT NULL,

@@ -30,7 +30,7 @@ const timetable: TimetableDatasetPayload = {
     { id: "STA_C", railwayId: "RAIL_X", nameJa: "C", nameEn: "C", seq: 2 },
     { id: "STA_D", railwayId: "RAIL_X", nameJa: "D", nameEn: "D", seq: 3 },
   ],
-  trainTimetables: [],
+  trips: [],
 };
 
 function fastCandidate(): RouteCandidate {

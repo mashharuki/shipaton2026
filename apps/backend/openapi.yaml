@@ -149,31 +149,14 @@ paths:
                                 nameJa: 新宿
                                 nameEn: Shinjuku
                                 seq: 3
-                          trainTimetables:
+                          trips:
                             type: array
                             items:
                               type: object
                               properties:
-                                trainId:
+                                tripId:
                                   type: string
                                   minLength: 1
-                                stationId:
-                                  type: string
-                                  minLength: 1
-                                departureTime:
-                                  type: string
-                                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
-                                  description: 時刻（HH:mm）
-                                  example: 07:32
-                                arrivalTime:
-                                  type: string
-                                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
-                                  description: 時刻（HH:mm）
-                                  example: 07:32
-                                carCount:
-                                  type: integer
-                                  minimum: 0
-                                  exclusiveMinimum: true
                                 dayType:
                                   type: string
                                   enum:
@@ -181,26 +164,69 @@ paths:
                                     - weekend
                                   description: 曜日種別
                                   example: weekday
+                                carCount:
+                                  type: integer
+                                  minimum: 0
+                                  exclusiveMinimum: true
+                                stopTimes:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      stopId:
+                                        type: string
+                                        minLength: 1
+                                      stopSequence:
+                                        type: integer
+                                        minimum: 0
+                                      arrivalTime:
+                                        type: string
+                                        pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                                        description: 時刻（HH:mm）
+                                        example: 07:32
+                                      departureTime:
+                                        type: string
+                                        pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                                        description: 時刻（HH:mm）
+                                        example: 07:32
+                                    required:
+                                      - stopId
+                                      - stopSequence
+                                      - arrivalTime
+                                      - departureTime
+                                    additionalProperties: false
+                                    description: 便の停車駅ごとの発着時刻と停車順（GTFS stop_times.txt 相当）
+                                    example:
+                                      stopId: STA_SHINJUKU
+                                      stopSequence: 0
+                                      arrivalTime: 07:32
+                                      departureTime: 07:32
+                                  minItems: 1
                               required:
-                                - trainId
-                                - stationId
-                                - departureTime
-                                - arrivalTime
-                                - carCount
+                                - tripId
                                 - dayType
+                                - carCount
+                                - stopTimes
                               additionalProperties: false
-                              description: 列車の駅ごとの発着時刻
+                              description: 列車1便の停車駅列（GTFS trips.txt + stop_times.txt
+                                相当）。各便が自身の停車順を持ち、路線全体の駅連番には依存しない
                               example:
-                                trainId: TRAIN_0732
-                                stationId: STA_SHINJUKU
-                                departureTime: 07:32
-                                arrivalTime: 07:31
-                                carCount: 10
+                                tripId: TRAIN_0732
                                 dayType: weekday
+                                carCount: 10
+                                stopTimes:
+                                  - stopId: STA_SHINJUKU
+                                    stopSequence: 0
+                                    arrivalTime: 07:32
+                                    departureTime: 07:32
+                                  - stopId: STA_TOKYO
+                                    stopSequence: 1
+                                    arrivalTime: 07:48
+                                    departureTime: 07:48
                         required:
                           - schemaVersion
                           - stations
-                          - trainTimetables
+                          - trips
                         additionalProperties: false
                         description: 時刻表データセット
                     required:

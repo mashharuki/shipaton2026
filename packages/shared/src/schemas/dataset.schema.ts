@@ -44,24 +44,58 @@ export const stationSchema = z
     },
   });
 
-export const trainTimetableEntrySchema = z
+export const stopTimeSchema = z
   .strictObject({
-    trainId: z.string().min(1),
-    stationId: z.string().min(1),
-    departureTime: clockTimeSchema,
+    stopId: z.string().min(1),
+    stopSequence: z.number().int().nonnegative(),
     arrivalTime: clockTimeSchema,
-    carCount: z.number().int().positive(),
-    dayType: dayTypeSchema,
+    departureTime: clockTimeSchema,
   })
   .meta({
-    description: "列車の駅ごとの発着時刻",
+    description: "便の停車駅ごとの発着時刻と停車順（GTFS stop_times.txt 相当）",
     example: {
-      trainId: "TRAIN_0732",
-      stationId: "STA_SHINJUKU",
+      stopId: "STA_SHINJUKU",
+      stopSequence: 0,
+      arrivalTime: "07:32",
       departureTime: "07:32",
-      arrivalTime: "07:31",
-      carCount: 10,
+    },
+  });
+
+export const tripSchema = z
+  .strictObject({
+    tripId: z.string().min(1),
+    dayType: dayTypeSchema,
+    carCount: z.number().int().positive(),
+    stopTimes: z.array(stopTimeSchema).min(1),
+  })
+  .refine(
+    (trip) => {
+      const sequences = trip.stopTimes.map((stopTime) => stopTime.stopSequence);
+      return new Set(sequences).size === sequences.length;
+    },
+    { message: "stopTimes 内の stopSequence は重複してはならない" },
+  )
+  .meta({
+    description:
+      "列車1便の停車駅列（GTFS trips.txt + stop_times.txt 相当）。各便が自身の停車順を持ち、路線全体の駅連番には依存しない",
+    example: {
+      tripId: "TRAIN_0732",
       dayType: "weekday",
+      carCount: 10,
+      stopTimes: [
+        {
+          stopId: "STA_SHINJUKU",
+          stopSequence: 0,
+          arrivalTime: "07:32",
+          departureTime: "07:32",
+        },
+        {
+          stopId: "STA_TOKYO",
+          stopSequence: 1,
+          arrivalTime: "07:48",
+          departureTime: "07:48",
+        },
+      ],
     },
   });
 
@@ -69,7 +103,7 @@ export const timetableDatasetPayloadSchema = z
   .strictObject({
     schemaVersion: z.number().int().positive(),
     stations: z.array(stationSchema),
-    trainTimetables: z.array(trainTimetableEntrySchema),
+    trips: z.array(tripSchema),
   })
   .meta({ description: "時刻表データセット" });
 
