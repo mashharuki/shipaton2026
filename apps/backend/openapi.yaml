@@ -121,7 +121,6 @@ paths:
                             enum:
                               - synthetic
                               - gtfs_import
-                            default: synthetic
                             description: "synthetic: このリポジトリのスクリプトが生成したデモデータ。gtfs_import: 実 GTFS
                               フィードから取り込んだ実データ"
                             example: synthetic

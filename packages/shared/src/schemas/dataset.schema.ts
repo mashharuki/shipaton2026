@@ -126,7 +126,7 @@ export const feedAttributionSchema = z
 export const timetableDatasetPayloadSchema = z
   .strictObject({
     schemaVersion: z.number().int().positive(),
-    provenance: dataProvenanceSchema.default("synthetic"),
+    provenance: dataProvenanceSchema.optional(),
     feedAttribution: feedAttributionSchema.optional(),
     stations: z.array(stationSchema),
     trips: z.array(tripSchema),

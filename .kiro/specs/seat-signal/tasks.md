@@ -1411,3 +1411,19 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   mocked-fetch Transitland client tests), both workspaces' `typecheck`, `pnpm check` (Biome), and
   `pnpm knip` (no new unused exports) all green; `apps/backend/openapi.yaml` regenerated to match
   the new `license_incompatible` error code and `timetableDatasetPayloadSchema` fields.
+- **11.3 correction 1 -- GTFS zip source**: initially downloaded from `feed.urls.static_current`
+  (the operator's own hosted URL, what Transitland's own fetcher uses internally). User pointed at
+  Transitland's Feed Archive; `transitland` skill's `references/rest-api.md` (OpenAPI-verified)
+  confirmed `GET /feeds/{feed_key}/download_latest_feed_version` exists and is the correct source.
+  Switched `transitland-client.ts` to `downloadLatestFeedVersion()` against that endpoint;
+  `gtfsStaticUrl` renamed to `originUrl`, kept attribution-display-only, never fetched.
+- **11.3 correction 2 -- `provenance` broke frontend typecheck**: `timetableDatasetPayloadSchema`'s
+  `provenance` field originally used `.default("synthetic")`, which only makes a zod field optional
+  on the *input* side -- `z.infer`'s *output* type (what `dataset-store.ts` and multiple frontend
+  test files use directly as a TS type for hand-built object literals, not always via `.parse()`)
+  still requires it, breaking `pnpm --filter frontend run typecheck` in 8 files. This was missed
+  during the original 11.3 work because only `generate-datasets.ts`'s `.parse()`-based construction
+  was checked, not every consumer. Fixed by switching to `.optional()` (this field was only ever
+  meant to be additive metadata, nothing depends on it always being present). Re-verified: all three
+  workspaces' `typecheck` green, `pnpm --filter frontend test` (217/217) in addition to shared
+  (80/80) and backend (94/94), `openapi.yaml` regenerated again.
