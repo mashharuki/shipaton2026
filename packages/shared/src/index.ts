@@ -24,6 +24,16 @@ export {
   getErrorMessageKey,
 } from "./errors/error-messages";
 export type {
+  AccuracyReport,
+  AccuracyVerdict,
+  ComfortEstimatePair,
+} from "./prediction/accuracy";
+export {
+  computeAccuracyReport,
+  MAE_DEGRADE_THRESHOLD_MINUTES,
+  spearmanCorrelation,
+} from "./prediction/accuracy";
+export type {
   CarriageComfort,
   ComfortEstimate,
   ComfortProvenance,

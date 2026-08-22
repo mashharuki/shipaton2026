@@ -449,6 +449,36 @@
     フィード側が値を送らなかった場合と明示的に `EMPTY` を送った場合が同じ decode 結果になり
     区別できない（`NO_DATA_AVAILABLE` センチネルを明示送信する行儀の良いフィードのみ正しく除外できる）_
 
+- [x] 11.5 (M5) 精度検証パイプライン（設計§7）を実装する
+  - `packages/shared/src/prediction/accuracy.ts`: `computeAccuracyReport()` が同一 trip の
+    `measured`/`modeled` な `ComfortEstimate` ペア配列から立ち時間 MAE・bias・号車別順位相関
+    （Spearman、平均順位法で同順位を処理）を算出する。`MAE_DEGRADE_THRESHOLD_MINUTES = 10`
+    （red-team KA-5 kill criterion）を超えると `verdict: "seating_ease_rank_only"` へ縮退
+  - `apps/frontend/test/prediction/accuracy-verification.test.ts`: M4 の `MeasuredStrategy`
+    （シドニー実測 fixture）と `ModeledStrategy`（実測データから独立して選んだ congestion
+    プロファイル、循環参照なし）を同一 trip（4駅・2両編成）に対して実行し、
+    `computeAccuracyReport()` に通す。合格シナリオ（MAE 2.0分）と縮退シナリオ（MAE 19分）の
+    両方をテストで固定
+  - `docs/qa/2026-08-22-sydney-accuracy-verification.md`: 設計§7「検証結果はdocs/qa/に日付付きで
+    残す」を満たす実行結果レポート。fixture ベースであり実 TfNSW データでの検証ではないことを
+    冒頭で明示し、設計§7.1「シドニーで検証したので東京も正確です、とは言えない」を維持
+  - 完了条件（設計原文）: MAE 数値が出る → MAE 2.0分（合格シナリオ）/ 19分（縮退シナリオ）
+  - _Depends: 11.4_
+  - _Boundary: fixture ベースの実行であり、実シドニーデータでの検証ではない（11.4 の
+    TfNSW ライブ接続ブロックにより連鎖的にブロックされている）。このタスクが証明するのは
+    (1) 精度検証パイプライン自体が正しい数値を返すこと (2) MeasuredStrategy と
+    ModeledStrategy が同一 ComfortEstimate 契約上で実際に突き合わせ可能なこと。実測データに
+    対するモデルの精度そのものは未証明_
+  - _Requirements: 該当する既存の番号付き要件はない。Requirement 5.9「予想立ち時間と実測値
+    （フィードバック）の誤差を運用者が測定できるようにする」は近縁だが別物 —
+    `apps/backend/src/services/feedback-aggregator.ts` の `mae_standing_min`
+    （ユーザーのフィードバック自己申告ベース、`vsExpected` を ±0.1 に写像した暫定ヒューリスティック、
+    root CLAUDE.md 既知の注記）を指しており、本タスクの「シドニーの実センサー実測 vs. モデル構造」
+    という別の精度軸ではない。実装後にこの区別を確認するため
+    `grep -rn "MAE\|spearman\|accuracy" packages/shared/src apps/frontend/src apps/backend/src`
+    を実行し、両者が重複ではなく補完関係にあることを確かめた。本タスクの根拠は設計 §7 の
+    KA-5 kill criterion のみで、numbered requirement には未登録_
+
 ## Implementation Notes
 
 - **10.2**: Before writing any new scenario, verified the existing (already-approved, task 4.6)
@@ -1494,3 +1524,18 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   `pnpm --filter frontend test` (230/230), all three workspaces' `typecheck`, `pnpm check`
   (Biome), `pnpm knip` all green. No `openapi.yaml` regeneration needed (no `packages/shared`
   API-contract schema changed this time, only additive new modules).
+- **11.5 (M5) -- correction, not caught before writing**: the task's first draft claimed a
+  `grep -rn "MAE|spearman|accuracy" ...` had been run *before* implementing `accuracy.ts`. That
+  grep was actually run *after* implementation, while drafting this task's citations -- the "before"
+  framing was false and has been corrected in the task's own Requirements note above. The grep
+  itself was still useful: it surfaced that "MAE" already exists in this codebase as a *different*
+  concept (`apps/backend/src/services/feedback-aggregator.ts`'s `mae_standing_min`,
+  user-feedback-based, Requirement 5.9) -- not a collision with this task's Sydney-measured-vs-
+  modeled comparison, but close enough in name that citing 5.9 for this task would have been
+  misleading; the task now cites no numbered requirement instead of a wrong one. Lesson: don't
+  narrate a verification step as having happened at a point in the process it didn't -- write the
+  note after actually doing the check, not as a plausible-sounding description of good practice.
+  Verified (re-confirmed after this correction, matching the entry above): `pnpm --filter shared
+  test` (103/103, includes the new `accuracy.test.ts`), `pnpm --filter frontend test` (232/232,
+  includes `accuracy-verification.test.ts`), `pnpm --filter backend test` (101/101), all three
+  workspaces' `typecheck`, `pnpm check`, `pnpm knip` all green.
