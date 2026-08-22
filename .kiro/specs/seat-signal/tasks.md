@@ -410,6 +410,45 @@
     `TRANSITLAND_API_KEY` を用意し `TRANSITLAND_API_KEY=... pnpm --filter backend run ingest:toei
     -- --search toei` から開始して実行する必要がある。手順はスクリプト冒頭コメント参照_
 
+- [ ] 11.4 (M4) シドニー TfNSW アダプタ＋ MeasuredStrategy を実装する
+  - `packages/shared/src/transit/occupancy-observation.ts`: 地域非依存の `OccupancyObservation`
+    型（設計 §5.1）と GTFS-RT 標準6段階 `OccupancyStatus`。`seatProbabilityForOccupancyStatus()`
+    は ESM 用の順序尺度→確率写像（基準点はソウルの公式定義「座席全部埋まった状態=34%」、設計§5.5）
+  - `apps/frontend/src/features/prediction/strategies/measured-strategy.ts`:
+    `createMeasuredStrategy()` が既存の `CongestionStrategy`（`strategies/types.ts`、
+    ModeledStrategy と同一契約）を実装。ESM 公式（設計§5.5:
+    `Σ(segment.minutes × (1 − seatProbability))`）を初めて実コードに導入。`EstimateInput` に
+    `tripId?` を追加（ModeledStrategy は無視、MeasuredStrategy は必須）
+  - `apps/frontend/src/lib/clock-time.ts`: `resolveTripMinutes()` を modeled-strategy.ts から
+    抽出し2箇所で共有（重複コード解消、振る舞いは不変）
+  - `apps/backend/scripts/ingest/tfnsw-client.ts`: TfNSW GTFS-RT を `gtfs-realtime-bindings`
+    (2.2.0) でデコードし `OccupancyObservation[]` へ変換する `fetchOccupancyObservations()`
+  - 完了条件（設計原文）: 号車別実測が UI に出る
+  - _Depends: 11.1_
+  - _Boundary: 出荷対象は東京のみ（MVP スコープガードレール）であり、シドニー向けの検索・表示画面は
+    追加していない。「UI に出る」は
+    `apps/frontend/test/features/prediction/strategies/measured-strategy.test.ts` の統合テスト
+    （`MeasuredStrategy.estimate()` の出力を ModeledStrategy と全く同じ `deriveBoardingAdvice()`
+    に通し、Sydney 専用分岐なしで有効な `BoardingAdvice` が得られることを確認）で証明する。実際の
+    Sydney 画面のスクリーンショットではない_
+  - _Requirements: 5.1, 5.2, 6.1, 6.2_
+  - _Blocked: 11.3 と同じ理由でこのセッションから TfNSW への実 API 呼び出しは未実施。加えて TfNSW
+    Open Data の API キーは Transitland とは別に取得が必要（未着手）。`tfnsw-client.ts` は
+    fixture（実際に `FeedMessage.encode()` でエンコードしたバイト列）でのラウンドトリップテストで
+    検証済み（101 backend tests green）だが実フィードでの動作は未検証_
+  - _Note: 設計 §3.3 が「TfNSW 拡張1007」と説明した号車別データは、`gtfs-realtime-bindings@2.2.0`
+    の型定義を実際にインストールして確認した結果、現在の GTFS-RT 標準仕様に
+    `VehiclePosition.multiCarriageDetails[]`（号車別・現在位置のみ）として吸収されていることが
+    判明した。加えて `TripUpdate.StopTimeUpdate.departureOccupancyStatus`（未来の停車駅ごと・
+    号車非分解）も標準仕様にある。両方を組み合わせて `OccupancyObservation` を構築しており、
+    設計が想定した「将来の全停車駅×号車」の完全な組み合わせではない。TfNSW 独自拡張の proto は
+    このセッションから検証不能（設計§10 記載の URL
+    https://opendata.transport.nsw.gov.au/sites/default/files/2023-08/gtfs-realtime_1007_extension.proto__0.txt
+    を参照して裏取りせずフィールド番号を推測することはしなかった）。fixture テストで実際に確認した
+    既知の限界: `departureOccupancyStatus` 等は proto3 の非 optional enum フィールドのため、
+    フィード側が値を送らなかった場合と明示的に `EMPTY` を送った場合が同じ decode 結果になり
+    区別できない（`NO_DATA_AVAILABLE` センチネルを明示送信する行儀の良いフィードのみ正しく除外できる）_
+
 ## Implementation Notes
 
 - **10.2**: Before writing any new scenario, verified the existing (already-approved, task 4.6)
@@ -1427,3 +1466,31 @@ useUsageLimiterStore.persist.rehydrate()`), awaited by `initSubscriptionGate()` 
   meant to be additive metadata, nothing depends on it always being present). Re-verified: all three
   workspaces' `typecheck` green, `pnpm --filter frontend test` (217/217) in addition to shared
   (80/80) and backend (94/94), `openapi.yaml` regenerated again.
+- **11.4 (M4)**: Discovered mid-implementation that more of M1 already existed than 11.1's
+  backfill note captured -- `apps/frontend/src/features/prediction/strategies/{types.ts,
+  modeled-strategy.ts}` already had a full, working `CongestionStrategy` interface (matching
+  design doc §5.4 almost verbatim, including its own comments citing the same region-differences
+  table) and `createModeledStrategy()`, not just the `ComfortEstimate` type in `packages/shared`.
+  `MeasuredStrategy` was written as a sibling implementing that *existing* interface rather than
+  inventing a new one in `packages/shared` -- the interface itself lives in the frontend because
+  prediction runs entirely on-device (design.md: "端末内計算"), which `apps/backend/CLAUDE.md`'s
+  scope note ("Route search is intentionally NOT a backend concern") already established.
+  `deriveBoardingAdvice()` (`boarding-advice.ts`) turned out to already be fully region-agnostic
+  (derives `BoardingAdvice` from `ComfortEstimate.byCarriage` alone, no ModeledStrategy-specific
+  logic) -- confirmed by feeding it MeasuredStrategy's real output directly with no adapter code,
+  which is the test that stands in for "UI に出る" (see the task's Boundary note: no Sydney screen
+  exists to screenshot, and per the MVP scope guardrail shouldn't).
+  `gtfs-realtime-bindings`'s version was verified via `npm view` (2.2.0, current) rather than
+  assumed from memory, matching 11.3's dependency-verification precedent. Discovering
+  `VehiclePosition.multiCarriageDetails` existed in the *installed package's compiled `.d.ts`*
+  (not from training-data memory of the GTFS-RT spec) is what changed the implementation plan
+  mid-session from "extension 1007 not implementable here" to "a real, verified, standard-spec
+  subset is implementable" -- installing the dependency and reading its real types functioned as
+  the verification step network access couldn't provide. The proto3 field-presence limitation
+  (see the task's Note) was likewise not assumed -- `tfnsw-client.test.ts` was run, found the
+  originally-written test's expectation wrong, and both the code's behavior and the test were
+  reconciled to the empirically observed reality rather than silently patching the assertion to
+  pass. Verified: `pnpm --filter shared test` (86/86), `pnpm --filter backend test` (101/101),
+  `pnpm --filter frontend test` (230/230), all three workspaces' `typecheck`, `pnpm check`
+  (Biome), `pnpm knip` all green. No `openapi.yaml` regeneration needed (no `packages/shared`
+  API-contract schema changed this time, only additive new modules).

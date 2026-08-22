@@ -101,6 +101,15 @@ export {
   assertLicenseCompatible,
   LICENSE_FLAG_VALUES,
 } from "./transit/feed-license";
+export type {
+  OccupancyObservation,
+  OccupancyStatus,
+} from "./transit/occupancy-observation";
+export {
+  isOccupancyStatus,
+  OCCUPANCY_STATUSES,
+  seatProbabilityForOccupancyStatus,
+} from "./transit/occupancy-observation";
 export type { DayType } from "./utils/time";
 export { toDayType, toTimeBucket } from "./utils/time";
 export { parseToResult } from "./utils/validation";

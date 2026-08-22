@@ -18,6 +18,14 @@ export type EstimateInput = {
   arrivalTime: string;
   dayType: DayType;
   delayMinutes?: number;
+  /**
+   * Identifies which trip's real-time observations to read. Optional
+   * because ModeledStrategy has no notion of a specific trip (it looks up a
+   * time-bucketed profile instead) -- only a strategy backed by per-trip
+   * observations (MeasuredStrategy) requires it, and returns
+   * `validation_error` when it's missing.
+   */
+  tripId?: string;
 };
 
 /**
