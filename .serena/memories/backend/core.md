@@ -34,11 +34,13 @@ own `routes/`/`services/`/`cron/` module, not `index.ts` — treat edits to it a
   `wrangler d1 create`/`wrangler kv namespace create` first (not run — creates live Cloudflare
   resources). `nodejs_compat` compat flag is NOT enabled — no Node built-ins available.
 
-## Known unresolved gap
-Both cron jobs are implemented+tested but **`index.ts` has no `scheduled` export** to dispatch
-Cron Trigger invocations to them — neither cron fires in a real deployment. Flagged in
-`tasks.md`'s Implementation Notes (tasks 2.2/3.4/3.7) as needing human sign-off on which task
-should own adding it. Don't assume the batches run just because triggers are configured.
+## Cron dispatch
+`index.ts`'s default export is `Object.assign(app, { scheduled })`: the same `OpenAPIHono`
+instance used for OpenAPI generation also dispatches the configured expressions. It passes
+`new Date(event.scheduledTime)` into `runAggregateFeedback` / `runNotifyCommuters`, logs Result
+errors without throwing, and logs unknown cron expressions. Test with direct
+`worker.scheduled(createScheduledController(...), env, createExecutionContext())`, then
+`waitOnExecutionContext`; calling it through `SELF` causes a `DataCloneError`.
 
 ## Testing
 `test/` mirrors `src/` (`test/routes/`, `test/services/`, `test/cron/`, `test/db/`). Uses
@@ -64,3 +66,8 @@ should own adding it. Don't assume the batches run just because triggers are con
   (the only real vs.-normal signal available) — no weather/event dataset exists, so reason text is
   feedback-based copy (`REASON_COPY`), not literally weather/event-derived despite what
   requirements.md's prose implies.
+- Ingest tooling is intentionally offline-testable: `scripts/ingest-toei-gtfs.ts` combines
+  fail-closed Transitland license filtering, Feed Archive download, and GTFS-JP parsing into a
+  `gtfs_import` dataset with attribution. `scripts/ingest/tfnsw-client.ts` decodes GTFS-RT
+  occupancy into shared `OccupancyObservation`s. Neither live provider has been validated here;
+  credentials/network access and human review are still required before using either feed.

@@ -31,6 +31,9 @@ work directly — prefer over `cd`/`pnpm --dir`. Workspace names: `shared`, `fro
 - `pnpm --filter backend db:migrate:local` — `wrangler d1 migrations apply seatsignal-db --local`.
 - `pnpm --filter backend generate:datasets` — regenerate fixture datasets (timetable/congestion/
   correction) used by dev/test/E2E.
+- `TRANSITLAND_API_KEY=... pnpm --filter backend run ingest:toei -- --search toei` — live,
+  credentialed GTFS import; writes a candidate attributed fixture and does not replace the
+  current demo dataset. Treat this as external-data validation, not a routine local command.
 - `pnpm --filter backend push:datasets` — push generated datasets into local KV.
 - `pnpm --filter backend openapi` — regenerate committed `openapi.yaml` from route definitions
   (there's a drift test asserting these stay in sync — `test/openapi-drift.test.ts`).

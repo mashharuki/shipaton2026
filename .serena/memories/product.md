@@ -22,19 +22,18 @@ Conditional-Go verdict with kill-criteria — check this doc before expanding sc
 
 ## Implementation status (check `.kiro/specs/seat-signal/tasks.md` for current truth)
 
-Phases 1–5 done: shared foundation (Result/errors/schemas/scoring), backend Workers infra + all 5
-API routes + aggregation/notification cron logic + OpenAPI generation, frontend app shell +
-dataset sync + i18n + analytics client + Playwright infra, and the core loop (preferences → route
-search → prediction → 3-route comparison → route-detail/boarding-position screens). Not started:
-phase 6 (RevenueCat subscription/paywall — `packages/shared`'s `PRO_ENTITLEMENT_ID`/plan-limit
-constants exist as the contract only), phase 7 (Live Comfort Coach + ride feedback), phase 8
-(saved routes/push notification client/weekly report), phase 9 (onboarding/settings/attribution),
-phase 10 (integration/E2E/sandbox-billing verification).
+Implemented: phases 1–9, automated integration (10.1/10.2), and data-redesign milestones M1,
+M2, M5. This includes native RevenueCat/Paywall integration (with web-safe fallback), Live Comfort
+Coach + feedback/history, saved routes/push/report, onboarding/settings/attribution, and the
+Playwright core flows. `apps/backend/src/index.ts` now attaches a `scheduled` handler to the same
+`OpenAPIHono` export; it dispatches the two configured cron expressions using `scheduledTime` and
+is covered by `test/scheduled.test.ts`.
 
-Known unresolved gap (see tasks.md Implementation Notes, tasks 2.2/3.4/3.7): `wrangler.jsonc`
-configures daily + 5-min Cron Triggers and both batch jobs are implemented+tested as callable
-functions, but `apps/backend/src/index.ts` has no `scheduled` export — neither cron actually fires
-in a real deployment yet. Needs human sign-off on which task owns adding it.
+Remaining work is external verification rather than missing core implementation: 10.3 physical
+device E2E, 10.4 sandbox purchase E2E, M3 live Transitland/Toei GTFS import, and M4 live TfNSW
+occupancy validation. M3/M4 code and fixture tests exist, but require provider credentials and
+outbound network access. M5 verifies the accuracy pipeline with fixtures only; it does not prove
+Tokyo model accuracy.
 
 ## Key domain types (packages/shared/src)
 
@@ -46,7 +45,11 @@ in a real deployment yet. Needs human sign-off on which task owns adding it.
   frontend's `features/prediction/prediction-engine.ts` — same function, both runtimes.
 - `schemas/api.schema.ts`, `schemas/dataset.schema.ts`, `schemas/analytics-events.ts` — zod
   contracts, now the live backend route/dataset/analytics-event shapes (not aspirational).
-- `constants/plan-limits.ts` — free-tier limits + `PRO_ENTITLEMENT_ID` (RevenueCat entitlement
-  key referenced from constants, not hardcoded per call site) — still unconsumed until phase 6.
+- `constants/plan-limits.ts` — free-tier limits + `PRO_ENTITLEMENT_ID`, consumed by the frontend
+  subscription gate/paywall flow rather than hardcoded per call site.
+- `prediction/comfort.ts` — region-neutral `ComfortEstimate` contract; `accuracy.ts` compares
+  measured/modelled pairs (MAE, bias, carriage-rank correlation) and degrades to rank-only over
+  `MAE_DEGRADE_THRESHOLD_MINUTES` (10). `transit/` holds fail-closed feed-license and occupancy
+  primitives.
 - `errors/` — `ErrorCode` union + `AppError` + `createAppError`/`toAppError`/`isAppError`, per the
   Result-pattern convention in `.claude/rules/code-style.md`.

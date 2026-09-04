@@ -25,8 +25,9 @@
   0.20.1 for Workers-runtime integration tests, `tsx` for scripts. `wrangler.jsonc` has real
   bindings now: D1 (`DB`, migrations in `src/db/migrations/`), KV (`STATUS_CACHE` — shared by ODPT
   status cache and dataset payloads, prefix-differentiated), a `ratelimits` binding, and two Cron
-  Triggers (daily 18:00 UTC, every 5 min) — see `mem:backend/core` for the unresolved
-  `scheduled`-export gap. Depends on `shared` via workspace protocol.
+  Triggers (daily 18:00 UTC, every 5 min) dispatched by the Worker module's tested `scheduled`
+  handler. Ingest tooling adds `fflate` (GTFS zip) and `gtfs-realtime-bindings` (TfNSW GTFS-RT).
+  Depends on `shared` via workspace protocol.
 - CI: `.github/workflows/ci.yaml` — 4 jobs: Biome check (whole repo); typecheck matrix
   `[shared, backend, frontend]` (frontend synthesizes `expo-env.d.ts` first, backend runs
   `cf-typegen` first); vitest matrix over the same three workspaces (all now have real `test`
@@ -34,6 +35,5 @@
   against the Expo web target — the only rendering-level test surface in this repo).
 - Spec-driven dev tooling: `.kiro/specs/seat-signal/` (approved) and `.kiro/steering/`
   (product/tech/structure — synced 2026-08-06, not stale).
-- Language: Swift is also registered as a project language in Serena's config, but no Swift
-  source found under `apps/` as of last check — likely reserved for a future/parallel native iOS
-  target (RevenueCat Shipaton context implies iOS+RevenueCat work is expected).
+- Native iOS and Android project directories are present for Expo development builds; use the
+  frontend's `AGENTS.md` for the Xcode/Metro/StoreKit-specific constraints.

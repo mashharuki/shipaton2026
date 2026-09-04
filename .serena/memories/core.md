@@ -25,8 +25,10 @@ Layout:
   auto-memory `mockup-html-extraction.md` for extraction procedure).
 - Root tooling: Biome (lint+format, see `mem:conventions`), Knip (unused code/deps), pnpm.
 - `.github/workflows/ci.yaml` — 4 jobs: Biome check, typecheck matrix (shared/backend/frontend),
-  vitest matrix (all 3 workspaces now have real `test` scripts), Playwright E2E (frontend, applies
-  local D1 migrations first).
+  vitest matrix, Playwright E2E (frontend; applies local D1 migrations and seeds KV first).
+- Transit-data acquisition/estimation redesign: shared `ComfortEstimate` contract, GTFS-JP ingest
+  tooling, TfNSW occupancy adapter, and accuracy reporting. The live-data validations remain human
+  work requiring provider credentials/network access; see `mem:product`.
 
 Extensive `.claude/rules/*.md` govern agent behavior (code-style, git-workflow, testing, security,
 argent mobile-device MCP tooling, dev/browser-tool priorities, learning-loop memory policy). Those

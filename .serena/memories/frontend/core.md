@@ -1,8 +1,8 @@
 # Frontend — apps/frontend (Expo React Native)
 
 Routing: expo-router file-based under `src/app/` (typed routes). `(tabs)/` route group = 3-tab
-shell (home/report/settings, `_layout.tsx` per dir); `results.tsx`/`route-detail.tsx` are pushed
-screens outside the tabs.
+shell (home/report/settings, `_layout.tsx` per dir); pushed screens include results, route detail,
+coach, feedback, paywall, onboarding, and settings subpages.
 
 ## Structure
 - `features/<feature>/` — domain/business logic per feature area (search, prediction,
@@ -22,6 +22,10 @@ screens outside the tabs.
   `features/preferences/preference-store.ts`).
 - `components/`, `hooks/`, `constants/` — shared UI/cross-cutting hooks/theming. Platform variants
   via `.web.tsx`/`.web.ts` suffix (Metro/Expo auto-resolves).
+- Implemented feature modules also cover subscription (RevenueCat + free-tier gate), coach/train
+  status/feedback/history, saved routes/notifications/report, onboarding, and privacy settings.
+  Prediction strategies produce shared `ComfortEstimate`: Tokyo uses `ModeledStrategy`; the
+  fixture-tested TfNSW path uses `MeasuredStrategy` with optional per-carriage data.
 
 ## Testing — architectural split, not an oversight
 Vitest coverage is domain-layer only (`src/features/**`, `src/lib/**`). This project's
@@ -43,3 +47,5 @@ surface in this repo). `test/` mirrors `src/` 1:1 (`test/features/`, `test/lib/`
 - CORS: `apps/frontend`'s `api-client.ts` is a plain `fetch()` wrapper with no CORS-specific
   handling — a CORS failure surfaces through the existing `offline` catch branch like any other
   network failure; CORS itself is owned backend-side (`hono/cors` in `index.ts`).
+- RevenueCatUI is native-only. Web/Expo Go paths must use the existing availability guard/fallback;
+  sandbox purchase completion remains a physical development-build verification, not Playwright.
