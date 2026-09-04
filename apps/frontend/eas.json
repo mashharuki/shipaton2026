@@ -23,7 +23,10 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_PRIVACY_POLICY_URL": "https://mashharuki.github.io/seat-signal-legal/privacy.html",
+        "EXPO_PUBLIC_TERMS_OF_SERVICE_URL": "https://mashharuki.github.io/seat-signal-legal/terms.html",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "avp.104.106.107@ae.auone-net.jp"
       }
     }
   },
