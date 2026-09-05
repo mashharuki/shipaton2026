@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+
 // design.md names http://localhost:8787 (wrangler dev) as the local backend
 // server; EXPO_PUBLIC_* is Expo's convention for values meant to ship in the
 // client bundle (same pattern 4.1 used for EXPO_PUBLIC_SENTRY_DSN).
@@ -26,15 +28,14 @@ export const REVENUECAT_ANDROID_API_KEY =
 export const REVENUECAT_TEST_STORE_API_KEY =
   process.env.EXPO_PUBLIC_REVENUECAT_TEST_STORE_API_KEY ?? "";
 
-// 6.3/13.9: no hosted privacy policy / terms of service exists yet for this
-// project -- empty by default (same not-yet-provisioned pattern as the
-// Sentry DSN and RevenueCat keys above). paywall.tsx only renders these
-// links when non-empty; a human needs to supply real hosted URLs before
-// store submission (Req 18.x also needs them from the settings hub).
+// Hosted legal URLs are supplied by the build environment. iOS uses Apple's
+// standard EULA in every build; its URL must also appear in the App Store description.
 export const PRIVACY_POLICY_URL =
   process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL ?? "";
 export const TERMS_OF_SERVICE_URL =
-  process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL ?? "";
+  Platform.OS === "ios"
+    ? "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    : (process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL ?? "");
 
 // 9.3/18.2: support contact address shown in settings/licenses.tsx. Same
 // not-yet-provisioned empty-by-default pattern as the URLs above -- a human
